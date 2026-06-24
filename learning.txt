@@ -1,0 +1,462 @@
+====================================================================
+                     UNIQUE — Learning Journal
+  Everything you need to understand the admin dashboard I just built
+====================================================================
+
+TABLE OF CONTENTS
+  1. Where We Are (Phase 1, Week 2)
+  2. The Bug I Found & Fixed
+  3. The Admin Dashboard — What & Why
+  4. Client Components vs Server Components
+  5. How the Admin Auth Guard Works
+  6. The API Helper (lib/api.ts)
+  7. The CRUD Pattern (Every Admin Page Follows This)
+  8. State Management in Plain Terms
+  9. How the College CRUD Page Works (Line of Sight)
+ 10. How to Test the Admin Dashboard
+ 11. Glossary of Terms Used
+
+====================================================================
+1. WHERE WE ARE (Phase 1, Week 2)
+====================================================================
+
+Your blueprint has 8 weeks of Phase 1. Here's where we stand:
+
+  Week 1 ✅ Done — Project setup, database connection, auth (register/login,
+              JWT tokens, Cloudflare Turnstile bot protection)
+
+  Week 2 ✅ Done (API) + Now we added the admin UI — College, Subject, Topic
+              models + API routes (full CRUD) + Admin dashboard pages
+
+  Week 3 ❌ Not started — Student-facing pages (college list, subject page,
+              topic page with video)
+
+The admin dashboard is the bridge between "I have API endpoints I can test
+in Postman" and "I can manage my content visually in a browser." You need
+this to enter real data without typing raw JSON requests.
+
+====================================================================
+2. THE BUG I FOUND & FIXED
+====================================================================
+
+File: src/app/api/admin/colleges/[id]/route.ts
+
+This file was supposed to handle:
+  PATCH  /api/admin/colleges/[id]   → Update a college
+  DELETE /api/admin/colleges/[id]   → Delete a college
+
+But instead it contained code for creating subjects. It was an exact copy
+of src/app/api/admin/subjects/route.ts — wrong file, wrong content.
+
+This meant: if you tried to update or delete a college via the API, you'd
+get back subject-related behavior. The admin dashboard would have broken
+when you clicked "edit" or "delete" on a college.
+
+I replaced it with the correct PATCH handler (validates input with Zod,
+updates the college in MongoDB, returns the updated document) and the
+correct DELETE handler (checks no subjects depend on this college first,
+blocks deletion if there are — this is the "no cascade delete" rule from
+your blueprint Section 9 and Decisions Log Section 15).
+
+Lesson: always check that your files contain what their path says they
+should contain. A file named colleges/[id]/route.ts should handle college
+operations, not subject operations.
+
+====================================================================
+3. THE ADMIN DASHBOARD — WHAT & WHY
+====================================================================
+
+The admin dashboard is a set of pages at /admin/* that let you manage
+your content visually. Before this, you had to use Postman or curl to
+send raw JSON requests. Now you can:
+
+  • Visit /admin → See counts of colleges, subjects, topics
+  • Visit /admin/colleges → See all colleges in a table, add new ones,
+    edit existing ones, delete them
+  • Visit /admin/subjects → Same, filtered by college
+  • Visit /admin/topics → Same, with a one-click publish toggle
+
+These pages are "client components" (they run in the browser, not on the
+server) because they need to:
+  1. Read the JWT token from localStorage
+  2. React to user clicks (open forms, submit data)
+  3. Use useState/useEffect to manage state
+
+====================================================================
+4. CLIENT COMPONENTS vs SERVER COMPONENTS
+====================================================================
+
+This is a fundamental Next.js concept you need to understand.
+
+In Next.js 13+, every component is a SERVER COMPONENT by default.
+That means it runs on the server, sends HTML to the browser, and that's
+it. Server components CANNOT:
+  • Use useState, useEffect, or any React hooks
+  • Handle click events (onClick, onSubmit)
+  • Access browser APIs (localStorage, window, document)
+  • Use "use client" is required for any of the above
+
+CLIENT COMPONENTS are marked with "use client" at the top of the file.
+They run in the user's browser. They CAN use hooks, handle events, and
+access browser APIs. They're heavier than server components (the browser
+has to download the JavaScript), so you should only use them when you
+actually need interactivity.
+
+Our admin pages are all client components because they need to:
+  - Check localStorage for the JWT token
+  - Show/hide forms when buttons are clicked
+  - Fetch data on page load and re-fetch after saves
+  - Show loading and error states
+
+The "use client" directive turns a file into a client component boundary.
+Everything imported into it can still be a server component, but once you
+mark a file "use client", that component and everything it renders runs
+on the client.
+
+====================================================================
+5. HOW THE ADMIN AUTH GUARD WORKS
+====================================================================
+
+File: src/app/admin/layout.tsx
+
+This is the layout wrapper for all /admin/* pages. It runs first, before
+the page content, and acts as a gatekeeper.
+
+When you visit /admin/*, here's exactly what happens:
+
+  1. The layout mounts in the browser (it's "use client")
+  2. A useEffect runs once (empty dependency array [])
+  3. It reads the JWT from localStorage: localStorage.getItem("accessToken")
+  4. If no token exists → redirect to /auth/login
+  5. If a token exists, it DECODES the JWT:
+       atob(token.split(".")[1])
+     This reads the payload portion of the JWT (the middle part, between
+     the two dots). JWTs are three base64-encoded parts separated by dots:
+       header.payload.signature
+  6. It checks two things:
+       a. payload.role === "admin" — you must be an admin
+       b. payload.exp * 1000 > Date.now() — token must not be expired
+          (exp is in seconds, Date.now() is in milliseconds, hence *1000)
+  7. If either check fails → clear token, redirect to login
+  8. If both pass → set isAuthed = true, render the sidebar + page content
+
+While checking, it shows "جاري التحقق..." (Verifying...). This is a
+loading state so the user sees something, not a blank screen.
+
+The sidebar has navigation links that highlight the active page by
+comparing pathname to each link's href.
+
+====================================================================
+6. THE API HELPER (lib/api.ts)
+====================================================================
+
+File: src/lib/api.ts
+
+Before this file, every API call needed you to manually:
+  1. Read the token from localStorage
+  2. Add an Authorization header
+  3. Set Content-Type to application/json
+  4. Check if the response was 401/403 and redirect
+  5. Parse the JSON
+  6. Handle errors
+
+The apiFetch function does all of this automatically:
+
+  function getAuthHeaders() {
+    const token = localStorage.getItem("accessToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+This reads the JWT and returns it as an HTTP header. "Bearer" is a
+standard convention — it just means "the bearer of this token is the
+authorized user."
+
+  export async function apiFetch<T>(url, options?) {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("accessToken");
+        window.location.href = "/auth/login";
+      }
+      throw new Error(data.error || "حدث خطأ");
+    }
+
+    return data;
+  }
+
+The <T> is a TypeScript generic — it lets you specify what shape of data
+you expect back. When you call apiFetch<College[]>("/api/colleges"), it
+knows the data field should be an array of College objects.
+
+The spread operator (...options) lets you pass additional fetch options
+(method, body, etc.) while still adding the auth header automatically.
+
+====================================================================
+7. THE CRUD PATTERN (Every Admin Page Follows This)
+====================================================================
+
+Every CRUD page (colleges, subjects, topics) follows the SAME pattern:
+
+  STATE VARIABLES:
+    • items[]         — the list of items fetched from the API
+    • loading         — true while fetching, shows loading text
+    • showForm        — true when the add/edit form is visible
+    • editingId       — null for add, string ID for edit
+    • form            — object holding the form field values
+    • saving          — true while saving, disables button
+    • error           — error message to display
+    • filterX         — optional filter (collegeId, subjectId)
+
+  FLOW:
+    1. Page mounts → useEffect calls fetchData()
+    2. fetchData() calls apiFetch() to get items from API
+    3. Items display in an HTML <table>
+    4. User clicks "إضافة" (Add) → showForm = true, editingId = null
+    5. User clicks "تعديل" (Edit) on a row → showForm = true,
+       editingId = item._id, form is pre-filled with item data
+    6. User fills form and clicks save → handleSave()
+    7. handleSave() calls apiFetch() with POST (new) or PATCH (edit)
+    8. On success → resetForm(), re-fetch items to refresh the table
+    9. On error → display error message, form stays open
+    10. User clicks "حذف" (Delete) → confirm dialog → apiFetch DELETE
+
+  KEY RULE: Always re-fetch the list after any create/update/delete.
+  This keeps the table in sync with the database.
+
+====================================================================
+8. STATE MANAGEMENT IN PLAIN TERMS
+====================================================================
+
+State is just data that changes over time. When state changes, React
+re-renders the component to reflect the new data.
+
+  useState(initialValue) returns [value, setValue]
+    - value: the current state
+    - setValue: a function that updates it
+
+  Example from the colleges page:
+    const [colleges, setColleges] = useState<College[]>([]);
+    // colleges starts as an empty array []
+    // When fetch completes: setColleges(res.data)
+    // Now colleges has real data, React re-renders the table
+
+  const [showForm, setShowForm] = useState(false);
+    // Starts false (form hidden)
+    // User clicks "إضافة" → setShowForm(true) → form appears
+    // User clicks "إلغاء" → setShowForm(false) → form disappears
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+    // Starts null (adding new item)
+    // User clicks "تعديل" on item X → setEditingId(X._id)
+    // Now the form knows it's editing an existing item
+
+  const [form, setForm] = useState({ name: "", slug: "", ... });
+    // Object holding all form field values
+    // When user types in a field:
+    //   setForm({ ...form, name: e.target.value })
+    // The ...form spread keeps the other fields unchanged
+
+  THE SPREAD PATTERN:
+    setForm({ ...form, name: e.target.value })
+    This creates a NEW object with all of form's existing properties,
+    but overrides name with the new value. You must do this because
+    React state should be treated as IMMUTABLE (never modify it
+    directly — always create a new copy).
+
+====================================================================
+9. HOW THE COLLEGE CRUD PAGE WORKS (Line of Sight)
+====================================================================
+
+Let's trace through src/app/admin/colleges/page.tsx from top to bottom:
+
+LINES 1-4: Imports
+  React hooks (useEffect, useState, useCallback)
+  apiFetch from our helper
+  Button and Input components from the design system
+
+LINES 6-17: Types
+  College interface — defines the shape of a college object (what fields
+  it has and their types). This is TypeScript's way of documenting data
+  structure and catching errors if you access a field that doesn't exist.
+
+  FormData interface — defines the shape of the form data (doesn't
+  include _id because new items don't have one yet).
+
+LINES 19-27: emptyForm
+  The default/blank form values. Defined once outside the component so
+  it's not recreated on every render.
+
+LINES 29-35: Component function + State declarations
+  Each useState call declares a piece of state.
+
+LINES 37-48: fetchColleges
+  useCallback wraps the fetch function so it doesn't get recreated on
+  every render (optimization). It calls apiFetch, sets colleges or error.
+
+LINES 50-52: useEffect
+  Runs fetchColleges once when the component mounts.
+
+LINES 54-58: resetForm
+  Resets all form-related state to defaults. Called after save and when
+  cancelling.
+
+LINES 60-69: openEdit
+  Pre-fills the form with an existing college's data and sets editingId
+  to its _id. Called when user clicks "تعديل".
+
+LINES 71-88: handleSave
+  If editingId is set → PATCH (update existing)
+  If editingId is null → POST (create new)
+  On success: reset form, re-fetch the list
+  On error: show the error message
+
+LINES 90-99: handleDelete
+  Shows a browser confirm dialog. If user confirms → DELETE request.
+  On success: re-fetch the list
+
+LINES 101-144: JSX (the actual UI)
+
+  Loading state (101-103):
+    If loading is true, show "جاري التحميل..."
+
+  Header (105-108):
+    Title + "إضافة كلية" button. Clicking it calls resetForm() to clear
+    any edit state, then setShowForm(true) to show the form.
+
+  Error banner (110-114):
+    If error is not null, show a red box with the error message.
+
+  Form (116-143):
+    Only visible when showForm is true.
+    Has input fields bound to form state.
+    Each onChange updates the form state.
+    Two buttons: Save (calls handleSave) and Cancel (calls resetForm).
+
+  Table (145-188):
+    Shows colleges in a table. Each row has:
+      - College name
+      - Slug (URL-safe name)
+      - Status badge (active/inactive + coming soon)
+      - Edit and Delete buttons
+    If colleges array is empty, shows "لا توجد كليات بعد".
+
+====================================================================
+10. HOW TO TEST THE ADMIN DASHBOARD
+====================================================================
+
+Since you need an admin JWT to access /admin/*, here's how to test:
+
+  METHOD 1: Direct MongoDB (simplest for testing)
+    1. Connect to your MongoDB (MongoDB Compass or Atlas UI)
+    2. In the users collection, manually set a user's role to "admin"
+       and get their _id
+    3. In your browser console (F12 → Console tab), run:
+         fetch("/api/auth/login", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({
+             email: "you@example.com",
+             password: "yourpassword",
+             turnstileToken: "bypass"  // dev only!
+           })
+         }).then(r => r.json()).then(d => {
+           localStorage.setItem("accessToken", d.data.accessToken);
+           window.location.href = "/admin";
+         })
+    4. This logs you in and stores the token, then redirects to /admin
+
+  METHOD 2: Temporarily bypass Turnstile in dev (easiest for testing)
+    1. Open src/app/api/auth/login/route.ts
+    2. Comment out the Turnstile check (lines 22-28)
+    3. Login normally through /auth/login
+    4. Re-enable the Turnstile check after testing
+
+  METHOD 3: Create a test admin via curl/Postman
+    1. Register a user normally through /auth/register
+    2. In MongoDB, change that user's role to "admin"
+    3. Login through the web UI
+
+Once logged in with an admin token, visit:
+  • /admin → See stats dashboard
+  • /admin/colleges → Add, edit, delete colleges
+  • /admin/subjects → Add subjects under a college
+  • /admin/topics → Add topics under a subject, toggle publish
+
+====================================================================
+11. GLOSSARY OF TERMS USED
+====================================================================
+
+  JWT (JSON Web Token)
+    A token that encodes user identity + role + expiry. It has three
+    base64-encoded parts separated by dots: header.payload.signature.
+    The signature prevents tampering (server verifies it with the secret).
+
+  CRUD (Create, Read, Update, Delete)
+    The four basic operations for persistent data storage.
+    Maps to HTTP methods: POST (create), GET (read), PATCH (update),
+    DELETE (delete).
+
+  API Route
+    A Next.js file at app/api/*/route.ts that handles HTTP requests and
+    returns JSON responses. Runs on the server, never in the browser.
+
+  Client Component
+    A React component marked with "use client" that runs in the browser
+    and can use hooks, events, and browser APIs.
+
+  useEffect
+    A React hook that runs code after the component renders. Commonly
+    used for fetching data on page load. The dependency array ([]) tells
+    it to run only once when the component mounts.
+
+  useState
+    A React hook that declares state (data that changes over time) and
+    provides a function to update it.
+
+  useCallback
+    A React hook that memoizes a function so it's not recreated on every
+    render. Useful when passing functions to useEffect.
+
+  Spread Operator (...)
+    JavaScript syntax that copies all properties from an object into a
+    new object. Used in setForm({ ...form, name: "new value" }) to update
+    a single field without losing the others.
+
+  TypeScript Interface
+    A way to define the shape of an object. Used for type-checking and
+    autocomplete. Example: interface College { _id: string; name: string }
+
+  Generic (<T>)
+    A TypeScript feature that lets a function work with any type while
+    still providing type safety. apiFetch<College[]> means "this function
+    returns data typed as College[]".
+
+  Zod
+    A validation library that checks data matches a schema at runtime.
+    Used on both client (form validation) and server (API input validation).
+
+  No Cascade Delete
+    A database policy: deleting a parent (college) is blocked if children
+    (subjects) still reference it. Prevents accidental data loss.
+
+====================================================================
+END OF LEARNING JOURNAL
+====================================================================
+
+Next topics we can cover when you're ready:
+  • How PATCH vs PUT differ (and why we use PATCH)
+  • How MongoDB references work (ObjectId, populate, $pull)
+  • Server Actions vs API Routes
+  • What happens when you type a URL and hit Enter (full stack trace)
+  • How the registration/login flow works end-to-end
+  • Anything else you're curious about

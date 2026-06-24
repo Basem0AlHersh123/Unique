@@ -1,0 +1,72 @@
+# UNIQUE Platform — Routes
+
+## Functional — Ready to Test
+
+### Public Pages
+/                             Landing page (hero, stats, features, CTA)
+/colleges                     College listing grid (active only)
+/colleges/[slug]              Subjects within a college (e.g. /colleges/medicine)
+
+### Auth Pages
+/auth/login                   Login form
+/auth/register                Registration form
+
+### Student Dashboard (requires JWT)
+/dashboard                   Dashboard overview — real progress from API (attempts, scores, recent quizzes)
+/dashboard/subject/[slug]    Topic list within a subject (e.g. /dashboard/subject/anatomy)
+/dashboard/topic/[slug]      Topic detail — video, AI explanation, key points, vocabulary + "ابدأ الاختبار" button
+/dashboard/topic/[slug]/quiz Quiz — server-side graded, per-question result review with explanations
+
+### Admin Panel (requires JWT + role: admin)
+/admin                       Admin dashboard overview
+/admin/colleges              CRUD colleges
+/admin/subjects              CRUD subjects
+/admin/topics                CRUD topics — toggle publish, filter by subject
+/admin/questions             CRUD questions — dynamic options, correct answer, filter by topic
+
+### API Endpoints
+GET    /api/admin/colleges               List all colleges
+POST   /api/admin/colleges               Create college (admin)
+GET    /api/admin/colleges/[id]          Get single college
+PATCH  /api/admin/colleges/[id]          Update college (admin)
+DELETE /api/admin/colleges/[id]          Delete college (admin)
+
+GET    /api/admin/subjects               List all subjects
+POST   /api/admin/subjects               Create subject (admin)
+GET    /api/admin/subjects/[id]          Get single subject
+PATCH  /api/admin/subjects/[id]          Update subject (admin)
+DELETE /api/admin/subjects/[id]          Delete subject (admin)
+
+GET    /api/admin/topics                 List topics (?subjectId=)
+POST   /api/admin/topics                 Create topic (admin)
+GET    /api/admin/topics/[id]            Get single topic
+PATCH  /api/admin/topics/[id]            Update topic (admin)
+DELETE /api/admin/topics/[id]            Delete topic (admin)
+
+GET    /api/admin/questions              List questions (?topicId= or ?subjectId=)
+POST   /api/admin/questions              Create question (admin)
+GET    /api/admin/questions/[id]         Get single question
+PATCH  /api/admin/questions/[id]         Update question (admin)
+DELETE /api/admin/questions/[id]         Delete question (admin)
+
+POST   /api/auth/login                   Login — returns JWT
+POST   /api/auth/register                Register — creates user + returns JWT
+
+GET    /api/topics/[slug]                Single published topic (public)
+GET    /api/questions/[slug]             Published questions for a topic (no correctAnswer exposed)
+POST   /api/questions/[slug]/submit      Submit quiz answers — server-side graded, saved as Attempt
+GET    /api/dashboard/progress           Authenticated user's attempt history + stats
+
+## Not Yet Built — Will Error or 404
+
+/admin/teachers               No teacher model or management yet
+/admin/students               No student list page
+/profile                      No profile/settings page
+/api/auth/refresh             No refresh-token endpoint yet
+/api/admin/stats              No aggregated stats API
+Teacher routes                No teacher view/role at all
+Search                        No search endpoint
+Payments                      No payment integration
+Notifications                 No notification system
+404 page                      Custom 404 not written
+Contact/About/FAQ             No static pages besides landing

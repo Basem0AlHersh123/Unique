@@ -1,0 +1,327 @@
+================================================================================
+  UNIQUE Platform — All Changes Made (Session Summary)
+================================================================================
+
+Below is a step-by-step record of every file created or modified,
+ordered chronologically by when each task was requested.
+
+TABLE OF CONTENTS
+─────────────────
+1.  LoadingScreen component (animated logo)
+2.  Admin + Teacher layouts ← use LoadingScreen
+3.  Forgot-password error handling fix
+4.  SMTP email refactor (lazy transporter + validation)
+5.  LoadingScreen hydration fix (client-only particles)
+6.  Turnstile resilience (try/catch + timeout)
+7.  IconPicker component (visual icon selector)
+8.  Public college pages ← support all Lucide icons
+9.  Auth schemas ← turnstileToken optional
+10. MobileAuth utility (x-mobile-key header check)
+11. Login route ← mobile bypass for Turnstile
+12. Register route ← mobile bypass for Turnstile
+13. .env.local ← MOBILE_API_KEY added
+14. Topics GET ← ?unitId= query param support
+15. User model ← pushToken, dailyGoal, studyReminder fields
+16. Profile PATCH ← expanded schema + $set
+17. ExpoPush utility (sendPushNotifications)
+18. Topics [id] PATCH ← push notification on publish
+================================================================================
+
+
+================================================================================
+  1. CREATE: src/components/ui/LoadingScreen.tsx
+================================================================================
+Animated full-screen loading component replacing the plain "Loading..." text.
+
+Features:
+• Logo container bounces, scales, and rotates (animate-logo-dance)
+• Logo spins 360° with hue-rotate color cycling (purple → blue → pink → yellow)
+• Border-radius morphs between organic blob shapes (animate-morph-container)
+• 20 floating particles drift around with random hues and sizes
+• Pulsing radial glow behind the logo
+• 4 bouncing colored dots
+• Rotating Arabic/English loading messages every 3s
+
+Used by: admin/layout.tsx, teacher/layout.tsx
+
+
+================================================================================
+  2. MODIFY: src/app/admin/layout.tsx
+================================================================================
+Changed the loading state from plain <p> to <LoadingScreen /> (lines 64-68).
+
+Also added import:
+  import { LoadingScreen } from "@/components/ui/LoadingScreen";
+
+
+================================================================================
+  3. MODIFY: src/app/teacher/layout.tsx
+================================================================================
+Changed two loading states:
+• Main auth-check loading (lines 59-63) → <LoadingScreen />
+• Suspense fallback (lines 169-173) → <LoadingScreen />
+
+Also added import:
+  import { LoadingScreen } from "@/components/ui/LoadingScreen";
+
+
+================================================================================
+  4. MODIFY: src/app/api/auth/forgot-password/route.ts
+================================================================================
+Problem: Email was saved to DB (reset token) before attempting to send it.
+If sendResetEmail() threw, the token was orphaned in the database.
+
+Fix:
+• Moved sendResetEmail() call BEFORE user.save()
+• Wrapped sendResetEmail() in a dedicated try/catch
+• Returns descriptive error in development (shows actual SMTP error)
+• Returns clear Arabic error in production
+
+
+================================================================================
+  5. MODIFY: src/lib/email.ts
+================================================================================
+Problem: Module-level nodemailer.createTransport() — if env vars were missing
+or credentials were invalid, it would fail silently or at import time.
+
+Fix:
+• Replaced module-level transporter with createTransporter() function
+• Validates all 4 SMTP env vars (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)
+  before attempting connection, throws with a clear message listing missing ones
+• Automatically sets secure: true when port is 465 (Gmail SSL)
+• Transport is only created when sendResetEmail() is actually called
+
+
+================================================================================
+  6. MODIFY: src/components/ui/LoadingScreen.tsx (hydration fix)
+================================================================================
+Problem: particles array was a module-level constant using Math.random().
+Server and client generated different random values → hydration mismatch.
+
+Fix:
+• Moved particles into useState([])
+• generateParticles() called inside useEffect on mount only
+• Particles wrapped in {mounted && ...} — server renders no particle divs
+• Client adds them after hydration via DOM mutation (no mismatch)
+
+
+================================================================================
+  7. MODIFY: src/lib/turnstile.ts
+================================================================================
+Problem: verifyTurnstile() threw when Cloudflare API was unreachable,
+causing login/register to return 500 (Internal Server Error).
+
+Fix:
+• Added try/catch around the fetch to Cloudflare
+• Added AbortSignal.timeout(5000) so it doesn't hang
+• On failure: logs error, returns true (allows request through)
+• Changed missing TURNSTILE_SECRET_KEY from throwing to warning + return true
+
+
+================================================================================
+  8. CREATE: src/components/ui/IconPicker.tsx
+================================================================================
+Visual icon selector for admin forms. Shows actual Lucide icons in a grid
+instead of requiring admins to type icon names manually.
+
+Features:
+• Dropdown button shows selected icon + name as live preview
+• Opens a searchable 4-column grid of 47 curated icons
+• Type to filter (e.g., "book" → shows Book, BookOpen, Bookmark)
+• Click to select — shows checkmark badge on current selection
+• Click outside to close
+
+Curated icon list:
+  GraduationCap, BookOpen, Book, Bookmark, Library,
+  Brain, Lightbulb, Zap, Award, Star,
+  Heart, Shield, Target, TrendingUp, Activity,
+  Globe, MapPin, Compass, Flag, Building2,
+  Palette, Camera, Music, Microscope, FlaskConical,
+  Calculator, PenTool, ScrollText, MessageCircle, Users,
+  UserCheck, Sparkles, Rocket, Crown, Gem,
+  Trees, Cloud, Sun, Moon, Smile,
+  UtensilsCrossed, Dumbbell, Pencil, ClipboardCheck, Layers,
+  FolderOpen, GitBranch, HelpCircle
+
+Used by: admin/colleges/page.tsx (replaces plain text <Input> for icon)
+
+
+================================================================================
+  9. MODIFY: src/app/admin/colleges/page.tsx
+================================================================================
+• Added import for IconPicker
+• Replaced the <Input label={t('admin.icon')} ...> with <IconPicker ...>
+  (lines 226-231 → now uses the visual picker instead of free-text input)
+
+
+================================================================================
+  10. MODIFY: src/app/colleges/page.tsx
+================================================================================
+Changed iconMap from a 2-icon map to the full Lucide icon set so any icon
+picked in the admin panel actually renders on the public page.
+
+Before:
+  import { GraduationCap, BookOpen } from "lucide-react";
+  const iconMap = { GraduationCap, BookOpen };
+
+After:
+  import * as Icons from "lucide-react";
+  const iconMap = Icons as unknown as Record<string, React.ElementType>;
+
+Also updated fallback from BookOpen to Icons.BookOpen, and changed the
+empty-state GraduationCap reference to Icons.GraduationCap.
+
+
+================================================================================
+  11. MODIFY: src/app/colleges/[slug]/page.tsx
+================================================================================
+Same treatment as the colleges listing page:
+• Changed import to import * as Icons from "lucide-react"
+• iconMap now uses the full Icons module
+• All direct icon references (ArrowLeft, GraduationCap, BookOpen, Layers)
+  replaced with Icons.ArrowLeft, Icons.GraduationCap, etc.
+
+
+================================================================================
+  12. MODIFY: src/lib/validation/auth.ts
+================================================================================
+Changed turnstileToken from required to optional in both schemas.
+
+Before:
+  turnstileToken: z.string().min(1, "يرجى تأكيد أنك لست برنامجاً آلياً"),
+
+After:
+  turnstileToken: z.string().optional(),
+
+Applied to both registerSchema and loginSchema.
+
+
+================================================================================
+  13. CREATE: src/lib/mobileAuth.ts
+================================================================================
+Utility to detect and authenticate mobile app clients via a shared API key.
+
+Logic:
+• Reads x-mobile-key header from the request
+• Compares against MOBILE_API_KEY env var on the server
+• Returns true if they match (client is the official mobile app)
+• Returns false if MOBILE_API_KEY is not set (feature disabled)
+• Returns false if header doesn't match
+
+This lets native app clients bypass Cloudflare Turnstile (which requires
+a browser widget) while still authenticating with a shared secret baked
+into the Expo build.
+
+
+================================================================================
+  14. MODIFY: src/app/api/auth/login/route.ts
+================================================================================
+Added mobile client bypass for Turnstile verification.
+
+• Added import { isMobileClient } from "@/lib/mobileAuth"
+• Before Turnstile check, calls isMobileClient(req)
+• If mobile: skips Turnstile entirely
+• If not mobile: requires turnstileToken, verifies via Turnstile API
+
+
+================================================================================
+  15. MODIFY: src/app/api/auth/register/route.ts
+================================================================================
+Same mobile bypass as login route.
+
+• Added import { isMobileClient } from "@/lib/mobileAuth"
+• Wrapped Turnstile check in if (!mobile) { ... }
+
+
+================================================================================
+  16. MODIFY: .env.local
+================================================================================
+Added MOBILE_API_KEY for local development:
+
+  MOBILE_API_KEY=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+
+For production: generate a real key with openssl rand -hex 32 and add it
+to Vercel → Settings → Environment Variables.
+
+
+================================================================================
+  17. MODIFY: src/app/api/admin/topics/route.ts
+================================================================================
+Added ?unitId= query parameter support to the GET handler alongside the
+existing ?subjectId= filter.
+
+Changed from:
+  const filter = subjectId ? { subjectId } : {};
+
+To:
+  const filter: Record<string, unknown> = {};
+  if (subjectId) filter.subjectId = subjectId;
+  if (unitId) filter.unitId = unitId;
+
+
+================================================================================
+  18. MODIFY: src/models/User.ts
+================================================================================
+Added 4 new fields to both the IUser interface and UserSchema:
+
+  pushToken?: string;           // Expo push token, select: false
+  dailyGoal: number;            // 1-20 daily study goal, default 1
+  studyReminderTime: string;    // "HH:MM" 24h format, default ""
+  studyReminderEnabled: boolean; // toggle, default false
+
+pushToken has select: false so it is not returned in normal queries.
+
+
+================================================================================
+  19. MODIFY: src/app/api/auth/profile/route.ts
+================================================================================
+Expanded the existing PATCH handler's updateSchema to accept the new fields:
+
+  name:                 z.string().min(2).max(100).optional(),
+  pushToken:            z.string().optional(),
+  dailyGoal:            z.number().min(1).max(20).optional(),
+  studyReminderTime:    z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  studyReminderEnabled: z.boolean().optional()
+
+Changed User.findByIdAndUpdate to use $set (for atomic partial updates)
+and expanded .select() to include the new fields.
+
+
+================================================================================
+  20. CREATE: src/lib/expoPush.ts
+================================================================================
+Utility to send push notifications via Expo Push API (free tier).
+
+Exports:
+  interface PushMessage {
+    to: string | string[];
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+    sound?: "default" | null;
+  }
+
+  async function sendPushNotifications(messages: PushMessage[]): Promise<void>
+
+Best-effort delivery: catches all errors, logs them, never throws.
+This ensures push failures never block the main API response.
+
+
+================================================================================
+  21. MODIFY: src/app/api/admin/topics/[id]/route.ts
+================================================================================
+Added push notification logic when a topic is published.
+
+Step 1: Before findByIdAndUpdate, save previous state:
+  const previousTopic = await Topic.findById(id).select("isPublished");
+
+Step 2: After update, if isPublished changed from false to true, fire an
+async IIFE that:
+  • Looks up the subject to get collegeId and name
+  • Queries all students in that college with a non-empty pushToken
+    (using .select("+pushToken") since the field has select: false)
+  • Filters tokens to only ExponentPushToken-prefixed ones
+  • Sends an Expo push notification with lesson title and subject name
+
+The IIFE is fire-and-forget — the PATCH response is sent immediately
+without waiting for push delivery.
