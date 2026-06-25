@@ -59,24 +59,24 @@ export default function RegisterPage() {
   }
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen flex items-center justify-center px-4 py-6 relative">
-      <div className="absolute top-6 left-6">
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-6 relative">
+      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:w-auto">
         <ThemeToggle />
-      </div>
-      <div className="absolute top-6 right-6">
-        <Link href="/">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 ml-1" />
-            العودة
-          </Button>
-        </Link>
+        <div className="sm:absolute sm:top-0 sm:-right-0">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 ml-1" />
+              العودة
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="w-full max-w-md relative">
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
+      <div className="w-full max-w-md relative mt-2 sm:mt-0">
+        <div className="hidden sm:block absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="hidden sm:block absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
 
-        <div className="relative glass rounded-3xl p-8 border border-border/50 shadow-2xl">
+        <div className="relative glass rounded-3xl p-5 sm:p-8 border border-border/50 shadow-2xl">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
               <UserPlus className="w-8 h-8" />
@@ -109,11 +109,13 @@ export default function RegisterPage() {
               error={errors.password?.message}
             />
 
-            <div className="flex justify-center py-2">
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
-                onSuccess={onCaptchaSuccess}
-              />
+            <div className="flex justify-center py-2 overflow-x-auto">
+              <div className="scale-[0.85] sm:scale-100 origin-center">
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
+                  onSuccess={onCaptchaSuccess}
+                />
+              </div>
             </div>
             {errors.turnstileToken && (
               <p className="text-sm text-danger text-center animate-slide-in-right">
