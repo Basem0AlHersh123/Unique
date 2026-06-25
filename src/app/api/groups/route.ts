@@ -34,14 +34,20 @@ export async function GET(req: NextRequest) {
     if (role === "admin") {
       groups = await populate(Group.find());
     } else {
-      groups = await populate(
+      const rawGroups = (await populate(
         Group.find({
+          isVisible: true,
           $or: [
             { members: userId },
             { joinMode: { $in: ["open", "request"] } },
           ],
         })
-      );
+      )) as any[];
+      groups = rawGroups.map((g: any) => {
+        const obj = g.toObject ? g.toObject() : g;
+        delete obj.blockedMembers;
+        return obj;
+      });
     }
 
     return NextResponse.json({ success: true, data: groups });
@@ -59,7 +65,7 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { name, description, type, subjectId, joinMode } = await req.json();
+    const { name, description, type, subjectId, joinMode, isVisible, allowImages } = await req.json();
     const { userId, role } = auth.payload;
 
     await connectDB();
@@ -90,6 +96,8 @@ export async function POST(req: NextRequest) {
       groupAdmins: [userId],
       createdBy: userId,
       joinMode: joinMode || "open",
+      isVisible: isVisible !== false,
+      allowImages: allowImages === true,
     });
 
     return NextResponse.json({ success: true, data: group }, { status: 201 });

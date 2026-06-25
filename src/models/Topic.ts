@@ -21,6 +21,7 @@ export interface ITopic extends Document {
   isPublished: boolean;
   difficulty: "beginner" | "intermediate" | "advanced";
   summaryText?: string;
+  isEssential: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,6 +98,10 @@ const TopicSchema = new Schema<ITopic>(
     summaryText: {
       type: String,
       default: "",
+    },
+    isEssential: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

@@ -10,6 +10,7 @@ export interface IQuestion extends Document {
   explanation: string;
   order: number;
   isPublished: boolean;
+  collegeId?: Schema.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +45,11 @@ const QuestionSchema = new Schema<IQuestion>(
       ref: "Subject",
       required: [true, "المادة مطلوبة"],
     },
+    collegeId: {
+      type: Schema.Types.ObjectId,
+      ref: "College",
+      default: null,
+    },
     difficulty: {
       type: String,
       enum: ["easy", "medium", "hard"],
@@ -69,6 +75,7 @@ QuestionSchema.index({ topicId: 1, order: 1 });
 QuestionSchema.index({ subjectId: 1 });
 QuestionSchema.index({ difficulty: 1 });
 QuestionSchema.index({ topicId: 1, difficulty: 1 });
+QuestionSchema.index({ collegeId: 1 });
 
 export const Question =
   models.Question || model<IQuestion>("Question", QuestionSchema);

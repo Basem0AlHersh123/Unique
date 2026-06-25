@@ -35,6 +35,9 @@ export default function StudentsPage() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [upgradeSuccess, setUpgradeSuccess] = useState<{ name: string; email: string } | null>(null);
   const [downgradeTarget, setDowngradeTarget] = useState<Student | null>(null);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<Student | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetError, setResetError] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -106,6 +109,30 @@ export default function StudentsPage() {
 
   async function handleDelete(id: string) {
     setDeleteTarget(id);
+  }
+
+  async function handleResetPassword(student: Student) {
+    setResetPasswordTarget(student);
+    setNewPassword("");
+    setResetError("");
+  }
+
+  async function confirmResetPassword() {
+    if (!resetPasswordTarget) return;
+    setProcessing(resetPasswordTarget._id);
+    setResetError("");
+    try {
+      await apiFetch(`/api/admin/students/${resetPasswordTarget._id}/reset-password`, {
+        method: "POST",
+        body: JSON.stringify({ newPassword }),
+      });
+      showToast(t('admin.password_reset_success'), "success");
+      setResetPasswordTarget(null);
+    } catch (err) {
+      setResetError((err as Error).message);
+    } finally {
+      setProcessing(null);
+    }
   }
 
   async function confirmDelete() {
@@ -217,6 +244,16 @@ export default function StudentsPage() {
                     </button>
                   )}
                   <button
+                    onClick={() => handleResetPassword(s)}
+                    disabled={processing === s._id}
+                    className="p-2 rounded-lg text-info hover:bg-info/10 transition-all"
+                    title={t('admin.reset_password')}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                  </button>
+                  <button
                     onClick={() => handleToggleTier(s._id, s.tier)}
                     disabled={processing === s._id}
                     className="p-2 rounded-lg text-warning hover:bg-warning/10 transition-all"
@@ -266,6 +303,43 @@ export default function StudentsPage() {
         details={`${t('admin.email')}: ${upgradeSuccess?.email}`}
         onClose={() => setUpgradeSuccess(null)}
       />
+
+      {resetPasswordTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setResetPasswordTarget(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-text-primary mb-2">{t('admin.reset_password_title')}</h3>
+            <p className="text-sm text-text-secondary mb-4">
+              {t('admin.reset_password_for')} <strong>{resetPasswordTarget.name}</strong>
+            </p>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => { setNewPassword(e.target.value); setResetError(""); }}
+              placeholder={t('admin.new_password_placeholder')}
+              className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 placeholder:text-text-muted mb-3"
+              autoFocus
+            />
+            {resetError && (
+              <p className="text-sm text-danger mb-3">{resetError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setResetPasswordTarget(null)}
+                className="flex-1 px-4 py-2 rounded-xl border-2 border-border text-text-secondary hover:bg-surface transition-all"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={confirmResetPassword}
+                disabled={!newPassword || processing === resetPasswordTarget._id}
+                className="flex-1 px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark disabled:opacity-50 transition-all"
+              >
+                {t('dialog.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

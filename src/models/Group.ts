@@ -11,6 +11,8 @@ export interface IGroup extends Document {
   createdBy: Schema.Types.ObjectId;
   isLocked: boolean;
   joinMode: "open" | "request";
+  isVisible: boolean;
+  allowImages: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +33,14 @@ const GroupSchema = new Schema<IGroup>(
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isLocked: { type: Boolean, default: false },
     joinMode: { type: String, enum: ["open", "request"], default: "open" },
+    isVisible: {
+      type: Boolean,
+      default: true,
+    },
+    allowImages: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

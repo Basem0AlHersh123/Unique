@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { Message } from "@/models/Message";
 import { requireAuth } from "@/lib/requireAuth";
 
 type MemberLike = { _id?: { toString(): string }; toString(): string };
+
+const editSchema = z.object({
+  messageId: z.string().min(1, "معرف الرسالة مطلوب"),
+  content: z.string().min(1, "محتوى الرسالة مطلوب").max(5000, "الرسالة طويلة جداً"),
+});
+
+const deleteSchema = z.object({
+  messageId: z.string().min(1, "معرف الرسالة مطلوب"),
+});
 
 export async function GET(
   req: NextRequest,
@@ -47,6 +57,9 @@ export async function GET(
     if (before) {
       filter.createdAt = { $lt: new Date(before) };
     }
+    if (auth.payload.role !== "admin") {
+      filter.isDeleted = false;
+    }
 
     const messages = await Message.find(filter)
       .sort({ createdAt: -1 })
@@ -54,9 +67,21 @@ export async function GET(
       .populate("userId", "name role")
       .lean();
 
+    const result = messages.reverse().map((msg: Record<string, unknown>) => {
+      if (auth.payload.role === "admin") {
+        if (msg.isDeleted) {
+          msg._deletedLabel = "🗑 محذوفة";
+        }
+        if (msg.isEdited) {
+          msg._editedLabel = "✏️ معدّلة";
+        }
+      }
+      return msg;
+    });
+
     return NextResponse.json({
       success: true,
-      data: messages.reverse(),
+      data: result,
     });
   } catch (err) {
     console.error("List messages error:", err);
@@ -143,6 +168,124 @@ export async function POST(
     );
   } catch (err) {
     console.error("Create message error:", err);
+    return NextResponse.json(
+      { success: false, error: "حدث خطأ في الخادم" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const { id } = await params;
+    const body = await req.json();
+    const parsed = editSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const message = await Message.findById(parsed.data.messageId);
+    if (!message) {
+      return NextResponse.json(
+        { success: false, error: "الرسالة غير موجودة" },
+        { status: 404 }
+      );
+    }
+
+    if (message.groupId.toString() !== id) {
+      return NextResponse.json(
+        { success: false, error: "الرسالة لا تنتمي لهذه المجموعة" },
+        { status: 400 }
+      );
+    }
+
+    if (message.userId.toString() !== auth.payload.userId) {
+      return NextResponse.json(
+        { success: false, error: "لا يمكنك تعديل رسالة ليست لك" },
+        { status: 403 }
+      );
+    }
+
+    message.content = parsed.data.content.trim();
+    message.isEdited = true;
+    message.editedAt = new Date();
+    await message.save();
+
+    return NextResponse.json({ success: true, data: message });
+  } catch (err) {
+    console.error("Edit message error:", err);
+    return NextResponse.json(
+      { success: false, error: "حدث خطأ في الخادم" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const { id } = await params;
+    const body = await req.json();
+    const parsed = deleteSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const message = await Message.findById(parsed.data.messageId);
+    if (!message) {
+      return NextResponse.json(
+        { success: false, error: "الرسالة غير موجودة" },
+        { status: 404 }
+      );
+    }
+
+    if (message.groupId.toString() !== id) {
+      return NextResponse.json(
+        { success: false, error: "الرسالة لا تنتمي لهذه المجموعة" },
+        { status: 400 }
+      );
+    }
+
+    const userId = auth.payload.userId;
+    const isAuthor = message.userId.toString() === userId;
+    const isAdmin = auth.payload.role === "admin";
+
+    if (!isAuthor && !isAdmin) {
+      return NextResponse.json(
+        { success: false, error: "لا يمكنك حذف رسالة ليست لك" },
+        { status: 403 }
+      );
+    }
+
+    message.isDeleted = true;
+    message.deletedAt = new Date();
+    message.deletedBy = userId;
+    await message.save();
+
+    return NextResponse.json({ success: true, data: message });
+  } catch (err) {
+    console.error("Delete message error:", err);
     return NextResponse.json(
       { success: false, error: "حدث خطأ في الخادم" },
       { status: 500 }

@@ -10,6 +10,9 @@ export interface ICollege extends Document {
   comingSoon: boolean;
   icon: string;
   color: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
+  universityId?: Schema.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,6 +65,21 @@ const CollegeSchema = new Schema<ICollege>(
     color: {
       type: String,
       default: "#6C63FF", // matches our primary brand color by default
+    },
+    imageType: {
+      type: String,
+      enum: ["icon", "url", "cloudinary"],
+      default: "icon",
+    },
+    imageUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    universityId: {
+      type: Schema.Types.ObjectId,
+      ref: "University",
+      default: null,
     },
   },
   { timestamps: true }
