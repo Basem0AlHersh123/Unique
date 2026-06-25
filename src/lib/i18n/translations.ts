@@ -1,5 +1,4 @@
-export const translations = {
-  ar: {
+const dict = {
     /* ───── Common ───── */
     "common.brand": "UNIQUE",
     "common.loading": "جاري التحميل...",
@@ -27,7 +26,6 @@ export const translations = {
     "common.lock": "قفل",
     "common.unlock": "فتح",
     "common.skip": "تخطي",
-
     /* ───── Navbar ───── */
     "nav.colleges": "التخصصات",
     "nav.about": "عن المنصة",
@@ -35,7 +33,6 @@ export const translations = {
     "nav.register": "ابدأ الآن",
     "nav.dashboard": "لوحة التحكم",
     "nav.logout": "تسجيل الخروج",
-
     /* ───── Footer ───── */
     "footer.description": "منصة التعلم الذكي الأولى في الوطن العربي. نساعد الطلاب على تحقيق أعلى الدرجات في اختبارات القبول الجامعي.",
     "footer.links": "الروابط",
@@ -47,7 +44,6 @@ export const translations = {
     "footer.eng": "الهندسة",
     "footer.pharm": "الصيدلة",
     "footer.it": "تقنية المعلومات",
-
     /* ───── Landing ───── */
     "landing.badge": "منصة التعلم الذكي الأولى في الوطن العربي",
     "landing.hero.title1": "استعد لاختبارات القبول",
@@ -65,7 +61,6 @@ export const translations = {
     "landing.trust.edu": "محتوى معتمد من وزارة التعليم",
     "landing.trust.students": "أكثر من ٥٠٠٠ طالب مسجل",
     "landing.trust.teachers": "مدرسون معتمدون",
-
     /* ─── How it works ─── */
     "how.badge": "كيف تعمل المنصة",
     "how.title": "ابدأ في ٤ خطوات فقط",
@@ -78,7 +73,6 @@ export const translations = {
     "how.step3.desc": "شاهد فيديوهات تفاعلية واقرأ الشروحات المبسطة",
     "how.step4.title": "اختبر نفسك",
     "how.step4.desc": "حل اختبارات ذكية واحصل على تصحيح فوري مع شرح لكل إجابة",
-
     /* ─── Features ─── */
     "features.badge": "مميزات المنصة",
     "features.title": "كل ما تحتاجه في مكان واحد",
@@ -97,7 +91,6 @@ export const translations = {
     "features.fast_desc": "حسّن مستواك في وقت قياسي مع نظام التعلم التكيفي",
     "landing.trust_progress": "تقدم مذهل",
     "landing.trust_percent": "%٨٥ من الطلاب",
-
     /* ─── Video Section ─── */
     "video.badge": "تعرف على UNIQUE",
     "video.title": "شاهد كيف تغير طريقة تعلمك",
@@ -107,7 +100,6 @@ export const translations = {
     "video.point3": "تحليل أداء دقيق مع توصيات مخصصة",
     "video.point4": "مدرسين معتمدين من وزارة التعليم",
     "video.play": "شاهد الفيديو التعريفي",
-
     /* ─── Testimonials ─── */
     "testimonials.badge": "آراء الطلاب",
     "testimonials.title": "ماذا يقول طلابنا؟",
@@ -121,13 +113,11 @@ export const translations = {
     "testimonials.3.name": "نورة سعد",
     "testimonials.3.role": "طالبة صيدلة",
     "testimonials.3.text": "التحليلات والتقارير ساعدتني أعرف نقاط ضعفي وأركز عليها. صرّت أجيب درجات أعلى في كل اختبار.",
-
     /* ─── CTA ─── */
     "cta.title": "ابدأ رحلتك التعليمية الآن",
     "cta.desc": "انضم إلى آلاف الطلاب وابدأ في الاستعداد لاختبارات القبول الجامعي بثقة",
     "cta.button": "إنشاء حساب مجاني",
     "cta.browse": "استعرض التخصصات",
-
     /* ───── About ───── */
     "about.badge": "من نحن",
     "about.title": "نبني مستقبل التعليم في الوطن العربي",
@@ -142,7 +132,6 @@ export const translations = {
     "about.stat.videos": "فيديو تعليمي",
     "about.stat.success": "نسبة نجاح",
     "about.stat.rating": "تقييم الطلاب",
-
     /* ─── Video Testimonials (About) ─── */
     "about.videos.badge": "فيديوهات تعريفية",
     "about.videos.title": "شاهد ماذا يقولون عنا",
@@ -160,7 +149,6 @@ export const translations = {
     "about.videos.3.role": "مستشار تعليمي",
     "about.videos.3.title": "منصة رائدة في الوطن العربي",
     "about.videos.3.desc": "UNIQUE تقدم نموذجاً تعليمياً متطوراً يجمع بين الخبرة الأكاديمية والتقنيات الحديثة. فخور بهذا الإنجاز.",
-
     /* ─── Values ─── */
     "about.values.badge": "قيمنا",
     "about.values.title": "المبادئ التي نؤمن بها",
@@ -172,7 +160,6 @@ export const translations = {
     "about.values.care_desc": "نضع الطالب في المقام الأول ونصمم كل شيء ليكون سهل وممتع",
     "about.values.innovation": "الابتكار",
     "about.values.innovation_desc": "نستخدم أحدث تقنيات التعلم الذكي والذكاء الاصطناعي لتطوير المنصة",
-
     /* ─── Team ─── */
     "about.team.badge": "فريق الخبراء",
     "about.team.title": "نخبة من الخبراء والمدرسين",
@@ -189,7 +176,6 @@ export const translations = {
     "about.team.member3_role": "تقنية المعلومات",
     "about.team.member4": "أ. حصة الزهراني",
     "about.team.member4_role": "التسويق",
-
     /* ───── Auth ───── */
     "auth.login.title": "تسجيل الدخول",
     "auth.login.subtitle": "مرحباً بعودتك! سجل دخولك للمتابعة",
@@ -222,7 +208,6 @@ export const translations = {
     "auth.reset.success": "تم إعادة تعيين كلمة المرور بنجاح! جاري تحويلك...",
     "auth.reset.invalid": "الرابط غير صالح أو منتهي الصلاحية",
     "auth.login.forgot": "نسيت كلمة المرور؟",
-
     /* ───── Colleges Page ───── */
     "colleges.title": "اختر تخصصك",
     "colleges.desc": "اختر التخصص الجامعي الذي تطمح لدراسته",
@@ -230,7 +215,6 @@ export const translations = {
     "colleges.coming_soon": "قريباً",
     "colleges.empty": "لا توجد تخصصات متاحة حالياً",
     "colleges.subjects": "مواد",
-
     /* ───── Colleges Slug ───── */
     "college.back": "الكليات",
     "college.subjects": "المواد المتاحة",
@@ -240,291 +224,6 @@ export const translations = {
     "college.not_found": "لم يتم العثور على الكلية",
     "college.load_error": "حدث خطأ في تحميل البيانات",
     "college.view_colleges": "عرض الكليات",
-
-    /* ───── Dashboard ───── */
-    "dashboard.welcome": "مرحباً",
-    "dashboard.subtitle": "استمر في رحلتك التعليمية، أنت في الطريق الصحيح!",
-    "dashboard.browse_colleges": "تصفح الكليات",
-    "dashboard.level": "مستوى: مبتدئ",
-    "dashboard.stat.attempts": "الاختبارات",
-    "dashboard.stat.correct": "الإجابات الصحيحة",
-    "dashboard.stat.avg": "معدل التقدم",
-    "dashboard.stat.questions": "الأسئلة المجابة",
-    "dashboard.recent": "آخر الاختبارات",
-    "dashboard.no_attempts": "لم تخض أي اختبار بعد",
-    "dashboard.daily_tasks": "المهام اليومية",
-    "dashboard.task1": "حل اختبار جديد",
-    "dashboard.task2": "مراجعة الأخطاء السابقة",
-    "dashboard.task3": "مشاهدة درس جديد",
-    "dashboard.task1_time": "١٥ دقيقة",
-    "dashboard.task2_time": "١٠ دقائق",
-    "dashboard.task3_time": "٢٠ دقيقة",
-    "dashboard.quick_learn": "تصفح الكليات",
-    "dashboard.quick_quiz": "اختبار جديد",
-    "dashboard.quick_browse": "مراجعة المواد",
-    "dashboard.visit": "عرض الدرس",
-    "dashboard.start_quiz": "ابدأ الاختبار",
-
-    /* ───── Topic / Quiz ───── */
-    "topic.back": "العودة",
-    "topic.explanation": "الشرح التفاعلي",
-    "topic.key_points": "النقاط الرئيسية",
-    "topic.vocabulary": "المفردات",
-    "topic.free": "مجاني",
-    "quiz.title": "الاختبار",
-    "quiz.next": "التالي →",
-    "quiz.finish": "إنهاء الاختبار",
-    "quiz.cancel": "إلغاء",
-    "quiz.loading_error": "لا توجد أسئلة منشورة لهذا الدرس بعد",
-    "quiz.result": "النتيجة",
-    "quiz.score": "النتيجة",
-    "quiz.correct": "صحيحة",
-    "quiz.wrong": "خاطئة",
-    "quiz.total": "إجمالي الأسئلة",
-    "quiz.percentage": "النسبة",
-    "quiz.retry": "إعادة الاختبار",
-    "quiz.back_to_topic": "العودة للدرس",
-    "quiz.back_to_dashboard": "لوحة التحكم",
-    "quiz.question": "سؤال",
-    "quiz.explanation": "الشرح",
-
-    /* ───── Admin ───── */
-    "admin.title": "لوحة الإدارة",
-    "admin.colleges": "الكليات",
-    "admin.subjects": "المواد",
-    "admin.topics": "المواضيع",
-    "admin.questions": "بنك الأسئلة",
-    "admin.students": "الطلاب",
-    "admin.teachers": "المدرسون",
-    "admin.ai_settings": "الذكاء الاصطناعي",
-    "admin.back": "العودة إلى الموقع",
-    "admin.logout": "تسجيل الخروج",
-    "admin.current_teachers": "المدرسون الحاليون",
-    "admin.no_teachers": "لا يوجد مدرسون بعد",
-    "admin.promote_student": "ترقية طالب إلى مدرس",
-    "admin.select_student": "اختر طالباً",
-    "admin.select_teacher": "اختر مدرساً",
-    "admin.select_subject": "اختر مادة",
-    "admin.promote_btn": "ترقية إلى مدرس",
-    "admin.assign_subjects": "تعيين المواد للمدرسين",
-    "admin.assign_btn": "تعيين",
-    "admin.teacher_promoted": "تمت الترقية بنجاح",
-    "admin.teacher_assigned": "تم تعيين المدرس للمادة",
-    "admin.teacher_unassigned": "تم إلغاء تعيين المدرس",
-    "admin.current_assignments": "التعيينات الحالية",
-    "admin.add": "إضافة",
-    "admin.edit": "تعديل",
-    "admin.edit_college": "تعديل كلية",
-    "admin.add_college": "إضافة كلية جديدة",
-    "admin.color": "اللون",
-    "admin.icon": "الأيقونة",
-    "admin.coming_soon": "قريباً",
-    "admin.active": "نشط",
-    "admin.inactive": "غير نشط",
-    "admin.coming_soon_label": " · قريباً",
-    "admin.name": "الاسم",
-    "admin.slug": "الرابط",
-    "admin.status": "الحالة",
-    "admin.actions": "الإجراءات",
-    "admin.no_colleges": "لا توجد كليات بعد",
-    "admin.no_subjects": "لا توجد مواد بعد",
-    "admin.no_topics": "لا توجد مواضيع بعد",
-    "admin.no_questions": "لا توجد أسئلة بعد",
-    "admin.delete_confirm_college": "هل أنت متأكد من حذف هذه الكلية؟ لا يمكن التراجع عن هذا الإجراء.",
-    "admin.delete_confirm_subject": "هل أنت متأكد من حذف هذه المادة؟ لا يمكن التراجع عن هذا الإجراء.",
-    "admin.delete_confirm_topic": "هل أنت متأكد من حذف هذا الموضوع؟ لا يمكن التراجع عن هذا الإجراء.",
-    "admin.delete_confirm_question": "هل أنت متأكد من حذف هذا السؤال؟ لا يمكن التراجع عن هذا الإجراء.",
-    "admin.college": "كلية",
-    "admin.subject": "مادة",
-    "admin.topic": "موضوع",
-    "admin.question": "سؤال",
-    "admin.difficulty": "الصعوبة",
-    "admin.published": "منشور",
-    "admin.yes": "نعم",
-    "admin.no": "لا",
-    "admin.questions_count": "أسئلة",
-    "admin.search_students": "ابحث باسم الطالب أو البريد الإلكتروني...",
-    "admin.attempts": "محاولات الاختبارات",
-    "admin.active_week": "نشط هذا الأسبوع",
-    "admin.student_name": "الطالب",
-    "admin.email": "البريد الإلكتروني",
-    "admin.role": "الدور",
-    "admin.activity": "النشاط",
-    "admin.reg_date": "تاريخ التسجيل",
-    "admin.no_students": "لا يوجد طلاب مسجلين بعد",
-    "admin.tier_paid": "مدفوع",
-    "admin.tier_free": "مجاني",
-    "admin.streak_days": "أيام متتالية",
-    "admin.admin_label": "مدير",
-    "admin.student_label": "طالب",
-    "admin.stats_title": "نظرة عامة",
-    "admin.add_subject": "إضافة مادة جديدة",
-    "admin.edit_subject": "تعديل مادة",
-    "admin.add_topic": "إضافة موضوع جديد",
-    "admin.edit_topic": "تعديل موضوع",
-    "admin.add_question": "إضافة سؤال جديد",
-    "admin.edit_question": "تعديل سؤال",
-    "admin.order": "الترتيب",
-    "admin.correct_answer": "الإجابة الصحيحة",
-    "admin.options_count": "عدد الخيارات",
-    "admin.not_published": "غير منشور",
-    "admin.shared_subject": "مشتركة",
-    "admin.all": "الكل",
-    "admin.shared": "مشتركة",
-    "admin.private": "خاصة",
-    "admin.subjects_desc": "إدارة المواد الدراسية في المنصة",
-    "admin.topics_desc": "إدارة المواضيع والدروس في المنصة",
-    "admin.questions_desc": "إدارة الأسئلة والاختبارات",
-    "admin.subject_deleted": "تم حذف المادة بنجاح",
-    "admin.topic_deleted": "تم حذف الموضوع بنجاح",
-    "admin.question_deleted": "تم حذف السؤال بنجاح",
-    "admin.select_college": "اختر كلية",
-    "admin.select_topic": "اختر موضوع",
-    "admin.beginner": "مبتدئ",
-    "admin.intermediate": "متوسط",
-    "admin.advanced": "متقدم",
-    "admin.easy": "سهل",
-    "admin.medium": "متوسط",
-    "admin.hard": "صعب",
-    "admin.video_url": "رابط الفيديو",
-    "admin.name_placeholder": "مثال: الرياضيات",
-    "admin.title_placeholder": "مثال: مقدمة في الخوارزميات",
-    "admin.question_placeholder": "أدخل نص السؤال...",
-    "admin.explanation": "الشرح",
-    "admin.explanation_placeholder": "شرح الإجابة الصحيحة...",
-    "admin.add_option": "إضافة خيار",
-    "admin.option_prefix": "الخيار",
-    "admin.options_min_error": "يجب إضافة خيارين على الأقل",
-    "admin.correct_answer_error": "الإجابة الصحيحة خارج نطاق الخيارات",
-    "settings.title": "الإعدادات",
-    "settings.profile": "الملف الشخصي",
-    "settings.password": "تغيير كلمة المرور",
-    "settings.save": "حفظ",
-    "settings.saved": "تم الحفظ بنجاح",
-    "settings.role": "الدور",
-    "settings.member_since": "عضو منذ",
-    "settings.current_password": "كلمة المرور الحالية",
-    "settings.new_password": "كلمة المرور الجديدة",
-    "settings.confirm_password": "تأكيد كلمة المرور",
-    "settings.change_password": "تغيير كلمة المرور",
-    "settings.password_success": "تم تغيير كلمة المرور بنجاح",
-    "settings.password_mismatch": "كلمتا المرور غير متطابقتين",
-    "nav.chat": "المحادثة",
-    "nav.teacher_dashboard": "لوحة المدرس",
-    "nav.settings": "الإعدادات",
-    "nav.admin": "لوحة الإدارة",
-    "nav.groups": "المجموعات",
-
-    /* ───── Logout ───── */
-    "logout.title": "تسجيل الخروج",
-    "logout.message": "هل أنت متأكد من تسجيل الخروج؟",
-    "logout.confirm": "تسجيل الخروج",
-
-    /* ───── ColorInput ───── */
-    "color.invalid": "لون غير صالح — استخدم اسم لون (مثل red, blue) أو كود hex (مثل #FF0000)",
-    "color.hint": "يمكنك كتابة اسم اللون بالإنجليزية (red, darkblue, gold...) أو استخدام منتقي الألوان",
-
-    /* ───── Admin Toast & UI ───── */
-    "admin.student_list_desc": "جميع الطلاب المسجلين في المنصة",
-    "admin.promote_to_teacher": "ترقية إلى مدرس",
-    "admin.convert_to_student": "تحويل إلى طالب",
-    "admin.change_to_free": "تغيير إلى مجاني",
-    "admin.change_to_paid": "تغيير إلى مدفوع",
-    "admin.delete_student_title": "حذف طالب",
-    "admin.delete_student_msg": "هل أنت متأكد من حذف هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.",
-    "admin.convert_to_student_confirm_title": "تحويل إلى طالب",
-    "admin.delete_teacher_title": "حذف مدرس",
-    "admin.delete_teacher_msg": "هل أنت متأكد من حذف هذا المدرس؟ لا يمكن التراجع عن هذا الإجراء.",
-    "admin.manage_groups": "إدارة المجموعات",
-    "admin.open_chat": "فتح الدردشة",
-    "admin.no_groups_yet": "لا توجد مجموعات بعد",
-    "admin.by": "بواسطة: ",
-    "admin.join_mode_open": "مباشر",
-    "admin.join_mode_request": "بطلب",
-    "admin.type_announcement": "إعلان",
-    "admin.type_subject": "مادة دراسية",
-    "admin.type_general": "عام",
-    "admin.ai_settings_desc": "إدارة مفتاح Gemini API وإحصائيات الاستخدام",
-    "admin.api_key": "مفتاح API",
-    "admin.api_key_placeholder": "أدخل مفتاح جديد لاستبدال المفتاح الحالي",
-    "admin.api_key_placeholder_short": "أدخل مفتاح Gemini API",
-    "admin.current_key": "المفتاح الحالي:",
-    "admin.last_updated": "· آخر تحديث: ",
-    "admin.total_requests": "إجمالي الطلبات",
-    "admin.input_tokens": "الرموز الداخلة (Input Tokens)",
-    "admin.output_tokens": "الرموز الخارجة (Output Tokens)",
-    "admin.user_usage": "استخدام المستخدمين",
-    "admin.days_label": "الأيام:",
-    "admin.days_7": "آخر 7 أيام",
-    "admin.days_30": "آخر 30 يوم",
-    "admin.days_60": "آخر 60 يوم",
-    "admin.days_90": "آخر 90 يوم",
-    "admin.table_user": "المستخدم",
-    "admin.table_email": "البريد الإلكتروني",
-    "admin.table_input": "الرموز الداخلة",
-    "admin.table_output": "الرموز الخارجة",
-    "admin.table_requests": "الطلبات",
-    "admin.no_usage_data": "لا توجد بيانات استخدام في هذه الفترة",
-    "admin.request_count": "طلب",
-    "admin.name_ar_must_contain_arabic": "يجب أن يحتوي الاسم العربي على أحرف عربية",
-    "admin.name_ar_label": "الاسم (عربي)",
-    "admin.name_ar_placeholder": "مثال: كلية الحاسوب",
-    "admin.name_en_label": "الاسم (English)",
-    "admin.name_en_placeholder": "مثال: الرياضيات",
-    "admin.tier_changed_to_paid": "تم تغيير الباقة إلى مدفوع",
-    "admin.tier_changed_to_free": "تم تغيير الباقة إلى مجاني",
-    "admin.converted_to_student": "تم تحويل المستخدم إلى طالب",
-    "admin.student_deleted": "تم حذف الطالب",
-    "admin.teacher_deleted": "تم حذف المدرس",
-    "admin.teacher_downgraded": "تم تحويل المدرس إلى طالب",
-    "admin.upgrade_success_title": "تمت الترقية بنجاح 🎉",
-    "admin.college_deleted": "تم حذف الكلية بنجاح",
-    "admin.ai_key_saved": "تم حفظ مفتاح API بنجاح",
-    "admin.teacher_label": "مدرس",
-    "admin.groups": "المجموعات",
-    "admin.messages": "الرسائل",
-    "admin.upgrade_success_msg": "تم ترقية \"{name}\" إلى مدرس بنجاح.",
-    "admin.convert_student_confirm_msg": "هل أنت متأكد من تحويل \"{name}\" إلى طالب؟ سيفقد صلاحيات المدرس.",
-    "admin.reset_password": "تعيين كلمة مرور",
-    "admin.reset_password_title": "تعيين كلمة مرور جديدة",
-    "admin.reset_password_for": "تعيين كلمة مرور جديدة لـ",
-    "admin.new_password_placeholder": "أدخل كلمة المرور الجديدة",
-    "admin.password_reset_success": "تم تعيين كلمة المرور الجديدة بنجاح",
-    "admin.levels": "المستويات",
-    "admin.units": "الوحدات",
-    "admin.add_level": "إضافة مستوى جديد",
-    "admin.edit_level": "تعديل مستوى",
-    "admin.level": "المستوى",
-    "admin.select_level": "اختر مستوى",
-    "admin.levels_desc": "إدارة المستويات الدراسية في المنصة",
-    "admin.level_deleted": "تم حذف المستوى بنجاح",
-    "admin.delete_confirm_level": "هل أنت متأكد من حذف هذا المستوى؟ سيتم حذف جميع الوحدات والدروس المرتبطة به. لا يمكن التراجع عن هذا الإجراء.",
-    "admin.add_unit": "إضافة وحدة جديدة",
-    "admin.edit_unit": "تعديل وحدة",
-    "admin.unit": "الوحدة",
-    "admin.select_unit": "اختر وحدة",
-    "admin.units_desc": "إدارة الوحدات الدراسية في المنصة",
-    "admin.unit_deleted": "تم حذف الوحدة بنجاح",
-    "admin.delete_confirm_unit": "هل أنت متأكد من حذف هذه الوحدة؟ سيتم حذف جميع الدروس المرتبطة بها. لا يمكن التراجع عن هذا الإجراء.",
-    "admin.exam_enabled": "الاختبار النهائي",
-    "admin.select_level_first": "اختر مستوى أولاً",
-    "admin.title_ar": "العنوان بالعربية",
-    "admin.title_en": "العنوان بالإنجليزية",
-    "admin.description": "الوصف",
-    "admin.publish": "منشور",
-    "admin.order_placeholder": "مثال: 1",
-    "admin.no_levels": "لا توجد مستويات بعد",
-    "admin.no_units": "لا توجد وحدات بعد",
-    "admin.all_subjects": "كل المواد",
-
-    /* ───── Confirm/Delete Dialogs ───── */
-    "dialog.delete_title": "تأكيد الحذف",
-    "dialog.delete_msg": "هل أنت متأكد من الحذف؟ لا يمكن التراجع عن هذا الإجراء.",
-    "dialog.delete_confirm": "حذف",
-    "dialog.delete_cancel": "إلغاء",
-    "dialog.convert_confirm": "تحويل",
-    "dialog.confirm": "تأكيد",
-
     /* ───── Dashboard ───── */
     "dashboard.welcome": "Welcome",
     "dashboard.subtitle": "Continue your learning journey, you're on the right track!",
@@ -548,7 +247,6 @@ export const translations = {
     "dashboard.quick_browse": "Review Materials",
     "dashboard.visit": "Visit Lesson",
     "dashboard.start_quiz": "Start Quiz",
-
     /* ───── Topic / Quiz ───── */
     "topic.back": "Back",
     "topic.explanation": "Interactive Explanation",
@@ -571,7 +269,6 @@ export const translations = {
     "quiz.back_to_dashboard": "Dashboard",
     "quiz.question": "Question",
     "quiz.explanation": "Explanation",
-
     /* ───── Admin ───── */
     "admin.title": "Admin Panel",
     "admin.colleges": "Colleges",
@@ -698,16 +395,13 @@ export const translations = {
     "nav.settings": "Settings",
     "nav.admin": "Admin Panel",
     "nav.groups": "Groups",
-
     /* ───── Logout ───── */
     "logout.title": "Logout",
     "logout.message": "Are you sure you want to logout?",
     "logout.confirm": "Logout",
-
     /* ───── ColorInput ───── */
     "color.invalid": "Invalid color — use a color name (e.g. red, blue) or hex code (e.g. #FF0000)",
     "color.hint": "Type a CSS color name (red, darkblue, gold...) or use the color picker",
-
     /* ───── Admin Toast & UI ───── */
     "admin.student_list_desc": "All registered students on the platform",
     "admin.promote_to_teacher": "Promote to Teacher",
@@ -800,7 +494,6 @@ export const translations = {
     "admin.no_levels": "No levels yet",
     "admin.no_units": "No units yet",
     "admin.all_subjects": "All Subjects",
-
     /* ───── Confirm/Delete Dialogs ───── */
     "dialog.delete_title": "Confirm Deletion",
     "dialog.delete_msg": "Are you sure you want to delete? This action cannot be undone.",
@@ -808,7 +501,6 @@ export const translations = {
     "dialog.delete_cancel": "Cancel",
     "dialog.convert_confirm": "Convert",
     "dialog.confirm": "Confirm",
-
     /* ───── Teacher Toast ───── */
     "teacher.saved": "Changes saved",
     "teacher.save_failed": "Save failed",
@@ -826,7 +518,6 @@ export const translations = {
     "teacher.delete_question_title": "Delete Question",
     "teacher.delete_question_msg": "Are you sure you want to delete this question? This action cannot be undone.",
     "teacher.members": "Members: ",
-
     /* ───── Chat ───── */
     "chat.group_locked": "Group is locked",
     "chat.group_created": "Group created",
@@ -898,7 +589,6 @@ export const translations = {
     "chat.delete_confirm_title": "Delete Group",
     "chat.delete_confirm_msg": "Are you sure you want to permanently delete this group? All messages and requests will be deleted. This action cannot be undone.",
     "chat.user": "User",
-
     /* ───── Teacher Dashboard ───── */
     "teacher.title": "Teacher Dashboard",
     "teacher.subtitle": "Manage your subjects, lessons and questions",
@@ -932,7 +622,11 @@ export const translations = {
     "teacher.total_questions": "Total Questions",
     "teacher.total_topics": "Total Topics",
     "teacher.back": "Back to Teacher Dashboard",
-  },
+} as const;
+
+export const translations = {
+  ar: dict,
+  en: dict,
 };
 
-export type TranslationKey = keyof typeof translations.ar;
+export type TranslationKey = keyof typeof dict;
