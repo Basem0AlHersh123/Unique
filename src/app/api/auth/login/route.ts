@@ -71,27 +71,32 @@ export async function POST(req: NextRequest) {
     user.refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
     await user.save();
 
-    const res = NextResponse.json({
-      success: true,
-      data: {
-        accessToken,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          tier: user.tier,
-        },
+    const responseData: Record<string, unknown> = {
+      accessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        tier: user.tier,
       },
-    });
+    };
 
-    res.cookies.set("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
+    if (mobile) {
+      responseData.refreshToken = refreshToken;
+    }
+
+    const res = NextResponse.json({ success: true, data: responseData });
+
+    if (!mobile) {
+      res.cookies.set("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+      });
+    }
 
     return res;
   } catch (err) {

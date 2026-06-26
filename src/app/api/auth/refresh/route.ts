@@ -10,7 +10,10 @@ function hashToken(token: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const refreshToken = req.cookies.get("refreshToken")?.value;
+    const authHeader = req.headers.get("authorization");
+    const refreshToken =
+      (authHeader?.startsWith("Refresh ") ? authHeader.slice(8) : null) ??
+      req.cookies.get("refreshToken")?.value;
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -18,6 +21,8 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    const isMobileRefresh = authHeader?.startsWith("Refresh ") ?? false;
 
     const payload = verifyRefreshToken(refreshToken);
 
@@ -52,18 +57,22 @@ export async function POST(req: NextRequest) {
     user.refreshTokenHash = hashToken(newRefreshToken);
     await user.save();
 
-    const res = NextResponse.json({
-      success: true,
-      data: { accessToken },
-    });
+    const responseData: Record<string, unknown> = { accessToken };
+    if (isMobileRefresh) {
+      responseData.refreshToken = newRefreshToken;
+    }
 
-    res.cookies.set("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
+    const res = NextResponse.json({ success: true, data: responseData });
+
+    if (!isMobileRefresh) {
+      res.cookies.set("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+      });
+    }
 
     return res;
   } catch {

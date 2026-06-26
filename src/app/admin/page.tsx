@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import {
   GraduationCap, BookOpen, Layers, Users, HelpCircle,
-  ClipboardCheck, UserCheck, MessageCircle, MessageSquare,
+  ClipboardCheck, UserCheck, MessageCircle, MessageSquare, Building2,
 } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
@@ -23,6 +23,7 @@ interface AdminStats {
   paidStudents: number;
   totalGroups: number;
   totalMessages: number;
+  universities: number;
 }
 
 export default function AdminHome() {
@@ -38,7 +39,8 @@ export default function AdminHome() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const statCards = stats ? [
-    { label: t('admin.colleges'), value: stats.colleges, color: "bg-primary", icon: GraduationCap },
+    { label: t('admin.universities'), value: stats.universities, color: "bg-primary", icon: Building2 },
+    { label: t('admin.colleges'), value: stats.colleges, color: "bg-teal", icon: GraduationCap },
     { label: t('admin.subjects'), value: stats.subjects, color: "bg-teal", icon: BookOpen },
     { label: t('admin.topics'), value: stats.topics, color: "bg-secondary", icon: Layers },
     { label: t('admin.questions'), value: stats.questions, color: "bg-warning", icon: HelpCircle },

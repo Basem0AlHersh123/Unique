@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   Menu, LogOut, BarChart3, GraduationCap, BookOpen, Layers, HelpCircle,
-  Users, UserCheck, MessageCircle, Sparkles, GitBranch, FolderOpen,
+  Users, UserCheck, MessageCircle, Sparkles, GitBranch, FolderOpen, Building2,
 } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getAuthOrRefresh } from "@/lib/auth-client";
@@ -24,6 +24,7 @@ export default function AdminLayout({
 
   const navItems = [
     { href: "/admin", label: t('admin.title'), icon: BarChart3 },
+    { href: "/admin/universities", label: t('admin.universities'), icon: Building2 },
     { href: "/admin/colleges", label: t('admin.colleges'), icon: GraduationCap },
     { href: "/admin/subjects", label: t('admin.subjects'), icon: BookOpen },
     { href: "/admin/levels", label: t('admin.levels'), icon: GitBranch },

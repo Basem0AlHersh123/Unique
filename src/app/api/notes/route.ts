@@ -5,12 +5,12 @@ import { StudentNote } from "@/models/StudentNote";
 import { requireAuth } from "@/lib/requireAuth";
 
 const createNoteSchema = z.object({
-  content: z.string().min(1, "المحتوى مطلوب").max(10000),
+  content: z.string().min(1, "المحتوى مطلوب").max(5000),
   title: z.string().max(200).optional(),
   lessonId: z.string().optional(),
   unitId: z.string().optional(),
   subjectId: z.string().optional(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  color: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {

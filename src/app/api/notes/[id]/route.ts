@@ -5,9 +5,9 @@ import { StudentNote } from "@/models/StudentNote";
 import { requireAuth } from "@/lib/requireAuth";
 
 const updateNoteSchema = z.object({
-  content: z.string().min(1).max(10000).optional(),
+  content: z.string().min(1).max(5000).optional(),
   title: z.string().max(200).optional(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  color: z.string().optional(),
 });
 
 export async function PATCH(
@@ -26,16 +26,18 @@ export async function PATCH(
     }
 
     await connectDB();
-    const note = await StudentNote.findOneAndUpdate(
-      { _id: id, userId: auth.payload.userId },
-      { $set: parsed.data },
-      { new: true, runValidators: true }
-    );
 
+    const note = await StudentNote.findById(id);
     if (!note) {
-      return NextResponse.json({ success: false, error: "الملاحظة غير موجودة أو لا تملك صلاحية التعديل" }, { status: 404 });
+      return NextResponse.json({ success: false, error: "الملاحظة غير موجودة" }, { status: 404 });
     }
-    return NextResponse.json({ success: true, data: note });
+
+    if (note.userId.toString() !== auth.payload.userId) {
+      return NextResponse.json({ success: false, error: "غير مصرح" }, { status: 403 });
+    }
+
+    const updated = await StudentNote.findByIdAndUpdate(id, parsed.data, { new: true });
+    return NextResponse.json({ success: true, data: updated });
   } catch (err) {
     console.error("Update note error:", err);
     return NextResponse.json({ success: false, error: "حدث خطأ في الخادم" }, { status: 500 });
@@ -51,12 +53,20 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+
     await connectDB();
-    const note = await StudentNote.findOneAndDelete({ _id: id, userId: auth.payload.userId });
+
+    const note = await StudentNote.findById(id);
     if (!note) {
-      return NextResponse.json({ success: false, error: "الملاحظة غير موجودة أو لا تملك صلاحية الحذف" }, { status: 404 });
+      return NextResponse.json({ success: false, error: "الملاحظة غير موجودة" }, { status: 404 });
     }
-    return NextResponse.json({ success: true, data: { id } });
+
+    if (note.userId.toString() !== auth.payload.userId) {
+      return NextResponse.json({ success: false, error: "غير مصرح" }, { status: 403 });
+    }
+
+    await StudentNote.findByIdAndDelete(id);
+    return NextResponse.json({ success: true, data: null });
   } catch (err) {
     console.error("Delete note error:", err);
     return NextResponse.json({ success: false, error: "حدث خطأ في الخادم" }, { status: 500 });

@@ -7,6 +7,7 @@ import { Question } from "@/models/Question";
 import { Attempt } from "@/models/Attempt";
 import { User } from "@/models/User";
 import { Group } from "@/models/Group";
+import { University } from "@/models/University";
 import { requireAdmin } from "@/lib/requireAdmin";
 import type { NextRequest } from "next/server";
 
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
       paidStudents,
       totalGroups,
       totalMessages,
+      totalUniversities,
     ] = await Promise.all([
       College.countDocuments(),
       Subject.countDocuments(),
@@ -50,6 +52,7 @@ export async function GET(req: NextRequest) {
       User.countDocuments({ role: "student", tier: "paid" }),
       Group.countDocuments(),
       (await import("@/models/Message")).Message.countDocuments(),
+      University.countDocuments(),
     ]);
 
     return NextResponse.json({
@@ -68,6 +71,7 @@ export async function GET(req: NextRequest) {
         paidStudents,
         totalGroups,
         totalMessages,
+        universities: totalUniversities,
       },
     });
   } catch (err) {

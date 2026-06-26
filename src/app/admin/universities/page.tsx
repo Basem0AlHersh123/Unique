@@ -4,8 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { ColorInput } from "@/components/ui/ColorInput";
-import { IconPicker } from "@/components/ui/IconPicker";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -18,19 +16,10 @@ interface University {
   name: string;
   nameAr?: string;
   nameEn?: string;
-}
-
-interface College {
-  _id: string;
-  name: string;
-  nameAr?: string;
-  nameEn?: string;
   slug: string;
-  comingSoon: boolean;
+  logo?: string;
   isActive: boolean;
-  icon: string;
-  color: string;
-  universityId?: string;
+  comingSoon: boolean;
 }
 
 interface FormData {
@@ -38,11 +27,9 @@ interface FormData {
   nameAr: string;
   nameEn: string;
   slug: string;
-  comingSoon: boolean;
+  logo: string;
   isActive: boolean;
-  icon: string;
-  color: string;
-  universityId: string;
+  comingSoon: boolean;
 }
 
 const emptyForm: FormData = {
@@ -50,11 +37,9 @@ const emptyForm: FormData = {
   nameAr: "",
   nameEn: "",
   slug: "",
-  comingSoon: false,
+  logo: "",
   isActive: true,
-  icon: "GraduationCap",
-  color: "#6C63FF",
-  universityId: "",
+  comingSoon: false,
 };
 
 function hasArabic(text: string) {
@@ -65,10 +50,9 @@ function hasLatin(text: string) {
   return /[a-zA-Z]/.test(text);
 }
 
-export default function CollegesPage() {
+export default function UniversitiesPage() {
   const { showToast } = useToast();
   const { t, lang } = useLanguage();
-  const [colleges, setColleges] = useState<College[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -79,14 +63,10 @@ export default function CollegesPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const fetchColleges = useCallback(async () => {
+  const fetchUniversities = useCallback(async () => {
     try {
-      const [collegesRes, universitiesRes] = await Promise.all([
-        apiFetch<College[]>("/api/admin/colleges"),
-        apiFetch<University[]>("/api/admin/universities"),
-      ]);
-      setColleges(collegesRes.data ?? []);
-      setUniversities(universitiesRes.data ?? []);
+      const res = await apiFetch<University[]>("/api/admin/universities");
+      setUniversities(res.data ?? []);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -95,9 +75,8 @@ export default function CollegesPage() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchColleges();
-  }, [fetchColleges]);
+    fetchUniversities();
+  }, [fetchUniversities]);
 
   function resetForm() {
     setForm(emptyForm);
@@ -107,20 +86,18 @@ export default function CollegesPage() {
     setError(null);
   }
 
-  function openEdit(c: College) {
+  function openEdit(u: University) {
     setForm({
-      name: c.name,
-      nameAr: c.nameAr || "",
-      nameEn: c.nameEn || "",
-      slug: c.slug,
-      comingSoon: c.comingSoon,
-      isActive: c.isActive,
-      icon: c.icon,
-      color: c.color,
-      universityId: c.universityId || "",
+      name: u.name,
+      nameAr: u.nameAr || "",
+      nameEn: u.nameEn || "",
+      slug: u.slug,
+      logo: u.logo || "",
+      isActive: u.isActive,
+      comingSoon: u.comingSoon,
     });
     setFormErrors({});
-    setEditingId(c._id);
+    setEditingId(u._id);
     setShowForm(true);
   }
 
@@ -143,18 +120,18 @@ export default function CollegesPage() {
         name: form.nameAr || form.nameEn || form.name || "untitled",
       };
       if (editingId) {
-        await apiFetch(`/api/admin/colleges/${editingId}`, {
+        await apiFetch(`/api/admin/universities/${editingId}`, {
           method: "PATCH",
           body: JSON.stringify(payload),
         });
       } else {
-        await apiFetch("/api/admin/colleges", {
+        await apiFetch("/api/admin/universities", {
           method: "POST",
           body: JSON.stringify(payload),
         });
       }
       resetForm();
-      await fetchColleges();
+      await fetchUniversities();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -169,10 +146,10 @@ export default function CollegesPage() {
   async function confirmDelete() {
     if (!deleteTarget) return;
     try {
-      await apiFetch(`/api/admin/colleges/${deleteTarget}`, { method: "DELETE" });
-      showToast(t('admin.college_deleted'), "success");
+      await apiFetch(`/api/admin/universities/${deleteTarget}`, { method: "DELETE" });
+      showToast(t('admin.university_deleted'), "success");
       setDeleteTarget(null);
-      await fetchColleges();
+      await fetchUniversities();
     } catch (err) {
       showToast((err as Error).message, "error");
       setDeleteTarget(null);
@@ -184,9 +161,9 @@ export default function CollegesPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <h2 className="text-2xl font-bold text-text-primary">{t('admin.colleges')}</h2>
+        <h2 className="text-2xl font-bold text-text-primary">{t('admin.universities')}</h2>
         <Button onClick={() => { resetForm(); setShowForm(true); }}>
-          {t('admin.add_college')}
+          {t('admin.add_university')}
         </Button>
       </div>
 
@@ -199,7 +176,7 @@ export default function CollegesPage() {
       {showForm && (
         <div className="bg-surface border border-border rounded-xl p-6 mb-6">
           <h3 className="text-lg font-semibold text-text-primary mb-4">
-            {editingId ? t('admin.edit_college') : t('admin.add_college')}
+            {editingId ? t('admin.edit_university') : t('admin.add_university')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <Input
@@ -219,7 +196,7 @@ export default function CollegesPage() {
                 setForm({ ...form, nameEn: e.target.value });
                 if (formErrors.nameEn) setFormErrors({ ...formErrors, nameEn: "" });
               }}
-              placeholder="e.g. College of Computer"
+              placeholder="e.g. Cairo University"
               error={formErrors.nameEn}
             />
             <Input
@@ -231,49 +208,15 @@ export default function CollegesPage() {
                   slug: e.target.value.replace(/\s+/g, "-").toLowerCase(),
                 })
               }
-              placeholder="computer-science"
+              placeholder="cairo-university"
               disabled={!!editingId}
             />
-            <ColorInput
-              label={t('admin.color')}
-              value={form.color}
-              onChange={(v) => setForm({ ...form, color: v })}
-              placeholder="#6C63FF"
+            <Input
+              label={t('admin.logo_url')}
+              value={form.logo}
+              onChange={(e) => setForm({ ...form, logo: e.target.value })}
+              placeholder="https://example.com/logo.png"
             />
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                {t('admin.university')}
-              </label>
-              <select
-                value={form.universityId}
-                onChange={(e) => setForm({ ...form, universityId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">{t('admin.select_university')}</option>
-                {universities.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {lang === 'ar' ? (u.nameAr || u.name) : (u.nameEn || u.name)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <IconPicker
-              label={t('admin.icon')}
-              value={form.icon}
-              onChange={(v) => setForm({ ...form, icon: v })}
-            />
-            <label className="flex items-center gap-2 text-text-secondary text-sm">
-              <input
-                type="checkbox"
-                checked={form.comingSoon}
-                onChange={(e) =>
-                  setForm({ ...form, comingSoon: e.target.checked })
-                }
-                className="rounded border-border"
-              />
-              {t('admin.coming_soon')}
-            </label>
-
             <label className="flex items-center gap-2 text-text-secondary text-sm">
               <input
                 type="checkbox"
@@ -284,6 +227,17 @@ export default function CollegesPage() {
                 className="rounded border-border"
               />
               {t('admin.active')}
+            </label>
+            <label className="flex items-center gap-2 text-text-secondary text-sm">
+              <input
+                type="checkbox"
+                checked={form.comingSoon}
+                onChange={(e) =>
+                  setForm({ ...form, comingSoon: e.target.checked })
+                }
+                className="rounded border-border"
+              />
+              {t('admin.coming_soon')}
             </label>
           </div>
           <div className="flex gap-3">
@@ -298,25 +252,25 @@ export default function CollegesPage() {
       )}
 
       <Table headers={[t('admin.name'), t('admin.slug'), t('admin.status'), t('admin.actions')]}>
-        {colleges.length === 0 ? (
+        {universities.length === 0 ? (
           <TableRow>
             <TableCell colSpan={4} className="text-center py-12 text-text-muted">
-              {t('admin.no_colleges')}
+              {t('admin.no_universities')}
             </TableCell>
           </TableRow>
         ) : (
-          colleges.map((c) => (
-            <TableRow key={c._id}>
+          universities.map((u) => (
+            <TableRow key={u._id}>
               <TableCell>
-                {lang === 'ar' ? (c.nameAr || c.name) : (c.nameEn || c.name)}
+                {lang === 'ar' ? (u.nameAr || u.name) : (u.nameEn || u.name)}
               </TableCell>
-              <TableCell className="text-text-muted text-sm">{c.slug}</TableCell>
+              <TableCell className="text-text-muted text-sm">{u.slug}</TableCell>
               <TableCell>
                 <div className="flex gap-1.5 flex-wrap">
-                  <Badge variant={c.isActive ? "success" : "danger"}>
-                    {c.isActive ? t('admin.active') : t('admin.inactive')}
+                  <Badge variant={u.isActive ? "success" : "danger"}>
+                    {u.isActive ? t('admin.active') : t('admin.inactive')}
                   </Badge>
-                  {c.comingSoon && (
+                  {u.comingSoon && (
                     <Badge variant="warning">{t('admin.coming_soon_label')}</Badge>
                   )}
                 </div>
@@ -324,13 +278,13 @@ export default function CollegesPage() {
               <TableCell>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => openEdit(c)}
+                    onClick={() => openEdit(u)}
                     className="text-sm text-primary hover:underline"
                   >
                     {t('admin.edit')}
                   </button>
                   <button
-                    onClick={() => handleDelete(c._id)}
+                    onClick={() => handleDelete(u._id)}
                     className="text-sm text-danger hover:underline"
                   >
                     {t('common.delete')}
@@ -344,7 +298,7 @@ export default function CollegesPage() {
       <ConfirmDialog
         open={deleteTarget !== null}
         title={t('common.delete')}
-        message={t('admin.delete_confirm_college')}
+        message={t('admin.delete_confirm_university')}
         confirmLabel={t('common.delete')}
         cancelLabel={t('common.cancel')}
         variant="danger"
