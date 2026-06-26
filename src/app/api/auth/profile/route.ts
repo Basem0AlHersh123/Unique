@@ -11,6 +11,7 @@ const updateSchema = z.object({
   dailyGoal: z.number().min(1).max(20).optional(),
   studyReminderTime: z.string().regex(/^\d{2}:\d{2}$/, "صيغة الوقت يجب أن تكون HH:MM").optional(),
   studyReminderEnabled: z.boolean().optional(),
+  profileImage: z.string().url().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -52,11 +53,16 @@ export async function PATCH(req: NextRequest) {
     }
 
     await connectDB();
+    const updateFields: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(parsed.data)) {
+      if (key === "profileImage" && value === undefined) continue;
+      updateFields[key] = value;
+    }
     const user = await User.findByIdAndUpdate(
       auth.payload.userId,
-      { $set: parsed.data },
+      { $set: updateFields },
       { new: true }
-    ).select("name email role tier pushToken dailyGoal studyReminderTime studyReminderEnabled");
+    ).select("name email role tier pushToken profileImage dailyGoal studyReminderTime studyReminderEnabled");
 
     const accessToken = signAccessToken({
       userId: auth.payload.userId,

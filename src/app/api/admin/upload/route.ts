@@ -1,42 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { requireAdmin } from "@/lib/requireAdmin";
+import { requireAuth } from "@/lib/requireAuth";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req: NextRequest) {
-  const adminCheck = requireAdmin(req);
-  if (adminCheck) return adminCheck;
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
 
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json(
-        { success: false, error: "لم يتم إرسال ملف" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "لم يتم إرسال ملف" }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ success: false, error: "يجب أن يكون الملف صورة" }, { status: 400 });
+    }
 
-    const ext = path.extname(file.name) || ".png";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    const filepath = path.join(uploadDir, filename);
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ success: false, error: "حجم الصورة يجب أن يكون أقل من 5MB" }, { status: 400 });
+    }
 
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(filepath, buffer);
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const url = `/uploads/${filename}`;
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder: "unique/profiles",
+          transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
+          format: "webp",
+        },
+        (error, result) => {
+          if (error || !result) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      ).end(buffer);
+    });
 
-    return NextResponse.json({ success: true, data: { url } });
+    return NextResponse.json({ success: true, data: { url: result.secure_url } });
   } catch (err) {
     console.error("Upload error:", err);
-    return NextResponse.json(
-      { success: false, error: "حدث خطأ في رفع الملف" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "فشل رفع الصورة" }, { status: 500 });
   }
 }

@@ -21,6 +21,7 @@ export interface IUser extends Document {
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   pushToken?: string;
+  profileImage?: string;
   dailyGoal: number;
   studyReminderTime: string;
   studyReminderEnabled: boolean;
@@ -90,6 +91,11 @@ const UserSchema = new Schema<IUser>(
     },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    profileImage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     pushToken: {
       type: String,
       default: "",
