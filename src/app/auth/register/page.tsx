@@ -10,6 +10,7 @@ import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import axios from "axios";
 import api from "@/lib/api";
 import { UserPlus, ArrowLeft } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
@@ -52,8 +53,14 @@ export default function RegisterPage() {
 
       localStorage.setItem("accessToken", result.data.accessToken);
       router.push("/dashboard");
-    } catch {
-      setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        setServerError(err.response.data.error);
+      } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setServerError(err.response.data.message);
+      } else {
+        setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
+      }
       setIsSubmitting(false);
     }
   }

@@ -10,6 +10,7 @@ import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import axios from "axios";
 import api from "@/lib/api";
 import { Mail, Lock, ArrowLeft, RefreshCw } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [deactivatedPassword, setDeactivatedPassword] = useState<string>("");
   const [reactivating, setReactivating] = useState(false);
   const [reactivateError, setReactivateError] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState(false);
 
   const {
     register,
@@ -37,6 +39,11 @@ export default function LoginPage() {
 
   function onCaptchaSuccess(token: string) {
     setValue("turnstileToken", token);
+    setTurnstileError(false);
+  }
+
+  function onCaptchaError() {
+    setTurnstileError(true);
   }
 
   async function onSubmit(data: LoginInput) {
@@ -65,8 +72,14 @@ export default function LoginPage() {
 
       localStorage.setItem("accessToken", result.data.accessToken);
       router.push("/dashboard");
-    } catch {
-      setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        setServerError(err.response.data.error);
+      } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setServerError(err.response.data.message);
+      } else {
+        setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
+      }
       setIsSubmitting(false);
     }
   }
@@ -83,8 +96,12 @@ export default function LoginPage() {
       setDeactivatedEmail(null);
       setDeactivatedPassword("");
       setServerError("تم إعادة تفعيل الحساب بنجاح. حاول تسجيل الدخول مرة أخرى.");
-    } catch {
-      setReactivateError("فشل إعادة التفعيل. تحقق من كلمة المرور.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        setReactivateError(err.response.data.error);
+      } else {
+        setReactivateError("فشل إعادة التفعيل. تحقق من كلمة المرور.");
+      }
     } finally {
       setReactivating(false);
     }
@@ -146,12 +163,18 @@ export default function LoginPage() {
                 <Turnstile
                   siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
                   onSuccess={onCaptchaSuccess}
+                  onError={onCaptchaError}
                 />
               </div>
             </div>
             {errors.turnstileToken && (
               <p className="text-sm text-danger text-center animate-slide-in-right">
                 {errors.turnstileToken.message}
+              </p>
+            )}
+            {turnstileError && (
+              <p className="text-sm text-warning text-center">
+                تعذر تحميل التحقق الأمني. قد يكون هناك مانع إعلانات أو VPN قيد التشغيل.
               </p>
             )}
 
