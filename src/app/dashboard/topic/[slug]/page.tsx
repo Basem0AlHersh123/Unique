@@ -11,7 +11,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getAuthOrRefresh } from "@/lib/auth-client";
 import {
-  ArrowLeft, BookOpen, CheckCircle, Lightbulb, Sparkles, ClipboardCheck,
+  ArrowLeft, BookOpen, CheckCircle, Lightbulb, Sparkles, ClipboardCheck, Bot,
 } from "lucide-react";
 
 interface Topic {
@@ -45,6 +45,12 @@ export default function TopicDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+
   useEffect(() => {
     (async () => {
       const u = await getAuthOrRefresh();
@@ -69,6 +75,30 @@ export default function TopicDetailPage() {
     }
     load();
   }, [slug]);
+
+  async function handleAskAi() {
+    const q = aiQuestion.trim();
+    if (!q || !topic || aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    setAiAnswer(null);
+    try {
+      const res = await apiFetch<{ answer: string }>("/api/ai/lesson", {
+        method: "POST",
+        body: JSON.stringify({ lessonId: topic._id, question: q }),
+      });
+      if (res.success && res.data) {
+        setAiAnswer(res.data.answer);
+        setAiQuestion("");
+      } else {
+        setAiError(res.error || t('lesson.ask_ai_error'));
+      }
+    } catch {
+      setAiError(t('lesson.ask_ai_error'));
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   function getYouTubeEmbedUrl(url: string): string | null {
     const match = url.match(
@@ -204,6 +234,80 @@ export default function TopicDetailPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Ask AI Section */}
+        <div className="mt-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6">
+          <button
+            onClick={() => setAiOpen(!aiOpen)}
+            className="flex items-center gap-2 w-full text-right"
+          >
+            <Bot className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-bold text-text-primary flex-1">{t('lesson.ask_ai')}</h2>
+            <span className={`text-text-muted transition-transform ${aiOpen ? "rotate-180" : ""}`}>
+              ▼
+            </span>
+          </button>
+
+          {aiOpen && (
+            <div className="mt-4 space-y-4">
+              <div className="flex items-end gap-2">
+                <input
+                  type="text"
+                  value={aiQuestion}
+                  onChange={(e) => setAiQuestion(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskAi(); } }}
+                  placeholder={t('lesson.ask_ai_placeholder')}
+                  className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                />
+                <button
+                  onClick={handleAskAi}
+                  disabled={!aiQuestion.trim() || aiLoading}
+                  className="p-2.5 rounded-xl bg-primary text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-dark transition-all shrink-0"
+                >
+                  <Bot className="w-5 h-5" />
+                </button>
+              </div>
+
+              {aiLoading && (
+                <div className="flex items-center gap-2 text-text-muted text-sm">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                  <span>{t('lesson.asking')}</span>
+                </div>
+              )}
+
+              {aiError && (
+                <div className="text-sm text-danger bg-danger/5 rounded-xl p-3 border border-danger/20">
+                  {aiError}
+                </div>
+              )}
+
+              {aiAnswer && (
+                <div className="bg-surface rounded-xl border border-border p-4">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Bot className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-semibold text-primary">{t('ai_chat.ai')}</span>
+                  </div>
+                  <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+                    {aiAnswer}
+                  </p>
+                </div>
+              )}
+
+              {aiAnswer && (
+                <button
+                  onClick={() => { setAiAnswer(null); setAiQuestion(""); setAiError(null); }}
+                  className="text-sm text-text-muted hover:text-text-primary transition-colors"
+                >
+                  {t('common.clear') || "مسح"}
+                </button>
+              )}
             </div>
           )}
         </div>

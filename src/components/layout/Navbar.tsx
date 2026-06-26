@@ -10,7 +10,7 @@ import { getStoredAuth, getAuthOrRefresh, type AuthUser } from "@/lib/auth-clien
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   MessageCircle, Settings, LayoutDashboard, LogOut, ArrowRight,
-  Building2, Info, ShieldCheck, Presentation, LogIn, UserPlus,
+  Building2, Info, ShieldCheck, Presentation, LogIn, UserPlus, Bot,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -117,6 +117,7 @@ export function Navbar({ variant = "full", showBack }: NavbarProps) {
                   )}
                   <NavLink href="/colleges" icon={Building2} label={t('nav.colleges')} />
                   <NavLink href="/chat" icon={MessageCircle} label={t('nav.chat')} />
+                  <NavLink href="/ai/chat" icon={Bot} label={t('nav.ai_chat')} />
                   <NavLink href="/about" icon={Info} label={t('nav.about')} />
                   <NavLink href="/settings" icon={Settings} label={t('nav.settings')} />
                 </>
