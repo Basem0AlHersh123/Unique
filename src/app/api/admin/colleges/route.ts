@@ -19,10 +19,14 @@ const createCollegeSchema = z.object({
 
 // GET — list all colleges. Public colleges browsing also needs this
 // later, so we don't lock this one behind requireAdmin.
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
-    const colleges = await College.find().sort({ createdAt: 1 });
+    const url = req.nextUrl;
+    const universityId = url.searchParams.get("universityId");
+    const filter: Record<string, unknown> = {};
+    if (universityId) filter.universityId = universityId;
+    const colleges = await College.find(filter).sort({ createdAt: 1 });
     return NextResponse.json({ success: true, data: colleges });
   } catch (err) {
     console.error("List colleges error:", err);

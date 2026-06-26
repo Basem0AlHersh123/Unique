@@ -4,64 +4,36 @@ import { connectDB } from "@/lib/db";
 import { University } from "@/models/University";
 import { requireAdmin } from "@/lib/requireAdmin";
 
-const createUniversitySchema = z.object({
-  name: z.string().min(2, "اسم الجامعة قصير جداً"),
-  nameAr: z.string().optional(),
-  nameEn: z.string().optional(),
-  slug: z.string().regex(/^[a-z0-9-]+$/, "الرابط غير صالح"),
-  imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
-  imageUrl: z.string().optional(),
+const createSchema = z.object({
+  name: z.string().min(1),
+  nameAr: z.string().default(""),
+  nameEn: z.string().default(""),
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  logo: z.string().optional(),
   icon: z.string().optional(),
-  isActive: z.boolean().optional(),
-  comingSoon: z.boolean().optional(),
+  color: z.string().optional(),
+  isActive: z.boolean().default(true),
+  comingSoon: z.boolean().default(false),
 });
 
 export async function GET() {
-  try {
-    await connectDB();
-    const universities = await University.find().sort({ createdAt: 1 });
-    return NextResponse.json({ success: true, data: universities });
-  } catch (err) {
-    console.error("List universities error:", err);
-    return NextResponse.json(
-      { success: false, error: "حدث خطأ في الخادم" },
-      { status: 500 }
-    );
-  }
+  await connectDB();
+  const universities = await University.find().sort({ createdAt: 1 });
+  return NextResponse.json({ success: true, data: universities });
 }
 
 export async function POST(req: NextRequest) {
   const adminCheck = requireAdmin(req);
   if (adminCheck) return adminCheck;
-
   try {
-    const body = await req.json();
-    const parsed = createUniversitySchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { success: false, error: parsed.error.issues[0].message },
-        { status: 400 }
-      );
-    }
-
     await connectDB();
-
-    const existing = await University.findOne({ slug: parsed.data.slug });
-    if (existing) {
-      return NextResponse.json(
-        { success: false, error: "يوجد رابط مستخدم بالفعل لجامعة أخرى" },
-        { status: 409 }
-      );
-    }
-
+    const body = await req.json();
+    const parsed = createSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
     const university = await University.create(parsed.data);
     return NextResponse.json({ success: true, data: university }, { status: 201 });
-  } catch (err) {
-    console.error("Create university error:", err);
-    return NextResponse.json(
-      { success: false, error: "حدث خطأ في الخادم" },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "حدث خطأ في الخادم";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

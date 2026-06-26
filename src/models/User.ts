@@ -12,6 +12,8 @@ export interface IUser extends Document {
   role: "student" | "admin" | "teacher";
   tier: "free" | "paid";
   isVerified: boolean;
+  isActive: boolean;
+  deactivatedAt?: Date;
   streak: number;
   lastActive: Date;
   examDate?: Date;
@@ -69,6 +71,8 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    isActive: { type: Boolean, default: true },
+    deactivatedAt: { type: Date },
     streak: {
       type: Number,
       default: 0,

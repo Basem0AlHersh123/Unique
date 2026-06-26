@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { ImageTypeSelector } from "@/components/ui/ImageTypeSelector";
+import { ColorInput } from "@/components/ui/ColorInput";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -18,9 +18,9 @@ interface University {
   nameAr?: string;
   nameEn?: string;
   slug: string;
-  imageType: "icon" | "url" | "cloudinary";
-  imageUrl?: string;
-  icon: string;
+  logo?: string;
+  icon?: string;
+  color?: string;
   isActive: boolean;
   comingSoon: boolean;
 }
@@ -30,9 +30,9 @@ interface FormData {
   nameAr: string;
   nameEn: string;
   slug: string;
-  imageType: "icon" | "url" | "cloudinary";
-  imageUrl: string;
   icon: string;
+  logo: string;
+  color: string;
   isActive: boolean;
   comingSoon: boolean;
 }
@@ -42,9 +42,9 @@ const emptyForm: FormData = {
   nameAr: "",
   nameEn: "",
   slug: "",
-  imageType: "icon",
-  imageUrl: "",
-  icon: "GraduationCap",
+  icon: "🎓",
+  logo: "",
+  color: "#6C63FF",
   isActive: true,
   comingSoon: false,
 };
@@ -99,9 +99,9 @@ export default function UniversitiesPage() {
       nameAr: u.nameAr || "",
       nameEn: u.nameEn || "",
       slug: u.slug,
-      imageType: u.imageType || "icon",
-      imageUrl: u.imageUrl || "",
-      icon: u.icon || "GraduationCap",
+      icon: u.icon || "🎓",
+      logo: u.logo || "",
+      color: u.color || "#6C63FF",
       isActive: u.isActive,
       comingSoon: u.comingSoon,
     });
@@ -220,16 +220,24 @@ export default function UniversitiesPage() {
               placeholder="cairo-university"
               disabled={!!editingId}
             />
-            <div className="md:col-span-2">
-              <ImageTypeSelector
-                imageType={form.imageType}
-                imageUrl={form.imageUrl}
-                icon={form.icon}
-                onImageTypeChange={(v) => setForm({ ...form, imageType: v })}
-                onImageUrlChange={(v) => setForm({ ...form, imageUrl: v })}
-                onIconChange={(v) => setForm({ ...form, icon: v })}
-              />
-            </div>
+            <Input
+              label={t('admin.icon')}
+              value={form.icon}
+              onChange={(e) => setForm({ ...form, icon: e.target.value })}
+              placeholder="🎓"
+            />
+            <Input
+              label={t('admin.logo_url')}
+              value={form.logo}
+              onChange={(e) => setForm({ ...form, logo: e.target.value })}
+              placeholder="https://example.com/logo.png"
+            />
+            <ColorInput
+              label={t('admin.color')}
+              value={form.color}
+              onChange={(v) => setForm({ ...form, color: v })}
+              placeholder="#6C63FF"
+            />
             <label className="flex items-center gap-2 text-text-secondary text-sm">
               <input
                 type="checkbox"

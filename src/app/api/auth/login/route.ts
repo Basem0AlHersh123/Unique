@@ -64,6 +64,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!user.isActive) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "DEACTIVATED",
+          message: "هذا الحساب معطل. هل تريد إعادة تفعيله؟"
+        },
+        { status: 403 }
+      );
+    }
+
     const accessToken = signAccessToken({ userId: user._id.toString(), role: user.role, name: user.name, tier: user.tier });
     const refreshToken = signRefreshToken({ userId: user._id.toString(), role: user.role, name: user.name });
 

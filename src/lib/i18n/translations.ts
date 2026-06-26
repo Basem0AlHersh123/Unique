@@ -509,6 +509,7 @@ const dict = {
     "admin.upload_image": "Upload Image",
     "admin.click_to_upload": "Click to upload an image",
     "admin.uploading": "Uploading...",
+    "admin.logo_url": "Logo URL",
     /* ───── Confirm/Delete Dialogs ───── */
     "dialog.delete_title": "Confirm Deletion",
     "dialog.delete_msg": "Are you sure you want to delete? This action cannot be undone.",
