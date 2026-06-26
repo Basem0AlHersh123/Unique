@@ -5,6 +5,7 @@ import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { ImageTypeSelector } from "@/components/ui/ImageTypeSelector";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -28,6 +29,9 @@ interface Subject {
   slug: string;
   collegeId: string;
   isShared: boolean;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
+  icon: string;
 }
 
 interface FormData {
@@ -37,6 +41,9 @@ interface FormData {
   slug: string;
   collegeId: string;
   isShared: boolean;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl: string;
+  icon: string;
 }
 
 const emptyForm: FormData = {
@@ -46,6 +53,9 @@ const emptyForm: FormData = {
   slug: "",
   collegeId: "",
   isShared: false,
+  imageType: "icon",
+  imageUrl: "",
+  icon: "BookOpen",
 };
 
 function hasArabic(text: string) {
@@ -107,6 +117,9 @@ export default function SubjectsPage() {
       slug: s.slug,
       collegeId: s.collegeId,
       isShared: s.isShared,
+      imageType: s.imageType || "icon",
+      imageUrl: s.imageUrl || "",
+      icon: s.icon || "BookOpen",
     });
     setFormErrors({});
     setEditingId(s._id);
@@ -271,6 +284,16 @@ export default function SubjectsPage() {
               />
               {t('admin.shared_subject')}
             </label>
+            <div className="md:col-span-2">
+              <ImageTypeSelector
+                imageType={form.imageType}
+                imageUrl={form.imageUrl}
+                icon={form.icon}
+                onImageTypeChange={(v) => setForm({ ...form, imageType: v })}
+                onImageUrlChange={(v) => setForm({ ...form, imageUrl: v })}
+                onIconChange={(v) => setForm({ ...form, icon: v })}
+              />
+            </div>
           </div>
           <div className="flex gap-3">
             <Button onClick={handleSave} isLoading={saving}>

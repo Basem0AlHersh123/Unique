@@ -5,7 +5,9 @@ export interface IUniversity extends Document {
   nameAr: string;
   nameEn: string;
   slug: string;
-  logo?: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
+  icon: string;
   isActive: boolean;
   comingSoon: boolean;
   createdAt: Date;
@@ -37,10 +39,19 @@ const UniversitySchema = new Schema<IUniversity>(
       trim: true,
       match: [/^[a-z0-9-]+$/, "الرابط يجب أن يحتوي على حروف إنجليزية صغيرة وأرقام وشرطات فقط"],
     },
-    logo: {
+    imageType: {
+      type: String,
+      enum: ["icon", "url", "cloudinary"],
+      default: "icon",
+    },
+    imageUrl: {
       type: String,
       default: "",
       trim: true,
+    },
+    icon: {
+      type: String,
+      default: "GraduationCap",
     },
     isActive: {
       type: Boolean,

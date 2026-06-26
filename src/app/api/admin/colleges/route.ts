@@ -12,6 +12,8 @@ const createCollegeSchema = z.object({
   comingSoon: z.boolean().optional(),
   icon: z.string().optional(),
   color: z.string().optional(),
+  imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
+  imageUrl: z.string().optional(),
   universityId: z.string().optional(),
 });
 

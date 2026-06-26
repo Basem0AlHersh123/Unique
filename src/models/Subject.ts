@@ -7,6 +7,9 @@ export interface ISubject extends Document {
   slug: string;
   collegeId: Schema.Types.ObjectId;
   isShared: boolean;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
+  icon: string;
   topics: Schema.Types.ObjectId[];
   teacherIds: Schema.Types.ObjectId[];
   createdAt: Date;
@@ -45,7 +48,21 @@ const SubjectSchema = new Schema<ISubject>(
     },
     isShared: {
       type: Boolean,
-      default: false, // true only for Arabic, per your rule: built once, used by every college
+      default: false,
+    },
+    imageType: {
+      type: String,
+      enum: ["icon", "url", "cloudinary"],
+      default: "icon",
+    },
+    imageUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    icon: {
+      type: String,
+      default: "BookOpen",
     },
     topics: [
       {

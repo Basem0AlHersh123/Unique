@@ -11,6 +11,9 @@ const updateSubjectSchema = z.object({
   nameAr: z.string().optional(),
   nameEn: z.string().optional(),
   isShared: z.boolean().optional(),
+  imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
+  imageUrl: z.string().optional(),
+  icon: z.string().optional(),
 });
 
 export async function PATCH(

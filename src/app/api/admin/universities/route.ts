@@ -9,7 +9,9 @@ const createUniversitySchema = z.object({
   nameAr: z.string().optional(),
   nameEn: z.string().optional(),
   slug: z.string().regex(/^[a-z0-9-]+$/, "الرابط غير صالح"),
-  logo: z.string().optional(),
+  imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
+  imageUrl: z.string().optional(),
+  icon: z.string().optional(),
   isActive: z.boolean().optional(),
   comingSoon: z.boolean().optional(),
 });

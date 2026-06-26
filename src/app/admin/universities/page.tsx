@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ImageTypeSelector } from "@/components/ui/ImageTypeSelector";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -17,7 +18,9 @@ interface University {
   nameAr?: string;
   nameEn?: string;
   slug: string;
-  logo?: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
+  icon: string;
   isActive: boolean;
   comingSoon: boolean;
 }
@@ -27,7 +30,9 @@ interface FormData {
   nameAr: string;
   nameEn: string;
   slug: string;
-  logo: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl: string;
+  icon: string;
   isActive: boolean;
   comingSoon: boolean;
 }
@@ -37,7 +42,9 @@ const emptyForm: FormData = {
   nameAr: "",
   nameEn: "",
   slug: "",
-  logo: "",
+  imageType: "icon",
+  imageUrl: "",
+  icon: "GraduationCap",
   isActive: true,
   comingSoon: false,
 };
@@ -92,7 +99,9 @@ export default function UniversitiesPage() {
       nameAr: u.nameAr || "",
       nameEn: u.nameEn || "",
       slug: u.slug,
-      logo: u.logo || "",
+      imageType: u.imageType || "icon",
+      imageUrl: u.imageUrl || "",
+      icon: u.icon || "GraduationCap",
       isActive: u.isActive,
       comingSoon: u.comingSoon,
     });
@@ -211,12 +220,16 @@ export default function UniversitiesPage() {
               placeholder="cairo-university"
               disabled={!!editingId}
             />
-            <Input
-              label={t('admin.logo_url')}
-              value={form.logo}
-              onChange={(e) => setForm({ ...form, logo: e.target.value })}
-              placeholder="https://example.com/logo.png"
-            />
+            <div className="md:col-span-2">
+              <ImageTypeSelector
+                imageType={form.imageType}
+                imageUrl={form.imageUrl}
+                icon={form.icon}
+                onImageTypeChange={(v) => setForm({ ...form, imageType: v })}
+                onImageUrlChange={(v) => setForm({ ...form, imageUrl: v })}
+                onIconChange={(v) => setForm({ ...form, icon: v })}
+              />
+            </div>
             <label className="flex items-center gap-2 text-text-secondary text-sm">
               <input
                 type="checkbox"

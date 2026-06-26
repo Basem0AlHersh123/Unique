@@ -8,7 +8,9 @@ const updateUniversitySchema = z.object({
   name: z.string().min(2, "اسم الجامعة قصير جداً").optional(),
   nameAr: z.string().optional(),
   nameEn: z.string().optional(),
-  logo: z.string().optional(),
+  imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
+  imageUrl: z.string().optional(),
+  icon: z.string().optional(),
   isActive: z.boolean().optional(),
   comingSoon: z.boolean().optional(),
 });

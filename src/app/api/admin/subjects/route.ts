@@ -12,6 +12,9 @@ const createSubjectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/, "الرابط غير صالح"),
   collegeId: z.string().min(1, "يجب اختيار كلية"),
   isShared: z.boolean().optional(),
+  imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
+  imageUrl: z.string().optional(),
+  icon: z.string().optional(),
 });
 
 // GET — list subjects, optionally filtered by college.

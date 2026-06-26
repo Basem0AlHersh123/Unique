@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ColorInput } from "@/components/ui/ColorInput";
-import { IconPicker } from "@/components/ui/IconPicker";
+import { ImageTypeSelector } from "@/components/ui/ImageTypeSelector";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -30,6 +30,8 @@ interface College {
   isActive: boolean;
   icon: string;
   color: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
   universityId?: string;
 }
 
@@ -42,6 +44,8 @@ interface FormData {
   isActive: boolean;
   icon: string;
   color: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl: string;
   universityId: string;
 }
 
@@ -54,6 +58,8 @@ const emptyForm: FormData = {
   isActive: true,
   icon: "GraduationCap",
   color: "#6C63FF",
+  imageType: "icon",
+  imageUrl: "",
   universityId: "",
 };
 
@@ -117,6 +123,8 @@ export default function CollegesPage() {
       isActive: c.isActive,
       icon: c.icon,
       color: c.color,
+      imageType: c.imageType || "icon",
+      imageUrl: c.imageUrl || "",
       universityId: c.universityId || "",
     });
     setFormErrors({});
@@ -257,11 +265,16 @@ export default function CollegesPage() {
                 ))}
               </select>
             </div>
-            <IconPicker
-              label={t('admin.icon')}
-              value={form.icon}
-              onChange={(v) => setForm({ ...form, icon: v })}
-            />
+            <div className="md:col-span-2">
+              <ImageTypeSelector
+                imageType={form.imageType}
+                imageUrl={form.imageUrl}
+                icon={form.icon}
+                onImageTypeChange={(v) => setForm({ ...form, imageType: v })}
+                onImageUrlChange={(v) => setForm({ ...form, imageUrl: v })}
+                onIconChange={(v) => setForm({ ...form, icon: v })}
+              />
+            </div>
             <label className="flex items-center gap-2 text-text-secondary text-sm">
               <input
                 type="checkbox"
