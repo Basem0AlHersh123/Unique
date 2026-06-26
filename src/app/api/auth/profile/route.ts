@@ -54,10 +54,12 @@ export async function PATCH(req: NextRequest) {
 
     await connectDB();
     const updateFields: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(parsed.data)) {
-      if (key === "profileImage" && value === undefined) continue;
-      updateFields[key] = value;
-    }
+    if (parsed.data.name !== undefined) updateFields.name = parsed.data.name;
+    if (parsed.data.pushToken !== undefined) updateFields.pushToken = parsed.data.pushToken;
+    if (parsed.data.dailyGoal !== undefined) updateFields.dailyGoal = parsed.data.dailyGoal;
+    if (parsed.data.studyReminderTime !== undefined) updateFields.studyReminderTime = parsed.data.studyReminderTime;
+    if (parsed.data.studyReminderEnabled !== undefined) updateFields.studyReminderEnabled = parsed.data.studyReminderEnabled;
+    if (parsed.data.profileImage !== undefined) updateFields.profileImage = parsed.data.profileImage;
     const user = await User.findByIdAndUpdate(
       auth.payload.userId,
       { $set: updateFields },

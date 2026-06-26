@@ -25,8 +25,12 @@ export async function GET(req: NextRequest) {
     const filter: Record<string, unknown> = { userId: auth.payload.userId };
     if (searchParams.get("lessonId")) filter.lessonId = searchParams.get("lessonId");
     if (searchParams.get("subjectId")) filter.subjectId = searchParams.get("subjectId");
-    if (searchParams.get("type")) filter.type = searchParams.get("type");
-    if (searchParams.get("starred") === "true") filter.isStarred = true;
+    const typeParam = searchParams.get("type");
+    const starredParam = searchParams.get("starred");
+    if (typeParam && ["general","question","summary","important"].includes(typeParam)) {
+      filter.type = typeParam;
+    }
+    if (starredParam === "true") filter.isStarred = true;
 
     const notes = await StudentNote.find(filter).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, data: notes });

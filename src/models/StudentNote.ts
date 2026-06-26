@@ -47,6 +47,7 @@ const StudentNoteSchema = new Schema<IStudentNote>(
 );
 
 StudentNoteSchema.index({ userId: 1, type: 1 });
+StudentNoteSchema.index({ userId: 1, isStarred: 1 });
 
 export const StudentNote: mongoose.Model<IStudentNote> =
   models.StudentNote ||

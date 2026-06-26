@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/requireAuth";
 import { v2 as cloudinary } from "cloudinary";
+import { requireAuth } from "@/lib/requireAuth";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
           format: "webp",
         },
         (error, result) => {
-          if (error || !result) reject(error);
+          if (error || !result) reject(error ?? new Error("Upload failed"));
           else resolve(result as { secure_url: string });
         }
       ).end(buffer);
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: { url: result.secure_url } });
   } catch (err) {
-    console.error("Upload error:", err);
-    return NextResponse.json({ success: false, error: "فشل رفع الصورة" }, { status: 500 });
+    console.error("Cloudinary upload error:", err);
+    return NextResponse.json({ success: false, error: "فشل رفع الصورة، حاول مرة أخرى" }, { status: 500 });
   }
 }
