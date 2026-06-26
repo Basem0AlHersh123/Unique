@@ -12,6 +12,7 @@ const createLevelSchema = z.object({
   order: z.number().optional(),
   description: z.string().optional(),
   comingSoon: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
 });
 
 export async function GET(req: NextRequest) {

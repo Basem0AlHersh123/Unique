@@ -14,6 +14,7 @@ const createTopicSchema = z.object({
   order: z.number().optional(),
   isFree: z.boolean().optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  isPublished: z.boolean().optional(),
 });
 
 // GET — list topics, optionally filtered by subject.

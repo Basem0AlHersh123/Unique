@@ -10,6 +10,7 @@ const createCollegeSchema = z.object({
   nameEn: z.string().optional(),
   slug: z.string().regex(/^[a-z0-9-]+$/, "الرابط غير صالح"),
   comingSoon: z.boolean().optional(),
+  isActive: z.boolean().optional(),
   icon: z.string().optional(),
   color: z.string().optional(),
   imageType: z.enum(["icon", "url", "cloudinary"]).optional(),

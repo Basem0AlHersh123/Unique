@@ -15,6 +15,7 @@ const createUnitSchema = z.object({
   description: z.string().optional(),
   comingSoon: z.boolean().optional(),
   examEnabled: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
 });
 
 export async function GET(req: NextRequest) {
