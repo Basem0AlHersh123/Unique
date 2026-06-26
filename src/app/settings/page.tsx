@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { Save, User, Lock } from "lucide-react";
+import { Save, User, Lock, Trash2 } from "lucide-react";
 import { getAuthOrRefresh } from "@/lib/auth-client";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function SettingsPage() {
   const [name, setName] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [nameMsg, setNameMsg] = useState("");
+
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -199,7 +202,42 @@ export default function SettingsPage() {
             {passwordMsg && <p className={`text-xs ${passwordMsg.includes("خطأ") || passwordMsg.includes("error") || passwordMsg.includes("صحيحة") ? "text-danger" : "text-success"}`}>{passwordMsg}</p>}
           </form>
         </section>
+        {/* Deactivate account */}
+        <section className="bg-surface rounded-2xl border border-danger/20 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2 text-danger">
+            <Trash2 className="w-5 h-5" />
+            {t('settings.deactivate_title')}
+          </h2>
+          <p className="text-sm text-text-secondary">
+            {t('settings.deactivate_desc')}
+          </p>
+          <button
+            onClick={() => setShowDeactivateConfirm(true)}
+            className="px-4 py-2 rounded-lg bg-danger/10 text-danger text-sm font-medium hover:bg-danger/20 transition-colors"
+          >
+            {t('settings.deactivate_button')}
+          </button>
+        </section>
       </main>
+
+      <ConfirmDialog
+        open={showDeactivateConfirm}
+        title={t('settings.deactivate_confirm_title')}
+        message={t('settings.deactivate_confirm_msg')}
+        confirmLabel={t('settings.deactivate_confirm')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={async () => {
+          try {
+            await apiFetch("/api/auth/deactivate", { method: "POST" });
+            localStorage.removeItem("accessToken");
+            router.push("/auth/login");
+          } catch {
+            setShowDeactivateConfirm(false);
+          }
+        }}
+        onCancel={() => setShowDeactivateConfirm(false)}
+      />
     </div>
   );
 }

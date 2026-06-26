@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import api from "@/lib/api";
-import { Mail, Lock, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowLeft, RefreshCw } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 export default function LoginPage() {
@@ -19,6 +19,10 @@ export default function LoginPage() {
   const { t, isRTL } = useLanguage();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deactivatedEmail, setDeactivatedEmail] = useState<string | null>(null);
+  const [deactivatedPassword, setDeactivatedPassword] = useState<string>("");
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivateError, setReactivateError] = useState<string | null>(null);
 
   const {
     register,
@@ -44,6 +48,15 @@ export default function LoginPage() {
       const result = res.data;
 
       if (!result.success) {
+        if (result.error === "DEACTIVATED") {
+          setDeactivatedEmail(data.email);
+          setDeactivatedPassword(data.password);
+          setReactivateError(null);
+          setServerError(null);
+          resetField("turnstileToken");
+          setIsSubmitting(false);
+          return;
+        }
         setServerError(result.error);
         resetField("turnstileToken");
         setIsSubmitting(false);
@@ -55,6 +68,25 @@ export default function LoginPage() {
     } catch {
       setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleReactivate() {
+    if (!deactivatedEmail || !deactivatedPassword) return;
+    setReactivating(true);
+    setReactivateError(null);
+    try {
+      await api.post("/api/auth/reactivate", {
+        email: deactivatedEmail,
+        password: deactivatedPassword,
+      });
+      setDeactivatedEmail(null);
+      setDeactivatedPassword("");
+      setServerError("تم إعادة تفعيل الحساب بنجاح. حاول تسجيل الدخول مرة أخرى.");
+    } catch {
+      setReactivateError("فشل إعادة التفعيل. تحقق من كلمة المرور.");
+    } finally {
+      setReactivating(false);
     }
   }
 
@@ -143,6 +175,37 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {deactivatedEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-surface rounded-2xl border border-border p-6 max-w-md w-full shadow-xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-warning/20 flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-warning" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  {t('settings.reactivate_title')}
+                </h3>
+                <p className="text-sm text-text-secondary">
+                  {t('settings.reactivate_desc')}
+                </p>
+              </div>
+            </div>
+            {reactivateError && (
+              <p className="text-sm text-danger">{reactivateError}</p>
+            )}
+            <div className="flex gap-3">
+              <Button onClick={handleReactivate} isLoading={reactivating} className="flex-1">
+                {t('settings.reactivate_confirm')}
+              </Button>
+              <Button variant="secondary" onClick={() => { setDeactivatedEmail(null); setDeactivatedPassword(""); }} className="flex-1">
+                {t('common.cancel')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
