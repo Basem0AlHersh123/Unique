@@ -8,6 +8,8 @@ const updateNoteSchema = z.object({
   content: z.string().min(1).max(5000).optional(),
   title: z.string().max(200).optional(),
   color: z.string().optional(),
+  type: z.enum(["general", "question", "summary", "important"]).optional(),
+  isStarred: z.boolean().optional(),
 });
 
 export async function PATCH(

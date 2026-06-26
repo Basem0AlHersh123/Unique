@@ -11,6 +11,8 @@ const createNoteSchema = z.object({
   unitId: z.string().optional(),
   subjectId: z.string().optional(),
   color: z.string().optional(),
+  type: z.enum(["general", "question", "summary", "important"]).default("general"),
+  isStarred: z.boolean().default(false),
 });
 
 export async function GET(req: NextRequest) {
@@ -23,6 +25,8 @@ export async function GET(req: NextRequest) {
     const filter: Record<string, unknown> = { userId: auth.payload.userId };
     if (searchParams.get("lessonId")) filter.lessonId = searchParams.get("lessonId");
     if (searchParams.get("subjectId")) filter.subjectId = searchParams.get("subjectId");
+    if (searchParams.get("type")) filter.type = searchParams.get("type");
+    if (searchParams.get("starred") === "true") filter.isStarred = true;
 
     const notes = await StudentNote.find(filter).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, data: notes });
