@@ -26,6 +26,19 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Rate limit: don't send another email if one was sent in the last 5 minutes
+    if (user.resetPasswordExpires) {
+      const TOKEN_LIFETIME_MS = 60 * 60 * 1000;
+      const COOLDOWN_MS = 5 * 60 * 1000;
+      const remainingMs = user.resetPasswordExpires.getTime() - Date.now();
+      if (remainingMs > TOKEN_LIFETIME_MS - COOLDOWN_MS) {
+        return NextResponse.json(
+          { success: false, error: "تم إرسال رابط إعادة التعيين بالفعل، انتظر 5 دقائق قبل المحاولة مرة أخرى" },
+          { status: 429 }
+        );
+      }
+    }
+
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 

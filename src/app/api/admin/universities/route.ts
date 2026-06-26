@@ -12,6 +12,8 @@ const createSchema = z.object({
   logo: z.string().optional(),
   icon: z.string().optional(),
   color: z.string().optional(),
+  imageType: z.enum(["icon", "url", "cloudinary"]).default("icon"),
+  imageUrl: z.string().optional(),
   isActive: z.boolean().default(true),
   comingSoon: z.boolean().default(false),
 });

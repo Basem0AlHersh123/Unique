@@ -8,6 +8,8 @@ export interface IUniversity extends Document {
   logo?: string;
   icon?: string;
   color?: string;
+  imageType: "icon" | "url" | "cloudinary";
+  imageUrl?: string;
   isActive: boolean;
   comingSoon: boolean;
   createdAt: Date;
@@ -27,6 +29,16 @@ const UniversitySchema = new Schema<IUniversity>(
     logo: { type: String, trim: true, default: "" },
     icon: { type: String, default: "🎓" },
     color: { type: String, default: "#6C63FF" },
+    imageType: {
+      type: String,
+      enum: ["icon", "url", "cloudinary"],
+      default: "icon",
+    },
+    imageUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     isActive: { type: Boolean, default: true },
     comingSoon: { type: Boolean, default: false },
   },
