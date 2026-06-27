@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import * as Icons from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { getAuthOrRefresh } from "@/lib/auth-client";
 
 interface College {
   _id: string;
@@ -45,6 +46,8 @@ export default function CollegeDetailPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  const [chooseMsg, setChooseMsg] = useState<string | null>(null);
   const { t, lang } = useLanguage();
 
   useEffect(() => {
@@ -73,6 +76,33 @@ export default function CollegeDetailPage() {
     }
     load();
   }, [slug]);
+
+  async function handleChooseCollege() {
+    if (!college) return;
+    const u = await getAuthOrRefresh();
+    if (!u) {
+      router.push("/auth/login");
+      return;
+    }
+    setChoosing(true);
+    setChooseMsg(null);
+    try {
+      const res = await apiFetch("/api/auth/profile", {
+        method: "PATCH",
+        body: JSON.stringify({ collegeId: college._id }),
+      });
+      if (res.success) {
+        setChooseMsg(`تم اختيار ${college.name} بنجاح`);
+        setTimeout(() => router.push("/dashboard"), 1500);
+      } else {
+        setChooseMsg(res.error || "فشل اختيار الكلية");
+      }
+    } catch {
+      setChooseMsg("حدث خطأ");
+    } finally {
+      setChoosing(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -130,7 +160,7 @@ export default function CollegeDetailPage() {
             >
               <IconComponent className="w-10 h-10" />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-extrabold text-text-primary">
                 {lang === 'ar'
                   ? (college.nameAr || college.name)
@@ -139,6 +169,21 @@ export default function CollegeDetailPage() {
               <p className="text-text-secondary mt-1">
                 {t('college.subjects_desc')}
               </p>
+            </div>
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <Button
+                onClick={handleChooseCollege}
+                isLoading={choosing}
+                className="flex items-center gap-2"
+              >
+                <Icons.Check className="w-4 h-4" />
+                اختر هذه الكلية
+              </Button>
+              {chooseMsg && (
+                <span className={`text-sm ${chooseMsg.includes("بنجاح") ? "text-teal" : "text-danger"}`}>
+                  {chooseMsg}
+                </span>
+              )}
             </div>
           </div>
         </div>

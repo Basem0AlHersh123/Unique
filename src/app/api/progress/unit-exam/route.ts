@@ -146,17 +146,32 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const unitId = req.nextUrl.searchParams.get("unitId");
+    const subjectId = req.nextUrl.searchParams.get("subjectId");
+
+    if (subjectId) {
+      const attempts = await UnitExamAttempt.find({
+        userId: auth.payload.userId,
+        subjectId,
+      }).sort({ takenAt: -1 });
+
+      return NextResponse.json({ success: true, data: attempts });
+    }
 
     if (!unitId) {
       return NextResponse.json(
-        { success: false, error: "unitId مطلوب" },
+        { success: false, error: "unitId أو subjectId مطلوب" },
         { status: 400 }
       );
     }
 
     const eligibility = await checkEligibility(auth.payload.userId, unitId);
 
-    return NextResponse.json({ success: true, data: eligibility });
+    const attempts = await UnitExamAttempt.find({
+      userId: auth.payload.userId,
+      unitId,
+    }).sort({ takenAt: -1 });
+
+    return NextResponse.json({ success: true, data: { ...eligibility, attempts } });
   } catch (err) {
     console.error("Exam eligibility error:", err);
     return NextResponse.json(

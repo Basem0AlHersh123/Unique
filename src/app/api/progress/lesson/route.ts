@@ -70,18 +70,20 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const unitId = req.nextUrl.searchParams.get("unitId");
+    const subjectId = req.nextUrl.searchParams.get("subjectId");
 
-    if (!unitId) {
+    const filter: Record<string, string> = { userId: auth.payload.userId };
+    if (unitId) filter.unitId = unitId;
+    if (subjectId) filter.subjectId = subjectId;
+
+    if (!unitId && !subjectId) {
       return NextResponse.json(
-        { success: false, error: "unitId مطلوب" },
+        { success: false, error: "unitId أو subjectId مطلوب" },
         { status: 400 }
       );
     }
 
-    const progress = await LessonProgress.find({
-      userId: auth.payload.userId,
-      unitId,
-    });
+    const progress = await LessonProgress.find(filter);
 
     return NextResponse.json({ success: true, data: progress });
   } catch (err) {
