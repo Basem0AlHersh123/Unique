@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/requireAdmin";
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
   role: z.enum(["student", "teacher"]),
+  isActive: z.boolean().optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -25,9 +26,12 @@ export async function PATCH(req: NextRequest) {
     }
 
     await connectDB();
+    const updateData: Record<string, unknown> = { role: parsed.data.role };
+    if (parsed.data.isActive !== undefined) updateData.isActive = parsed.data.isActive;
+
     const user = await User.findByIdAndUpdate(
       parsed.data.userId,
-      { role: parsed.data.role },
+      updateData,
       { new: true }
     );
 
@@ -40,7 +44,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { id: user._id, name: user.name, email: user.email, role: user.role },
+      data: { id: user._id, name: user.name, email: user.email, role: user.role, isActive: user.isActive },
     });
   } catch (err) {
     console.error("Update teacher role error:", err);
@@ -57,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   try {
     await connectDB();
-    const teachers = await User.find({ role: "teacher" }).select("name email role");
+    const teachers = await User.find({ role: "teacher" }).select("name email role isActive createdAt");
     return NextResponse.json({ success: true, data: teachers });
   } catch (err) {
     console.error("List teachers error:", err);

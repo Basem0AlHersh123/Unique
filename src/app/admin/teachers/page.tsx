@@ -6,19 +6,22 @@ import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { Trash2, ArrowDown } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { Trash2, ArrowDown, Ban, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 interface Teacher {
   _id: string;
   name: string;
   email: string;
   role: string;
+  isActive?: boolean;
 }
 
 interface Student {
   _id: string;
   name: string;
   email: string;
+  isActive?: boolean;
 }
 
 interface Subject {
@@ -28,7 +31,7 @@ interface Subject {
 }
 
 export default function AdminTeachersPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { showToast } = useToast();
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -38,6 +41,7 @@ export default function AdminTeachersPage() {
   const [msg, setMsg] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [showDeactivated, setShowDeactivated] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
@@ -125,6 +129,27 @@ export default function AdminTeachersPage() {
     }
   }
 
+  async function handleToggleActive(teacher: Teacher) {
+    setProcessing(teacher._id);
+    const newActive = !teacher.isActive;
+    try {
+      await apiFetch("/api/admin/teachers", {
+        method: "PATCH",
+        body: JSON.stringify({ userId: teacher._id, isActive: newActive }),
+      });
+      showToast(
+        newActive ? "تم إعادة تفعيل الحساب" : "تم تعطيل الحساب",
+        "success"
+      );
+      const updated = await apiFetch<Teacher[]>("/api/admin/teachers");
+      setTeachers(updated.data ?? []);
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setProcessing(null);
+    }
+  }
+
   async function handleDeleteTeacher(id: string) {
     setDeleteTarget(id);
   }
@@ -147,6 +172,8 @@ export default function AdminTeachersPage() {
     return teachers.find((t) => t._id === id)?.name || id;
   }
 
+  const displayTeachers = showDeactivated ? teachers : teachers.filter((t) => t.isActive !== false);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -168,36 +195,76 @@ export default function AdminTeachersPage() {
 
       {/* Existing teachers */}
       <section className="bg-surface rounded-2xl border border-border p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-text-primary">{t('admin.current_teachers')}</h2>
-        {teachers.length === 0 ? (
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text-primary">{t('admin.current_teachers')}</h2>
+          <button
+            onClick={() => setShowDeactivated(!showDeactivated)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all duration-200 text-sm ${
+              showDeactivated
+                ? "bg-danger/10 border-danger/30 text-danger"
+                : "bg-surface border-border text-text-muted hover:border-primary/30"
+            }`}
+          >
+            {showDeactivated ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <span>{showDeactivated ? "الكل" : "النشطون فقط"}</span>
+          </button>
+        </div>
+        {displayTeachers.length === 0 ? (
           <p className="text-text-muted text-sm">{t('admin.no_teachers')}</p>
         ) : (
           <div className="grid gap-3">
-              {teachers.map((teacher) => (
-                <div key={teacher._id} className="flex items-center justify-between p-3 rounded-xl bg-background border border-border">
+            {displayTeachers.map((teacher) => {
+              const isDeactivated = teacher.isActive === false;
+              return (
+                <div key={teacher._id} className={`flex items-center justify-between p-3 rounded-xl bg-background border border-border ${isDeactivated ? "opacity-60" : ""}`}>
                   <div>
-                    <p className="text-sm font-medium text-text-primary">{teacher.name}</p>
+                    <p className="text-sm font-medium text-text-primary flex items-center gap-2">
+                      {teacher.name}
+                      {isDeactivated && <Badge variant="danger">معطّل</Badge>}
+                    </p>
                     <p className="text-xs text-text-muted">{teacher.email}</p>
                   </div>
                   <div className="flex gap-1">
-                    <button
-                      onClick={() => handleDowngrade(teacher._id)}
-                      disabled={processing === teacher._id}
-                      className="p-2 rounded-lg text-warning hover:bg-warning/10 transition-all"
-                      title={t('admin.convert_to_student')}
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTeacher(teacher._id)}
-                      className="p-2 rounded-lg text-danger hover:bg-danger/10 transition-all"
-                      title={t('common.delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {isDeactivated ? (
+                      <button
+                        onClick={() => handleToggleActive(teacher)}
+                        disabled={processing === teacher._id}
+                        className="p-2 rounded-lg text-teal hover:bg-teal/10 transition-all disabled:opacity-50"
+                        title="إعادة تفعيل"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleToggleActive(teacher)}
+                          disabled={processing === teacher._id}
+                          className="p-2 rounded-lg text-warning hover:bg-warning/10 transition-all disabled:opacity-50"
+                          title="تعطيل"
+                        >
+                          <Ban className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDowngrade(teacher._id)}
+                          disabled={processing === teacher._id}
+                          className="p-2 rounded-lg text-warning hover:bg-warning/10 transition-all disabled:opacity-50"
+                          title={t('admin.convert_to_student')}
+                        >
+                          <ArrowDown className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTeacher(teacher._id)}
+                          className="p-2 rounded-lg text-danger hover:bg-danger/10 transition-all"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
+              );
+            })}
           </div>
         )}
       </section>
@@ -214,7 +281,7 @@ export default function AdminTeachersPage() {
               className="w-full px-3 py-2 rounded-lg border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               <option value="">--</option>
-              {students.map((s) => (
+              {students.filter((s) => s.isActive !== false).map((s) => (
                 <option key={s._id} value={s._id}>
                   {s.name} ({s.email})
                 </option>
@@ -243,7 +310,7 @@ export default function AdminTeachersPage() {
               className="w-full px-3 py-2 rounded-lg border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               <option value="">--</option>
-              {teachers.map((t) => (
+              {teachers.filter((t) => t.isActive !== false).map((t) => (
                 <option key={t._id} value={t._id}>
                   {t.name}
                 </option>

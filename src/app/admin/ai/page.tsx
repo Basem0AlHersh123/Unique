@@ -20,9 +20,16 @@ interface UsageTotals {
 interface ApiSettingData {
   key: string | null;
   provider: string;
+  model: string;
   updatedAt: string | null;
   usage: UsageTotals;
 }
+
+const AI_MODELS = [
+  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
+  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+];
 
 interface ByUserEntry {
   userId: string;
@@ -49,6 +56,8 @@ export default function AdminAIPage() {
   const [loading, setLoading] = useState(true);
   const [keyInput, setKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash");
+  const [savingModel, setSavingModel] = useState(false);
   const [daysFilter, setDaysFilter] = useState(30);
 
   const fetchData = useCallback(
@@ -59,7 +68,10 @@ export default function AdminAIPage() {
           apiFetch<ApiSettingData>("/api/admin/ai"),
           apiFetch<UsageData>(`/api/admin/ai/usage?days=${days}`),
         ]);
-        if (settingRes.success) setSetting(settingRes.data ?? null);
+        if (settingRes.success) {
+          setSetting(settingRes.data ?? null);
+          if (settingRes.data?.model) setSelectedModel(settingRes.data.model);
+        }
         if (usageRes.success) setUsage(usageRes.data ?? null);
       } catch (err) {
         showToast((err as Error).message, "error");
@@ -98,6 +110,24 @@ export default function AdminAIPage() {
       showToast((err as Error).message, "error");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveModel() {
+    setSavingModel(true);
+    try {
+      const res = await apiFetch<{ model: string }>("/api/admin/ai", {
+        method: "POST",
+        body: JSON.stringify({ model: selectedModel }),
+      });
+      if (res.success) {
+        showToast("تم حفظ الموديل", "success");
+        await fetchData(daysFilter);
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setSavingModel(false);
     }
   }
 
@@ -175,6 +205,31 @@ export default function AdminAIPage() {
             )}
           </div>
         )}
+
+        <div className="mt-6 border-t border-border pt-6">
+          <h3 className="text-sm font-semibold text-text-primary mb-3">AI Model</h3>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <div className="flex-1 w-full">
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300"
+              >
+                {AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            <Button
+              onClick={handleSaveModel}
+              isLoading={savingModel}
+              disabled={selectedModel === setting?.model}
+            >
+              <Save className="w-4 h-4 ml-2" />
+              حفظ الموديل
+            </Button>
+          </div>
+        </div>
       </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">

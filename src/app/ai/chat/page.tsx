@@ -336,29 +336,29 @@ export default function AiChatPage() {
 
                 <div ref={messagesEndRef} />
               </div>
-
-              <div className="p-2 sm:p-4 border-t border-border bg-surface/50 shrink-0">
-                <div className="flex items-end gap-2">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={t("ai_chat.input_placeholder")}
-                    className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-                    dir={isRTL ? "rtl" : "ltr"}
-                  />
-                  <button
-                    onClick={handleSend}
-                    disabled={!input.trim() || sending}
-                    className="p-2.5 rounded-xl bg-primary text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-dark transition-all shrink-0"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
             </>
           )}
+
+          <div className="p-2 sm:p-4 border-t border-border bg-surface/50 shrink-0">
+            <div className="flex items-end gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={t("ai_chat.input_placeholder")}
+                className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                dir={isRTL ? "rtl" : "ltr"}
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || sending}
+                className="p-2.5 rounded-xl bg-primary text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-dark transition-all shrink-0"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         </main>
       </div>
 

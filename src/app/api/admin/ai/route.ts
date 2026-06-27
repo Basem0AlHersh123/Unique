@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
       data: {
         key: maskedKey,
         provider: setting?.provider ?? "gemini",
+        model: setting?.aiModel ?? "gemini-2.0-flash",
         updatedAt: setting?.updatedAt ?? null,
         usage,
       },
@@ -72,22 +73,33 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { key } = body;
 
-    if (!key || typeof key !== "string" || !key.trim()) {
+    const updateData: Record<string, unknown> = {
+      provider: "gemini",
+      updatedAt: new Date(),
+    };
+
+    if (body.key && typeof body.key === "string" && body.key.trim()) {
+      const encrypted = encrypt(body.key.trim());
+      updateData.key = encrypted;
+    }
+
+    if (body.model && typeof body.model === "string") {
+      updateData.aiModel = body.model;
+    }
+
+    if (!updateData.key && !updateData.aiModel) {
       return NextResponse.json(
-        { success: false, error: "مفتاح API مطلوب" },
+        { success: false, error: "مفتاح API أو الموديل مطلوب" },
         { status: 400 }
       );
     }
 
     await connectDB();
 
-    const encrypted = encrypt(key.trim());
-
     const setting = await ApiSetting.findOneAndUpdate(
       {},
-      { key: encrypted, provider: "gemini", updatedAt: new Date() },
+      updateData,
       { upsert: true, new: true }
     );
 
@@ -95,6 +107,7 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         provider: setting.provider,
+        model: setting.aiModel,
         updatedAt: setting.updatedAt,
       },
     });

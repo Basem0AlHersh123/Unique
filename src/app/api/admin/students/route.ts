@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       isActive: s.isActive ?? true,
     }));
 
-    return NextResponse.json({ success: true, data: students });
+    return NextResponse.json({ success: true, data: studentsWithActive });
   } catch (err) {
     console.error("List students error:", err);
     return NextResponse.json(

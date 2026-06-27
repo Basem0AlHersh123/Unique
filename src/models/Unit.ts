@@ -10,6 +10,8 @@ export interface IUnit extends Document {
   comingSoon: boolean;
   description?: string;
   examEnabled: boolean;
+  passingScore: number;
+  questionCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +56,18 @@ const UnitSchema = new Schema<IUnit>(
     examEnabled: {
       type: Boolean,
       default: true,
+    },
+    passingScore: {
+      type: Number,
+      default: 70,
+      min: 1,
+      max: 100,
+    },
+    questionCount: {
+      type: Number,
+      default: 20,
+      min: 1,
+      max: 100,
     },
   },
   { timestamps: true }

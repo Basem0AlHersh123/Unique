@@ -2,56 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Unit } from "@/models/Unit";
-import { requireAdmin } from "@/lib/requireAdmin";
+import { Subject } from "@/models/Subject";
+import { requireTeacher } from "@/lib/requireTeacher";
+import { verifyAccessToken } from "@/lib/auth";
 
 const updateUnitSchema = z.object({
-  title: z.string().min(1, "عنوان الوحدة مطلوب").optional(),
+  title: z.string().min(1).optional(),
   titleEn: z.string().optional(),
-  levelId: z.string().optional(),
-  subjectId: z.string().optional(),
-  order: z.number().optional(),
   description: z.string().optional(),
-  comingSoon: z.boolean().optional(),
   examEnabled: z.boolean().optional(),
   passingScore: z.number().min(1).max(100).optional(),
   questionCount: z.number().min(1).max(100).optional(),
   isPublished: z.boolean().optional(),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    await connectDB();
-    const { id } = await params;
-
-    const unit = await Unit.findById(id);
-    if (!unit) {
-      return NextResponse.json(
-        { success: false, error: "الوحدة غير موجودة" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, data: unit });
-  } catch (err) {
-    console.error("Get unit error:", err);
-    return NextResponse.json(
-      { success: false, error: "حدث خطأ في الخادم" },
-      { status: 500 }
-    );
-  }
-}
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminCheck = requireAdmin(req);
-  if (adminCheck) return adminCheck;
+  const teacherCheck = requireTeacher(req);
+  if (teacherCheck) return teacherCheck;
 
   try {
+    const authHeader = req.headers.get("authorization")!;
+    const token = authHeader.slice("Bearer ".length);
+    const payload = verifyAccessToken(token);
     const { id } = await params;
     const body = await req.json();
     const parsed = updateUnitSchema.safeParse(body);
@@ -65,11 +40,7 @@ export async function PATCH(
 
     await connectDB();
 
-    const unit = await Unit.findByIdAndUpdate(id, parsed.data, {
-      new: true,
-      runValidators: true,
-    });
-
+    const unit = await Unit.findById(id);
     if (!unit) {
       return NextResponse.json(
         { success: false, error: "الوحدة غير موجودة" },
@@ -77,9 +48,24 @@ export async function PATCH(
       );
     }
 
+    const subj = await Subject.findById(unit.subjectId);
+    if (
+      payload.role !== "admin" &&
+      subj &&
+      !subj.teacherIds.map((tid: unknown) => String(tid)).includes(payload.userId)
+    ) {
+      return NextResponse.json(
+        { success: false, error: "لا يمكنك تعديل هذه الوحدة" },
+        { status: 403 }
+      );
+    }
+
+    Object.assign(unit, parsed.data);
+    await unit.save();
+
     return NextResponse.json({ success: true, data: unit });
   } catch (err) {
-    console.error("Update unit error:", err);
+    console.error("Teacher update unit error:", err);
     return NextResponse.json(
       { success: false, error: "حدث خطأ في الخادم" },
       { status: 500 }
@@ -91,14 +77,18 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminCheck = requireAdmin(req);
-  if (adminCheck) return adminCheck;
+  const teacherCheck = requireTeacher(req);
+  if (teacherCheck) return teacherCheck;
 
   try {
+    const authHeader = req.headers.get("authorization")!;
+    const token = authHeader.slice("Bearer ".length);
+    const payload = verifyAccessToken(token);
     const { id } = await params;
+
     await connectDB();
 
-    const unit = await Unit.findOneAndDelete({ _id: id });
+    const unit = await Unit.findById(id);
     if (!unit) {
       return NextResponse.json(
         { success: false, error: "الوحدة غير موجودة" },
@@ -106,9 +96,23 @@ export async function DELETE(
       );
     }
 
+    const subj = await Subject.findById(unit.subjectId);
+    if (
+      payload.role !== "admin" &&
+      subj &&
+      !subj.teacherIds.map((tid: unknown) => String(tid)).includes(payload.userId)
+    ) {
+      return NextResponse.json(
+        { success: false, error: "لا يمكنك حذف هذه الوحدة" },
+        { status: 403 }
+      );
+    }
+
+    await Unit.findOneAndDelete({ _id: id });
+
     return NextResponse.json({ success: true, data: { id } });
   } catch (err) {
-    console.error("Delete unit error:", err);
+    console.error("Teacher delete unit error:", err);
     return NextResponse.json(
       { success: false, error: "حدث خطأ في الخادم" },
       { status: 500 }

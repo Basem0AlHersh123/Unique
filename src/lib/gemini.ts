@@ -3,8 +3,8 @@ import { ApiSetting } from "@/models/ApiSetting";
 import { ApiUsage } from "@/models/ApiUsage";
 import { decrypt } from "@/lib/encryption";
 
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_API_BASE =
+  "https://generativelanguage.googleapis.com/v1beta/models";
 
 interface GeminiMessage {
   role: "user" | "model";
@@ -31,6 +31,7 @@ export async function callGemini(
   }
 
   const apiKey = decrypt(setting.key);
+  const model = setting.aiModel || "gemini-2.0-flash";
 
   const body = {
     system_instruction: { parts: [{ text: systemInstruction }] },
@@ -45,7 +46,8 @@ export async function callGemini(
     ],
   };
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+  const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -70,9 +72,15 @@ export async function callGemini(
     provider: "gemini",
     tokensIn,
     tokensOut,
-    aiModel: "gemini-2.0-flash",
+    aiModel: model,
     endpoint,
   }).catch((e) => console.error("Usage log error:", e));
 
   return { text, tokensIn, tokensOut };
 }
+
+export const AVAILABLE_MODELS = [
+  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
+  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+] as const;
