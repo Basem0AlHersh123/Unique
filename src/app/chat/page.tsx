@@ -123,6 +123,15 @@ function getUserEmail(user: UserLike): string {
 }
 
 export default function ChatPage() {
+  function Spinner({ className = "w-3.5 h-3.5" }: { className?: string }) {
+    return (
+      <svg className={`${className} animate-spin`} viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+    );
+  }
+
   const router = useRouter();
   const { t, isRTL } = useLanguage();
   const { showToast } = useToast();
@@ -165,6 +174,7 @@ export default function ChatPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [manageProcessing, setManageProcessing] = useState<string | null>(null);
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editInput, setEditInput] = useState("");
@@ -450,6 +460,7 @@ export default function ChatPage() {
 
   async function handleToggleLock() {
     if (!manageTarget) return;
+    setManageProcessing("lock");
     try {
       const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
         method: "PATCH",
@@ -463,11 +474,14 @@ export default function ChatPage() {
       }
     } catch (err) {
       showToast((err as Error).message, "error");
+    } finally {
+      setManageProcessing(null);
     }
   }
 
   async function handleToggleJoinMode() {
     if (!manageTarget) return;
+    setManageProcessing("joinMode");
     const newMode = manageTarget.joinMode === "open" ? "request" : "open";
     try {
       const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
@@ -478,14 +492,18 @@ export default function ChatPage() {
         setManageTarget(res.data);
         setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
         if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
+        showToast(manageTarget.joinMode === "open" ? "تم تغيير وضع الانضمام إلى الموافقة" : "تم تغيير وضع الانضمام إلى مباشر", "success");
       }
     } catch (err) {
       showToast((err as Error).message, "error");
+    } finally {
+      setManageProcessing(null);
     }
   }
 
   async function handleToggleAllowImages() {
     if (!manageTarget) return;
+    setManageProcessing("allowImages");
     try {
       const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
         method: "PATCH",
@@ -494,14 +512,18 @@ export default function ChatPage() {
       if (res.success && res.data) {
         setManageTarget(res.data);
         setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
+        showToast(manageTarget.allowImages ? "تم تعطيل الصور" : "تم تفعيل الصور", "success");
       }
     } catch (err) {
       showToast((err as Error).message, "error");
+    } finally {
+      setManageProcessing(null);
     }
   }
 
   async function handleToggleVisibility() {
     if (!manageTarget) return;
+    setManageProcessing("visibility");
     try {
       const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
         method: "PATCH",
@@ -511,15 +533,19 @@ export default function ChatPage() {
         setManageTarget(res.data);
         setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
         if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
+        showToast(manageTarget.isVisible ? "تم إخفاء المجموعة" : "تم إظهار المجموعة", "success");
       }
     } catch (err) {
       showToast((err as Error).message, "error");
+    } finally {
+      setManageProcessing(null);
     }
   }
 
   async function handleUpdateGroupName() {
     if (!manageTarget || !manageName.trim()) return;
     if (manageName.trim() === manageTarget.name) return;
+    setManageProcessing("name");
     try {
       const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
         method: "PATCH",
@@ -529,9 +555,12 @@ export default function ChatPage() {
         setManageTarget(res.data);
         setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
         if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
+        showToast("تم تحديث الاسم", "success");
       }
     } catch (err) {
       showToast((err as Error).message, "error");
+    } finally {
+      setManageProcessing(null);
     }
   }
 
@@ -1135,10 +1164,11 @@ export default function ChatPage() {
         const isCr = getUserId(target.createdBy) === mid;
         const isGrpAdmin = (target.groupAdmins || []).some((a) => getUserId(a) === mid);
         const isBlocked = blocked.some((b) => getUserId(b) === mid);
+        const isLoading = processing === mid;
         return (
-          <div key={mid} className={`flex items-center justify-between py-2 px-3 rounded-lg bg-background border ${
+          <div key={mid} className={`flex items-center justify-between py-2 px-3 rounded-lg bg-background border transition-all duration-200 ${
             isBlocked ? "border-danger/30 bg-danger/5" : "border-border"
-          }`}>
+          } ${isLoading ? "opacity-60" : ""}`}>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-medium text-text-primary truncate">{mName}</p>
@@ -1153,61 +1183,61 @@ export default function ChatPage() {
                 isBlocked ? (
                   <button
                     onClick={() => handleUnblockMember(mid)}
-                    disabled={processing === mid}
-                    className="p-1.5 rounded-lg text-teal hover:bg-teal/10 transition-all"
+                    disabled={isLoading}
+                    className="p-1.5 rounded-lg text-teal hover:bg-teal/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
                     title={t("common.unblock")}
                   >
-                    <Ban className="w-3.5 h-3.5" />
+                    {isLoading ? <Spinner /> : <Ban className="w-3.5 h-3.5" />}
                   </button>
                 ) : (
                   <button
                     onClick={() => handleBlockMember(mid)}
-                    disabled={processing === mid}
-                    className="p-1.5 rounded-lg text-warning hover:bg-warning/10 transition-all"
+                    disabled={isLoading}
+                    className="p-1.5 rounded-lg text-warning hover:bg-warning/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
                     title={t("common.block")}
                   >
-                    <Ban className="w-3.5 h-3.5" />
+                    {isLoading ? <Spinner /> : <Ban className="w-3.5 h-3.5" />}
                   </button>
                 )
               )}
               {isCr && isCreatorUser && !isGrpAdmin && (
                 <button
                   onClick={() => handlePromoteAdmin(mid)}
-                  disabled={processing === mid}
-                  className="p-1.5 rounded-lg text-teal hover:bg-teal/10 transition-all"
+                  disabled={isLoading}
+                  className="p-1.5 rounded-lg text-teal hover:bg-teal/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
                   title={t("common.promote")}
                 >
-                  <Shield className="w-3.5 h-3.5" />
+                  {isLoading ? <Spinner /> : <Shield className="w-3.5 h-3.5" />}
                 </button>
               )}
               {isGrpAdmin && !isCr && isCreatorUser && (
                 <button
                   onClick={() => handleDemoteAdmin(mid)}
-                  disabled={processing === mid}
-                  className="p-1.5 rounded-lg text-warning hover:bg-warning/10 transition-all"
+                  disabled={isLoading}
+                  className="p-1.5 rounded-lg text-warning hover:bg-warning/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
                   title={t("common.demote")}
                 >
-                  <Shield className="w-3.5 h-3.5" />
+                  {isLoading ? <Spinner /> : <Shield className="w-3.5 h-3.5" />}
                 </button>
               )}
               {!isCr && !isBlocked && (isCreatorUser || (isGroupAdminUser && !isGrpAdmin)) && (
                 <button
                   onClick={() => handleRemoveMember(mid)}
-                  disabled={processing === mid}
-                  className="p-1.5 rounded-lg text-danger hover:bg-danger/10 transition-all"
+                  disabled={isLoading}
+                  className="p-1.5 rounded-lg text-danger hover:bg-danger/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
                   title={t("common.remove")}
                 >
-                  <UserMinus className="w-3.5 h-3.5" />
+                  {isLoading ? <Spinner /> : <UserMinus className="w-3.5 h-3.5" />}
                 </button>
               )}
               {!isCr && user?.userId === mid && (
                 <button
                   onClick={() => handleRemoveMember(mid)}
-                  disabled={processing === mid}
-                  className="p-1.5 rounded-lg text-warning hover:bg-warning/10 transition-all"
+                  disabled={isLoading}
+                  className="p-1.5 rounded-lg text-warning hover:bg-warning/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
                   title={t("common.leave")}
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  {isLoading ? <Spinner /> : <ExternalLink className="w-3.5 h-3.5" />}
                 </button>
               )}
             </div>
@@ -1311,7 +1341,7 @@ export default function ChatPage() {
                 className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-background border border-border text-text-primary text-xs sm:text-sm outline-none focus:border-primary"
               />
               {manageName.trim() !== target.name && (
-                <Button size="sm" onClick={handleUpdateGroupName}>حفظ</Button>
+                <Button size="sm" onClick={handleUpdateGroupName} isLoading={manageProcessing === "name"} disabled={manageProcessing === "name"}>حفظ</Button>
               )}
             </div>
           </div>
@@ -1329,42 +1359,66 @@ export default function ChatPage() {
           <div className="flex gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={handleToggleLock}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+              disabled={manageProcessing === "lock"}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 ${
                 manageTarget.isLocked
                   ? "bg-teal/10 text-teal border-teal/20"
                   : "bg-warning/10 text-warning border-warning/20"
               }`}
             >
-              {manageTarget.isLocked ? <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              {manageProcessing === "lock" ? (
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : manageTarget.isLocked ? <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               {manageTarget.isLocked ? t("common.unlock") : t("common.lock")}
             </button>
             <button
               onClick={handleToggleJoinMode}
-              className="flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-border bg-background/50 text-text-primary hover:bg-background transition-all"
+              disabled={manageProcessing === "joinMode"}
+              className="flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-border bg-background/50 text-text-primary hover:bg-background transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             >
-              {manageTarget.joinMode === "open" ? <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              {manageProcessing === "joinMode" ? (
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : manageTarget.joinMode === "open" ? <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               {manageTarget.joinMode === "open" ? t("chat.join_mode_request") : t("chat.join_mode_open")}
             </button>
             <button
               onClick={handleToggleAllowImages}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+              disabled={manageProcessing === "allowImages"}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 ${
                 manageTarget.allowImages
                   ? "bg-teal/10 text-teal border-teal/20"
                   : "bg-background/50 text-text-muted border-border"
               }`}
             >
-              <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {manageProcessing === "allowImages" ? (
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               الصور
             </button>
             <button
               onClick={handleToggleVisibility}
-              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+              disabled={manageProcessing === "visibility"}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 ${
                 manageTarget.isVisible
                   ? "bg-teal/10 text-teal border-teal/20"
                   : "bg-warning/10 text-warning border-warning/20"
               }`}
             >
-              <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {manageProcessing === "visibility" ? (
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               {manageTarget.isVisible ? "مرئي" : "مخفي"}
             </button>
           </div>

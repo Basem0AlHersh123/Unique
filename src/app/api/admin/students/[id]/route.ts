@@ -9,6 +9,7 @@ const updateStudentSchema = z.object({
   tier: z.enum(["free", "paid"]).optional(),
   role: z.enum(["student", "teacher"]).optional(),
   isVerified: z.boolean().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export async function PATCH(

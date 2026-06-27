@@ -25,6 +25,11 @@ export async function GET(req: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
+    const studentsWithActive = students.map((s) => ({
+      ...s,
+      isActive: s.isActive ?? true,
+    }));
+
     return NextResponse.json({ success: true, data: students });
   } catch (err) {
     console.error("List students error:", err);
