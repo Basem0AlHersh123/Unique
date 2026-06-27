@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Topic } from "@/models/Topic";
+import mongoose from "mongoose";
 
 export async function GET(
   _req: Request,
@@ -9,7 +10,12 @@ export async function GET(
   try {
     const { slug } = await params;
     await connectDB();
-    const topic = await Topic.findOne({ slug, isPublished: true });
+
+const query = mongoose.isValidObjectId(slug)
+  ? { _id: slug, isPublished: true }
+  : { slug, isPublished: true };
+
+const topic = await Topic.findOne(query);
     if (!topic) {
       return NextResponse.json(
         { success: false, error: "الموضوع غير موجود" },
