@@ -3,6 +3,9 @@ import { connectDB } from "@/lib/db";
 import { Attempt } from "@/models/Attempt";
 import { Topic } from "@/models/Topic";
 import { Subject } from "@/models/Subject";
+import { LessonProgress } from "@/models/LessonProgress";
+import { UnitExamAttempt } from "@/models/UnitExamAttempt";
+import mongoose from "mongoose";
 import { requireAuth } from "@/lib/requireAuth";
 
 export async function GET(req: NextRequest) {
@@ -27,6 +30,69 @@ export async function GET(req: NextRequest) {
 
     const topicMap = new Map(topics.map((t) => [t._id.toString(), t]));
     const subjectMap = new Map(subjects.map((s) => [s._id.toString(), s]));
+
+    const [
+      lessonsWatched,
+      lessonsPassed,
+      unitExamAttempts,
+      subjectBreakdown,
+      weeklyActivity,
+    ] = await Promise.all([
+      LessonProgress.countDocuments({ userId: auth.payload.userId, watchedVideo: true }),
+      LessonProgress.countDocuments({ userId: auth.payload.userId, passedQuiz: true }),
+      UnitExamAttempt.find({ userId: auth.payload.userId })
+        .sort({ takenAt: -1 })
+        .limit(5)
+        .lean(),
+      Attempt.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(auth.payload.userId) } },
+        {
+          $group: {
+            _id: "$subjectId",
+            attempts: { $sum: 1 },
+            totalScore: { $sum: "$score" },
+            totalQuestions: { $sum: "$total" },
+          },
+        },
+        {
+          $lookup: {
+            from: "subjects",
+            localField: "_id",
+            foreignField: "_id",
+            as: "subject",
+          },
+        },
+        { $unwind: { path: "$subject", preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            name: "$subject.nameAr",
+            nameEn: "$subject.nameEn",
+            attempts: 1,
+            avgPct: {
+              $round: [
+                { $multiply: [{ $divide: ["$totalScore", { $max: ["$totalQuestions", 1] }] }, 100] },
+                1,
+              ],
+            },
+          },
+        },
+      ]),
+      Attempt.aggregate([
+        {
+          $match: {
+            userId: new mongoose.Types.ObjectId(auth.payload.userId),
+            completedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          },
+        },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$completedAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+    ]);
 
     const totalAttempts = attempts.length;
     const totalScore = attempts.reduce((sum, a) => sum + a.score, 0);
@@ -55,6 +121,17 @@ export async function GET(req: NextRequest) {
             : 0,
         },
         recent,
+        lessonsWatched,
+        lessonsPassed,
+        unitExamAttempts: unitExamAttempts.map((e: any) => ({
+          unitId: e.unitId,
+          score: e.score,
+          passed: e.passed,
+          attemptNumber: e.attemptNumber,
+          takenAt: e.takenAt,
+        })),
+        subjectBreakdown,
+        weeklyActivity,
       },
     });
   } catch (err) {
