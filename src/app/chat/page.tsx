@@ -32,6 +32,9 @@ import {
   Settings,
   ExternalLink,
   Ban,
+  Pencil,
+  ImageIcon,
+  EyeOff,
 } from "lucide-react";
 
 interface GroupData {
@@ -46,6 +49,8 @@ interface GroupData {
   createdBy: { _id: string; name: string; email: string } | string;
   isLocked: boolean;
   joinMode: "open" | "request";
+  isVisible: boolean;
+  allowImages: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,7 +60,14 @@ interface MessageData {
   groupId: string;
   userId: { _id: string; name: string; role: string } | string;
   content: string;
+  isDeleted: boolean;
+  deletedAt?: string;
+  deletedBy?: string;
+  isEdited: boolean;
+  editedAt?: string;
   createdAt: string;
+  _deletedLabel?: string;
+  _editedLabel?: string;
 }
 
 interface JoinRequestData {
@@ -137,10 +149,13 @@ export default function ChatPage() {
   const [createDesc, setCreateDesc] = useState("");
   const [createType, setCreateType] = useState<"general" | "subject" | "announcement">("general");
   const [createJoinMode, setCreateJoinMode] = useState<"open" | "request">("open");
+  const [createIsVisible, setCreateIsVisible] = useState(true);
+  const [createAllowImages, setCreateAllowImages] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const [manageTarget, setManageTarget] = useState<GroupData | null>(null);
   const [showManage, setShowManage] = useState(false);
+  const [manageName, setManageName] = useState("");
 
   const [joinRequests, setJoinRequests] = useState<JoinRequestData[]>([]);
   const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
@@ -151,8 +166,13 @@ export default function ChatPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
 
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editInput, setEditInput] = useState("");
+  const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -175,7 +195,6 @@ export default function ChatPage() {
     ? user.role === "admin" || user.role === "teacher" || (user.role === "student" && user.tier === "paid")
     : false;
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!authed) return;
     setGroupsLoading(true);
@@ -194,7 +213,6 @@ export default function ChatPage() {
       .catch((err: Error) => setGroupsError(err.message))
       .finally(() => setGroupsLoading(false));
   }, [authed]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const loadMessages = useCallback(async (groupId: string) => {
     setMessagesLoading(true);
@@ -216,24 +234,26 @@ export default function ChatPage() {
     ? (selectedGroup.blockedMembers || []).some((m) => getUserId(m) === user.userId)
     : false;
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!selectedGroup || !selectedIsMember) { setMessages([]); return; }
     loadMessages(selectedGroup._id);
     pollRef.current = setInterval(() => {
-      apiFetch<MessageData[]>(`/api/groups/${selectedGroup._id}/messages`).then(
-        (res) => { if (res.success && res.data) setMessages(res.data); }
-      );
+      loadMessages(selectedGroup._id);
     }, 5000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [selectedGroup, selectedIsMember, loadMessages]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     });
   }, [messages]);
+
+  useEffect(() => {
+    if (editingMessageId && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [editingMessageId]);
 
   async function handleSend() {
     const text = input.trim();
@@ -260,6 +280,48 @@ export default function ChatPage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }
 
+  async function handleEditMessage(messageId: string, newContent: string) {
+    if (!selectedGroup || !newContent.trim()) return;
+    try {
+      const res = await apiFetch<MessageData>(
+        `/api/groups/${selectedGroup._id}/messages`,
+        { method: "PATCH", body: JSON.stringify({ messageId, content: newContent.trim() }) }
+      );
+      if (res.success && res.data) {
+        setMessages((prev) => prev.map((m) => m._id === messageId ? { ...m, content: newContent.trim(), isEdited: true } : m));
+        setEditingMessageId(null);
+        setEditInput("");
+        setMenuMessageId(null);
+      } else {
+        showToast(res.error || "فشل التعديل", "error");
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    if (!selectedGroup) return;
+    try {
+      const res = await apiFetch<MessageData>(
+        `/api/groups/${selectedGroup._id}/messages`,
+        { method: "DELETE", body: JSON.stringify({ messageId }) }
+      );
+      if (res.success) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m._id === messageId ? { ...m, isDeleted: true, content: "[تم حذف هذه الرسالة]" } : m
+          )
+        );
+        setMenuMessageId(null);
+      } else {
+        showToast(res.error || "فشل الحذف", "error");
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+  }
+
   async function handleCreateGroup() {
     if (!createName.trim() || !user) return;
     setCreating(true);
@@ -271,6 +333,8 @@ export default function ChatPage() {
           description: createDesc,
           type: createType,
           joinMode: createJoinMode,
+          isVisible: createIsVisible,
+          allowImages: createAllowImages,
         }),
       });
       if (res.success && res.data) {
@@ -308,6 +372,11 @@ export default function ChatPage() {
     return (group.members || []).some((m) => getUserId(m) === user.userId);
   }
 
+  function isOwnMessage(msg: MessageData): boolean {
+    const senderId = typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
+    return senderId === user?.userId;
+  }
+
   async function handleJoinGroup(groupId: string) {
     try {
       const res = await apiFetch<GroupData>(`/api/groups/${groupId}/join`, { method: "POST" });
@@ -342,6 +411,7 @@ export default function ChatPage() {
 
   function openManage(group: GroupData) {
     setManageTarget(group);
+    setManageName(group.name);
     setShowManage(true);
     loadJoinRequests(group._id);
   }
@@ -403,6 +473,57 @@ export default function ChatPage() {
       const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
         method: "PATCH",
         body: JSON.stringify({ joinMode: newMode }),
+      });
+      if (res.success && res.data) {
+        setManageTarget(res.data);
+        setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
+        if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+  }
+
+  async function handleToggleAllowImages() {
+    if (!manageTarget) return;
+    try {
+      const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ allowImages: !manageTarget.allowImages }),
+      });
+      if (res.success && res.data) {
+        setManageTarget(res.data);
+        setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+  }
+
+  async function handleToggleVisibility() {
+    if (!manageTarget) return;
+    try {
+      const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isVisible: !manageTarget.isVisible }),
+      });
+      if (res.success && res.data) {
+        setManageTarget(res.data);
+        setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
+        if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+  }
+
+  async function handleUpdateGroupName() {
+    if (!manageTarget || !manageName.trim()) return;
+    if (manageName.trim() === manageTarget.name) return;
+    try {
+      const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: manageName.trim() }),
       });
       if (res.success && res.data) {
         setManageTarget(res.data);
@@ -564,23 +685,6 @@ export default function ChatPage() {
     }
   }
 
-  async function handleUpdateGroup(field: string, value: unknown) {
-    if (!manageTarget) return;
-    try {
-      const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ [field]: value }),
-      });
-      if (res.success && res.data) {
-        setManageTarget(res.data);
-        setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
-        if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
-      }
-    } catch (err) {
-      showToast((err as Error).message, "error");
-    }
-  }
-
   const sortedGroups = [...groups].sort((a, b) => {
     const aMem = a.members?.length || 0;
     const bMem = b.members?.length || 0;
@@ -610,7 +714,7 @@ export default function ChatPage() {
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
-            <div className="absolute right-0 top-0 h-full">{renderSidebar()}</div>
+            <div className="absolute left-0 top-0 h-full">{renderSidebar()}</div>
           </div>
         )}
 
@@ -648,6 +752,16 @@ export default function ChatPage() {
                     {selectedGroup.isLocked && (
                       <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20 flex items-center gap-0.5">
                         <Lock className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> {t("chat.locked_badge")}
+                      </span>
+                    )}
+                    {!selectedGroup.isVisible && (
+                      <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full bg-purple/10 text-purple border border-purple/20 flex items-center gap-0.5">
+                        <EyeOff className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> مخفي
+                      </span>
+                    )}
+                    {selectedGroup.allowImages && (
+                      <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full bg-teal/10 text-teal border border-teal/20 flex items-center gap-0.5">
+                        <ImageIcon className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
                       </span>
                     )}
                   </div>
@@ -689,29 +803,97 @@ export default function ChatPage() {
                   </div>
                 )}
                 {!messagesLoading && !messagesError && messages.map((msg) => {
-                  const senderId = typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
+                  const isOwn = isOwnMessage(msg);
                   const senderName = typeof msg.userId === "object" ? msg.userId?.name : "";
                   const senderRole = typeof msg.userId === "object" ? msg.userId?.role : "";
-                  const isOwn = senderId === user?.userId;
+                  const isDeletedMsg = msg.isDeleted;
+
                   return (
-                    <div key={msg._id} className={`flex ${isOwn ? (isRTL ? "justify-start" : "justify-end") : (isRTL ? "justify-end" : "justify-start")}`}>
-                      <div className={`max-w-[75%] sm:max-w-[65%] ${
-                        isOwn
-                          ? `bg-primary text-white rounded-2xl ${isRTL ? "rounded-br-sm" : "rounded-bl-sm"}`
-                          : `bg-surface border border-border text-text-primary rounded-2xl ${isRTL ? "rounded-bl-sm" : "rounded-br-sm"}`
-                      } px-4 py-2.5 shadow-sm`}>
-                        {!isOwn && (
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-xs font-semibold text-text-primary">{senderName}</span>
-                            <span className="text-[9px] px-1 py-0.5 rounded-full bg-surface-hover/50 text-text-muted">
-                              {senderRole === "admin" ? t("chat.role_admin") : senderRole === "teacher" ? t("chat.role_teacher") : t("chat.role_student")}
-                            </span>
-                          </div>
-                        )}
-                        <p className={`text-sm leading-relaxed break-words ${isOwn ? "text-white/90" : "text-text-primary"}`}>
-                          {msg.content}
-                        </p>
+                    <div key={msg._id} className="relative group">
+                      <div
+                        className={`flex ${isOwn ? (isRTL ? "justify-start" : "justify-end") : (isRTL ? "justify-end" : "justify-start")}`}
+                        onClick={() => setMenuMessageId(null)}
+                      >
+                        <div
+                          className={`max-w-[75%] sm:max-w-[65%] relative ${
+                            isOwn
+                              ? `bg-primary text-white rounded-2xl ${isRTL ? "rounded-br-sm" : "rounded-bl-sm"}`
+                              : `bg-surface border border-border text-text-primary rounded-2xl ${isRTL ? "rounded-bl-sm" : "rounded-br-sm"}`
+                          } px-4 py-2.5 shadow-sm`}
+                        >
+                          {!isOwn && !isDeletedMsg && (
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="text-xs font-semibold text-text-primary">{senderName}</span>
+                              <span className="text-[9px] px-1 py-0.5 rounded-full bg-surface-hover/50 text-text-muted">
+                                {senderRole === "admin" ? t("chat.role_admin") : senderRole === "teacher" ? t("chat.role_teacher") : t("chat.role_student")}
+                              </span>
+                            </div>
+                          )}
+                          {isDeletedMsg && !isOwn && user?.role !== "admin" ? (
+                            <p className="text-sm italic text-text-muted">[تم حذف هذه الرسالة]</p>
+                          ) : isDeletedMsg && user?.role === "admin" ? (
+                            <p className="text-sm leading-relaxed break-words text-text-muted line-through">
+                              {msg.content}
+                              {msg._deletedLabel && <span className="mr-1 not-italic no-underline">{msg._deletedLabel}</span>}
+                            </p>
+                          ) : editingMessageId === msg._id ? (
+                            <div className="flex items-end gap-1">
+                              <input
+                                ref={editInputRef}
+                                type="text"
+                                value={editInput}
+                                onChange={(e) => setEditInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleEditMessage(msg._id, editInput);
+                                  }
+                                  if (e.key === "Escape") {
+                                    setEditingMessageId(null);
+                                    setEditInput("");
+                                  }
+                                }}
+                                className="flex-1 bg-surface/20 border border-white/20 rounded-lg px-2 py-1 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/50"
+                              />
+                              <button
+                                onClick={() => handleEditMessage(msg._id, editInput)}
+                                disabled={!editInput.trim()}
+                                className="p-1 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-all shrink-0"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <p className={`text-sm leading-relaxed break-words ${isOwn ? "text-white/90" : "text-text-primary"}`}>
+                                {msg.content}
+                              </p>
+                              {msg.isEdited && (
+                                <span className="text-[9px] opacity-60 mr-1">✏️ معدّلة</span>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
+
+                      {isOwn && !isDeletedMsg && editingMessageId !== msg._id && (
+                        <div className={`absolute top-0 ${isOwn ? (isRTL ? "left-0" : "right-0") : (isRTL ? "right-0" : "left-0")} opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5`}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingMessageId(msg._id); setEditInput(msg.content); setMenuMessageId(null); }}
+                            className="p-1 rounded-lg bg-surface border border-border text-text-muted hover:text-primary hover:border-primary/30 transition-all"
+                            title="تعديل"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteMessage(msg._id); }}
+                            className="p-1 rounded-lg bg-surface border border-border text-text-muted hover:text-danger hover:border-danger/30 transition-all"
+                            title="حذف"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -819,6 +1001,11 @@ export default function ChatPage() {
                   <span className="font-medium text-xs lg:text-sm truncate flex items-center gap-1">
                     {g.name}
                     {g.isLocked && <Lock className="w-2.5 h-2.5 lg:w-3 lg:h-3 text-warning shrink-0" />}
+                    {!g.isVisible && user?.role === "admin" && (
+                      <span className="text-[8px] lg:text-[9px] px-1 py-0.5 rounded-full bg-purple/10 text-purple border border-purple/20 flex items-center gap-0.5">
+                        <EyeOff className="w-2 h-2" /> مخفي
+                      </span>
+                    )}
                   </span>
                   <span className={`text-[9px] lg:text-[10px] px-1 lg:px-1.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${
                     typeStyle[g.type] ?? typeStyle.general
@@ -895,6 +1082,28 @@ export default function ChatPage() {
                 <option value="request">{t("chat.join_approval")}</option>
               </select>
             </div>
+          </div>
+          {/* isVisible toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs sm:text-sm text-text-secondary">مرئي للجميع</label>
+            <button
+              type="button"
+              onClick={() => setCreateIsVisible(!createIsVisible)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${createIsVisible ? "bg-primary" : "bg-border"}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${createIsVisible ? "translate-x-5.5" : "translate-x-0.5"} ${isRTL && createIsVisible ? "translate-x-0.5" : ""} ${isRTL && !createIsVisible ? "translate-x-5.5" : ""}`} />
+            </button>
+          </div>
+          {/* allowImages toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs sm:text-sm text-text-secondary">السماح بإرسال الصور</label>
+            <button
+              type="button"
+              onClick={() => setCreateAllowImages(!createAllowImages)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${createAllowImages ? "bg-primary" : "bg-border"}`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${createAllowImages ? "translate-x-5.5" : "translate-x-0.5"} ${isRTL && createAllowImages ? "translate-x-0.5" : ""} ${isRTL && !createAllowImages ? "translate-x-5.5" : ""}`} />
+            </button>
           </div>
           <div className="flex gap-2 justify-end pt-1 sm:pt-2">
             <Button variant="secondary" onClick={() => setShowCreateDialog(false)}>{t("common.cancel")}</Button>
@@ -1092,13 +1301,19 @@ export default function ChatPage() {
 
           <div className="border-t border-border pt-1" />
 
+          {/* Group name edit */}
           <div className="space-y-2">
             <label className="block text-xs sm:text-sm text-text-secondary">{t("chat.name_label")}</label>
-            <input
-              defaultValue={manageTarget.name}
-              onBlur={(e) => { if (e.target.value !== manageTarget.name) handleUpdateGroup("name", e.target.value); }}
-              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-background border border-border text-text-primary text-xs sm:text-sm outline-none focus:border-primary"
-            />
+            <div className="flex gap-2">
+              <input
+                value={manageName}
+                onChange={(e) => setManageName(e.target.value)}
+                className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-background border border-border text-text-primary text-xs sm:text-sm outline-none focus:border-primary"
+              />
+              {manageName.trim() !== target.name && (
+                <Button size="sm" onClick={handleUpdateGroupName}>حفظ</Button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -1111,7 +1326,7 @@ export default function ChatPage() {
             />
           </div>
 
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={handleToggleLock}
               className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
@@ -1129,6 +1344,28 @@ export default function ChatPage() {
             >
               {manageTarget.joinMode === "open" ? <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               {manageTarget.joinMode === "open" ? t("chat.join_mode_request") : t("chat.join_mode_open")}
+            </button>
+            <button
+              onClick={handleToggleAllowImages}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+                manageTarget.allowImages
+                  ? "bg-teal/10 text-teal border-teal/20"
+                  : "bg-background/50 text-text-muted border-border"
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              الصور
+            </button>
+            <button
+              onClick={handleToggleVisibility}
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
+                manageTarget.isVisible
+                  ? "bg-teal/10 text-teal border-teal/20"
+                  : "bg-warning/10 text-warning border-warning/20"
+              }`}
+            >
+              <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              {manageTarget.isVisible ? "مرئي" : "مخفي"}
             </button>
           </div>
 
@@ -1250,6 +1487,23 @@ export default function ChatPage() {
     } catch (err) {
       showToast((err as Error).message, "error");
       setDeleteTarget(null);
+    }
+  }
+
+  async function handleUpdateGroup(field: string, value: unknown) {
+    if (!manageTarget) return;
+    try {
+      const res = await apiFetch<GroupData>(`/api/groups/${manageTarget._id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (res.success && res.data) {
+        setManageTarget(res.data);
+        setGroups((prev) => prev.map((g) => g._id === manageTarget._id ? res.data! : g));
+        if (selectedGroup?._id === manageTarget._id) setSelectedGroup(res.data);
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
     }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,38 +10,121 @@ import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { apiFetch } from "@/lib/api";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import axios from "axios";
 import api from "@/lib/api";
-import { UserPlus, ArrowLeft } from "lucide-react";
+import { UserPlus, ArrowLeft, Building2, ChevronLeft, Check } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+
+interface University {
+  _id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  icon?: string;
+  color?: string;
+}
+
+interface College {
+  _id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  icon: string;
+  color: string;
+  universityId?: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
   const { t, isRTL } = useLanguage();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [selectedUniversityId, setSelectedUniversityId] = useState("");
+  const [selectedCollegeId, setSelectedCollegeId] = useState("");
+
+  const [universitiesLoading, setUniversitiesLoading] = useState(false);
+  const [collegesLoading, setCollegesLoading] = useState(false);
+  const [universitiesEmpty, setUniversitiesEmpty] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
     resetField,
+    trigger,
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: { turnstileToken: "" },
   });
 
+  useEffect(() => {
+    if (step === 2) {
+      setUniversitiesLoading(true);
+      setUniversitiesEmpty(false);
+      apiFetch<University[]>("/api/admin/universities")
+        .then((res) => {
+          const data = res.success && res.data ? res.data : [];
+          setUniversities(data);
+          if (data.length === 0) setUniversitiesEmpty(true);
+        })
+        .catch(() => { setUniversitiesEmpty(true); })
+        .finally(() => setUniversitiesLoading(false));
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (!universitiesEmpty) return;
+    if (!selectedUniversityId) {
+      setCollegesLoading(true);
+      apiFetch<College[]>("/api/admin/colleges")
+        .then((res) => {
+          if (res.success && res.data) setColleges(res.data);
+        })
+        .catch(() => {})
+        .finally(() => setCollegesLoading(false));
+    }
+  }, [universitiesEmpty, selectedUniversityId]);
+
+  useEffect(() => {
+    if (!selectedUniversityId) { setColleges([]); return; }
+    setCollegesLoading(true);
+    apiFetch<College[]>(`/api/admin/colleges?universityId=${selectedUniversityId}`)
+      .then((res) => {
+        if (res.success && res.data) setColleges(res.data);
+      })
+      .catch(() => {})
+      .finally(() => setCollegesLoading(false));
+  }, [selectedUniversityId]);
+
   function onCaptchaSuccess(token: string) {
     setValue("turnstileToken", token);
   }
 
+  async function handleNext() {
+    const valid = await trigger(["name", "email", "password"]);
+    if (valid) setStep(2);
+  }
+
   async function onSubmit(data: RegisterInput) {
+    const body = {
+      ...data,
+      collegeId: selectedCollegeId || undefined,
+    };
+
     setServerError(null);
     setIsSubmitting(true);
 
     try {
-      const res = await api.post("/api/auth/register", data);
+      const res = await api.post("/api/auth/register", body);
       const result = res.data;
 
       if (!result.success) {
@@ -84,62 +167,180 @@ export default function RegisterPage() {
         <div className="hidden sm:block absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
 
         <div className="relative glass rounded-3xl p-5 sm:p-8 border border-border/50 shadow-2xl">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
               <UserPlus className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-text-primary">{t('auth.register.title')}</h1>
             <p className="text-text-secondary text-sm mt-1">{t('auth.register.subtitle')}</p>
+
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <div className={`w-2.5 h-2.5 rounded-full ${step === 1 ? "bg-primary" : "bg-primary/30"}`} />
+              <div className="w-8 h-px bg-border" />
+              <div className={`w-2.5 h-2.5 rounded-full ${step === 2 ? "bg-primary" : "bg-primary/30"}`} />
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <Input
-              label={t('auth.register.name')}
-              placeholder="مثال: أحمد محمد"
-              {...register("name")}
-              error={errors.name?.message}
-            />
-
-            <Input
-              label={t('auth.register.email')}
-              type="email"
-              placeholder="example@email.com"
-              {...register("email")}
-              error={errors.email?.message}
-            />
-
-            <Input
-              label={t('auth.register.password')}
-              type="password"
-              placeholder="8 أحرف على الأقل"
-              {...register("password")}
-              error={errors.password?.message}
-            />
-
-            <div className="flex justify-center py-2 overflow-x-auto">
-              <div className="scale-[0.85] sm:scale-100 origin-center">
-                <Turnstile
-                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
-                  onSuccess={onCaptchaSuccess}
+            {/* Step 1: Basic info */}
+            {step === 1 && (
+              <>
+                <Input
+                  label={t('auth.register.name')}
+                  placeholder="مثال: أحمد محمد"
+                  {...register("name")}
+                  error={errors.name?.message}
                 />
-              </div>
-            </div>
-            {errors.turnstileToken && (
-              <p className="text-sm text-danger text-center animate-slide-in-right">
-                {errors.turnstileToken.message}
-              </p>
+
+                <Input
+                  label={t('auth.register.email')}
+                  type="email"
+                  placeholder="example@email.com"
+                  {...register("email")}
+                  error={errors.email?.message}
+                />
+
+                <Input
+                  label={t('auth.register.password')}
+                  type="password"
+                  placeholder="8 أحرف على الأقل"
+                  {...register("password")}
+                  error={errors.password?.message}
+                />
+
+                <div className="flex justify-center py-2 overflow-x-auto">
+                  <div className="scale-[0.85] sm:scale-100 origin-center">
+                    <Turnstile
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
+                      onSuccess={onCaptchaSuccess}
+                    />
+                  </div>
+                </div>
+                {errors.turnstileToken && (
+                  <p className="text-sm text-danger text-center animate-slide-in-right">
+                    {errors.turnstileToken.message}
+                  </p>
+                )}
+
+                {serverError && (
+                  <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm animate-slide-in-right">
+                    {serverError}
+                  </div>
+                )}
+
+                <Button type="button" onClick={handleNext} className="flex items-center gap-2 mt-2 justify-center">
+                  التالي
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              </>
             )}
 
-            {serverError && (
-              <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm animate-slide-in-right">
-                {serverError}
-              </div>
-            )}
+            {/* Step 2: University & College */}
+            {step === 2 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="flex items-center gap-1 text-sm text-text-muted hover:text-text-primary transition-colors mb-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  العودة
+                </button>
 
-            <Button type="submit" isLoading={isSubmitting} className="flex items-center gap-2 mt-2 justify-center">
-              {t('auth.register.button')}
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+                {universitiesLoading ? (
+                  <LoadingSkeleton />
+                ) : universities.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      اختر الجامعة
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                      {universities.map((u) => {
+                        const isSelected = selectedUniversityId === u._id;
+                        return (
+                          <button
+                            key={u._id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUniversityId(u._id);
+                              setSelectedCollegeId("");
+                            }}
+                            className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
+                              isSelected
+                                ? "bg-primary/10 border-primary text-text-primary"
+                                : "bg-surface border-border text-text-secondary hover:bg-surface-hover"
+                            }`}
+                          >
+                            <span className="text-lg">{u.icon || "🎓"}</span>
+                            <span className="text-sm font-medium truncate">{u.name}</span>
+                            {isSelected && <Check className="w-4 h-4 text-primary mr-auto shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {selectedUniversityId && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      اختر الكلية
+                    </label>
+                    {collegesLoading ? (
+                      <LoadingSkeleton />
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                        {colleges.map((c) => {
+                          const isSelected = selectedCollegeId === c._id;
+                          return (
+                            <button
+                              key={c._id}
+                              type="button"
+                              onClick={() => setSelectedCollegeId(c._id)}
+                              className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
+                                isSelected
+                                  ? "bg-primary/10 border-primary text-text-primary"
+                                  : "bg-surface border-border text-text-secondary hover:bg-surface-hover"
+                              }`}
+                            >
+                              <Building2 className={`w-5 h-5 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                              <span className="text-sm font-medium truncate">{c.name}</span>
+                              {isSelected && <Check className="w-4 h-4 text-primary mr-auto shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedUniversityId && colleges.length === 0 && !collegesLoading && (
+                  <p className="text-sm text-text-muted text-center py-2">
+                    لا توجد كليات متاحة لهذه الجامعة
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => { setSelectedUniversityId(""); setSelectedCollegeId(""); }}
+                  className="text-sm text-text-muted hover:text-text-primary transition-colors text-center"
+                >
+                  تخطي هذه الخطوة
+                </button>
+
+                {serverError && (
+                  <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm animate-slide-in-right">
+                    {serverError}
+                  </div>
+                )}
+
+                <Button type="submit" isLoading={isSubmitting} className="flex items-center gap-2 mt-2 justify-center">
+                  {t('auth.register.button')}
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </>
+            )}
           </form>
 
           <p className="text-center text-sm text-text-secondary mt-6">

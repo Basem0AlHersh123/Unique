@@ -60,6 +60,13 @@ export async function POST(req: NextRequest) {
       password: hashedPassword,
     });
 
+    if (parsed.data.collegeId) {
+      await User.updateOne(
+        { _id: user._id },
+        { collegeId: parsed.data.collegeId }
+      );
+    }
+
     // 5. Issue tokens immediately so the user is logged in right after registering.
     const accessToken = signAccessToken({ userId: user._id.toString(), role: user.role, name: user.name, tier: user.tier });
     const refreshToken = signRefreshToken({ userId: user._id.toString(), role: user.role, name: user.name });
@@ -77,6 +84,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         role: user.role,
         tier: user.tier,
+        collegeId: parsed.data.collegeId ?? null,
       },
     };
 

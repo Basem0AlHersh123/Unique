@@ -20,6 +20,8 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, "يجب أن تحتوي على حرف كبير واحد على الأقل")
     .regex(/[0-9]/, "يجب أن تحتوي على رقم واحد على الأقل"),
   turnstileToken: z.string().optional(),
+  universityId: z.string().optional(),
+  collegeId: z.string().optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

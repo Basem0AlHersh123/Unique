@@ -8,15 +8,18 @@ import { Card } from "@/components/ui/Card";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getAuthOrRefresh, type AuthUser } from "@/lib/auth-client";
-import { 
-  BookOpen, 
-  Award, 
-  TrendingUp, 
+import {
+  BookOpen,
+  Award,
+  TrendingUp,
   Calendar,
   Clock,
   Sparkles,
   Brain,
   Target,
+  GraduationCap,
+  ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
 
 interface AttemptSummary {
@@ -40,12 +43,36 @@ interface ProgressData {
   recent: AttemptSummary[];
 }
 
+interface CollegeInfo {
+  _id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  icon: string;
+  color: string;
+}
+
+interface SubjectInfo {
+  _id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  icon: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState<ProgressData | null>(null);
+
+  const [collegeId, setCollegeId] = useState<string | null>(null);
+  const [college, setCollege] = useState<CollegeInfo | null>(null);
+  const [subjects, setSubjects] = useState<SubjectInfo[]>([]);
+  const [collegeLoading, setCollegeLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,13 +92,46 @@ export default function DashboardPage() {
           setProgress(res.data);
         }
       } catch {
-        // silent — dashboard still renders with defaults
+        // silent
       } finally {
         setLoading(false);
       }
     }
     load();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const res = await apiFetch<{ collegeId?: string }>("/api/auth/profile");
+        if (res.success && res.data?.collegeId) {
+          setCollegeId(res.data.collegeId);
+        }
+      } catch { /* silent */ }
+    })();
+  }, [user]);
+
+  useEffect(() => {
+    if (!collegeId) return;
+    setCollegeLoading(true);
+    (async () => {
+      try {
+        const [collegesRes, subjectsRes] = await Promise.all([
+          apiFetch<CollegeInfo[]>("/api/admin/colleges"),
+          apiFetch<SubjectInfo[]>(`/api/admin/subjects?collegeId=${collegeId}`),
+        ]);
+        if (collegesRes.success && collegesRes.data) {
+          const match = collegesRes.data.find((c) => c._id === collegeId);
+          if (match) setCollege(match);
+        }
+        if (subjectsRes.success && subjectsRes.data) {
+          setSubjects(subjectsRes.data);
+        }
+      } catch { /* silent */ }
+      finally { setCollegeLoading(false); }
+    })();
+  }, [collegeId]);
 
   const stats = progress ? [
     { label: t('dashboard.stat.attempts'), value: String(progress.stats.totalAttempts), icon: Brain, color: "from-primary to-primary-dark" },
@@ -84,6 +144,8 @@ export default function DashboardPage() {
     { label: t('dashboard.stat.avg'), value: "0%", icon: Target, color: "from-warning to-accent" },
     { label: t('dashboard.stat.questions'), value: "0", icon: BookOpen, color: "from-danger to-accent" },
   ];
+
+  const avgPercentage = progress?.stats.averagePercentage ?? 0;
 
   if (loading) {
     return (
@@ -100,9 +162,29 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-4">
         <div className="space-y-8">
+          {/* No college banner */}
+          {user && !collegeId && !collegeLoading && (
+            <div className="bg-gradient-to-r from-warning/10 to-accent/10 border border-warning/30 rounded-2xl p-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-warning/20">
+                  <AlertCircle className="w-6 h-6 text-warning" />
+                </div>
+                <div>
+                  <p className="font-bold text-text-primary text-lg">لم تختر كليتك بعد!</p>
+                  <p className="text-text-secondary text-sm">اختر كليتك لتبدأ رحلة التعلم المناسبة لك</p>
+                </div>
+              </div>
+              <Link href="/colleges">
+                <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 whitespace-nowrap">
+                  <GraduationCap className="w-4 h-4" />
+                  اختر كليتك الآن
+                </button>
+              </Link>
+            </div>
+          )}
+
           {/* Welcome + Browse */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -115,7 +197,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-2 self-start sm:self-auto">
               <Link href="/colleges">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface border border-border text-text-primary text-sm font-medium hover:bg-surface-hover transition-all duration-300">
                   <BookOpen className="w-4 h-4" />
                   {t('dashboard.browse_colleges')}
                 </button>
@@ -126,6 +208,48 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Start Studying section */}
+          {college && subjects.length > 0 && (
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                </div>
+                <h2 className="text-lg font-semibold text-text-primary">
+                  ابدأ الدراسة — {college.name}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subjects.map((subject) => (
+                  <Link
+                    key={subject._id}
+                    href={`/dashboard/subject/${subject.slug}`}
+                    className="group relative overflow-hidden rounded-2xl border border-border/50 bg-surface/80 backdrop-blur-sm hover:shadow-xl hover:scale-[1.02] hover:border-primary/30 transition-all duration-300"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative p-5 flex flex-col gap-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-text-primary">{subject.nameAr || subject.name}</h3>
+                        <p className="text-sm text-text-muted mt-0.5">{subject.nameEn || subject.name}</p>
+                      </div>
+                      <div className="flex items-center justify-between mt-auto">
+                        <span className="flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                          → ابدأ
+                        </span>
+                      </div>
+                      <div className="w-full h-1 bg-border rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-1000"
+                          style={{ width: `${avgPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
@@ -166,7 +290,7 @@ export default function DashboardPage() {
                     {progress.recent.map((a) => (
                       <Link
                         key={a.id}
-                        href={`/dashboard/topic/${a.topicSlug}/quiz`}
+                        href={`/dashboard/topic/${a.topicSlug}`}
                         className="block p-4 rounded-xl bg-surface-hover/50 hover:bg-surface-hover transition-all duration-200"
                       >
                         <div className="flex items-center justify-between mb-1.5">

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   try {
     await connectDB();
-    const user = await User.findById(auth.payload.userId).select("name email role createdAt");
+    const user = await User.findById(auth.payload.userId).select("name email role createdAt collegeId");
     if (!user) {
       return NextResponse.json(
         { success: false, error: "المستخدم غير موجود" },
