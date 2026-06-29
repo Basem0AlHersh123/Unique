@@ -6,7 +6,8 @@ import Link from "next/link";
 import NextImage from "next/image";
 import {
   Menu, LogOut, BarChart3, GraduationCap, BookOpen, Layers, HelpCircle,
-  Users, UserCheck, MessageCircle, Sparkles, GitBranch, FolderOpen, Building2, Image as ImageIcon, Mail,
+  Users, UserCheck, MessageCircle, Sparkles, GitBranch, FolderOpen, Building2, Image as ImageIcon, Mail, ChevronRight,
+  Megaphone, Settings,
 } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getAuthOrRefresh } from "@/lib/auth-client";
@@ -37,11 +38,19 @@ export default function AdminLayout({
     { href: "/admin/ai", label: t('admin.ai_settings'), icon: Sparkles },
     { href: "/admin/cms", label: "محتوى الموقع", icon: ImageIcon },
     { href: "/admin/contact-messages", label: "رسائل التواصل", icon: Mail },
+    { href: "/admin/announcements", label: "الإعلانات", icon: Megaphone },
+    { href: "/admin/app-settings", label: "إعدادات التطبيق", icon: Settings },
   ];
   const [isAuthed, setIsAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("admin_sidebar_collapsed");
+    if (saved === "true") setSidebarCollapsed(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,13 +81,13 @@ export default function AdminLayout({
   if (!isAuthed) return null;
 
   const sidebar = (
-    <aside className="w-64 bg-surface border-l border-border flex flex-col shrink-0 h-full overflow-y-auto">
+    <aside className={`flex flex-col bg-surface border-l border-border shrink-0 h-full overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"}`}>
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-2">
           <NextImage src="/logo.svg" alt="UNIQUE" width={28} height={28} className="shrink-0" />
-          <h1 className="text-xl font-bold text-primary">UNIQUE</h1>
+          {!sidebarCollapsed && <h1 className="text-xl font-bold text-primary">UNIQUE</h1>}
         </div>
-        <p className="text-xs text-text-muted mt-0.5">{t('admin.title')}</p>
+        {!sidebarCollapsed && <p className="text-xs text-text-muted mt-0.5">{t('admin.title')}</p>}
       </div>
       <nav className="flex-1 p-4 flex flex-col gap-1">
         {navItems.map((item) => {
@@ -88,31 +97,48 @@ export default function AdminLayout({
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              title={sidebarCollapsed ? item.label : undefined}
+              className={`flex items-center justify-center lg:justify-start gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                sidebarCollapsed ? "px-0" : "px-4"
+              } ${
                 isActive
                   ? "bg-primary text-white"
                   : "text-text-secondary hover:bg-surface-hover"
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              {item.label}
+              {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
         })}
       </nav>
       <div className="p-4 border-t border-border flex flex-col gap-2">
+        <button
+          onClick={() => setSidebarCollapsed(c => {
+            const newVal = !c;
+            localStorage.setItem("admin_sidebar_collapsed", String(newVal));
+            return newVal;
+          })}
+          className="flex items-center justify-center w-full p-3 text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors rounded-lg"
+          title={sidebarCollapsed ? "توسيع القائمة" : "طي القائمة"}
+        >
+          <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? "rotate-180" : ""}`} />
+          {!sidebarCollapsed && <span className="text-xs mr-2">طي القائمة</span>}
+        </button>
         <Link
           href="/dashboard"
-          className="text-sm text-text-muted hover:text-primary transition-colors"
+          className="flex items-center justify-center lg:justify-start gap-2 text-sm text-text-muted hover:text-primary transition-colors"
+          title={sidebarCollapsed ? t('admin.back') : undefined}
         >
-          {t('admin.back')}
+          {!sidebarCollapsed && t('admin.back')}
         </Link>
         <button
           onClick={() => setLogoutConfirm(true)}
-          className="flex items-center gap-2 text-sm text-text-muted hover:text-danger transition-colors"
+          className="flex items-center justify-center lg:justify-start gap-2 text-sm text-text-muted hover:text-danger transition-colors"
+          title={sidebarCollapsed ? t('admin.logout') : undefined}
         >
-          <LogOut className="w-4 h-4" />
-          {t('admin.logout')}
+          <LogOut className="w-4 h-4 shrink-0" />
+          {!sidebarCollapsed && t('admin.logout')}
         </button>
       </div>
     </aside>
@@ -126,7 +152,7 @@ export default function AdminLayout({
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar — always visible */}
-      <div className="hidden lg:flex shrink-0">{sidebar}</div>
+      <div className="hidden lg:flex shrink-0 transition-all duration-300">{sidebar}</div>
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (

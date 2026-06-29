@@ -57,6 +57,11 @@ export async function tryRefreshToken(): Promise<boolean> {
   }
 }
 
+export function clearAuth(): void {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+}
+
 export async function getAuthOrRefresh(): Promise<AuthUser | null> {
   const token = localStorage.getItem("accessToken");
   if (!token) return null;

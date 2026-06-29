@@ -8,6 +8,10 @@ import { verifyAccessToken } from "@/lib/auth";
 const updateTopicSchema = z.object({
   videoUrl: z.string().optional(),
   videoType: z.enum(["youtube", "direct"]).optional(),
+  contentType: z.enum(["video", "audio", "text", "pdf"]).optional(),
+  audioUrl: z.string().optional(),
+  pdfUrl: z.string().optional(),
+  richContent: z.string().max(50000).optional(),
   title: z.string().min(2).optional(),
   aiExplanation: z.string().optional(),
   keyPoints: z.array(z.string()).optional(),

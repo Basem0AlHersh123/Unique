@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getAuthOrRefresh } from "@/lib/auth-client";
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import {
   ArrowLeft, BookOpen, CheckCircle, Lightbulb, Sparkles, ClipboardCheck, Bot,
 } from "lucide-react";
@@ -194,9 +195,7 @@ export default function TopicDetailPage() {
               <Sparkles className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold text-text-primary">{t('topic.explanation')}</h2>
             </div>
-            <p className="text-text-secondary leading-relaxed whitespace-pre-line">
-              {topic.aiExplanation}
-            </p>
+            <MarkdownRenderer content={topic.aiExplanation ?? ""} />
           </div>
         )}
 
@@ -294,9 +293,7 @@ export default function TopicDetailPage() {
                     <Bot className="w-4 h-4 text-primary" />
                     <span className="text-xs font-semibold text-primary">{t('ai_chat.ai')}</span>
                   </div>
-                  <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-                    {aiAnswer}
-                  </p>
+                  <MarkdownRenderer content={aiAnswer ?? ""} />
                 </div>
               )}
 

@@ -13,6 +13,10 @@ export interface ITopic extends Document {
   teacherId?: Schema.Types.ObjectId;
   videoUrl: string;
   videoType?: "youtube" | "direct";
+  contentType: "video" | "audio" | "text" | "pdf";
+  audioUrl?: string;
+  pdfUrl?: string;
+  richContent?: string;
   aiExplanation?: string;
   keyPoints: string[];
   vocabulary: IVocabularyItem[];
@@ -62,6 +66,23 @@ const TopicSchema = new Schema<ITopic>(
       type: String,
       enum: ["youtube", "direct"],
       default: "youtube",
+    },
+    contentType: {
+      type: String,
+      enum: ["video", "audio", "text", "pdf"],
+      default: "video",
+    },
+    audioUrl: {
+      type: String,
+      default: "",
+    },
+    pdfUrl: {
+      type: String,
+      default: "",
+    },
+    richContent: {
+      type: String,
+      default: "",
     },
     aiExplanation: {
       type: String,

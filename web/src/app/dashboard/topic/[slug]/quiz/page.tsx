@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { getAuthOrRefresh } from "@/lib/auth-client";
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import {
   CheckCircle, XCircle, HelpCircle, Award,
 } from "lucide-react";
@@ -215,8 +216,9 @@ export default function QuizPage() {
                   )}
                   <div>
                     <p className="font-semibold text-text-primary mb-1">
-                      {t('quiz.question')} {i + 1}: {a.question}
+                      {t('quiz.question')} {i + 1}:
                     </p>
+                    <MarkdownRenderer content={a.question} className="mb-2" />
                     <div className="space-y-1 text-sm">
                       {a.options.map((opt, j) => (
                         <div
@@ -229,7 +231,7 @@ export default function QuizPage() {
                                 : "text-text-muted"
                           }`}
                         >
-                          {String.fromCharCode(65 + j)}. {opt}
+                          {String.fromCharCode(65 + j)}. <MarkdownRenderer content={opt} className="inline" />
                           {j === a.correct && " ✓"}
                         </div>
                       ))}
@@ -237,8 +239,8 @@ export default function QuizPage() {
                   </div>
                 </div>
                 {a.explanation && (
-                  <div className="mr-8 mt-3 pt-3 border-t border-border/50 text-sm text-text-secondary">
-                    {a.explanation}
+                  <div className="mr-8 mt-3 pt-3 border-t border-border/50">
+                    <MarkdownRenderer content={a.explanation} />
                   </div>
                 )}
               </div>
@@ -274,7 +276,7 @@ export default function QuizPage() {
           <div className="flex items-start gap-3 mb-6">
             <HelpCircle className="w-6 h-6 text-primary shrink-0 mt-0.5" />
             <h2 className="text-xl font-bold text-text-primary leading-relaxed">
-              {question.question}
+              <MarkdownRenderer content={question.question} />
             </h2>
           </div>
 
@@ -300,7 +302,7 @@ export default function QuizPage() {
                   >
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className="text-text-primary font-medium">{opt}</span>
+                  <span className="text-text-primary font-medium"><MarkdownRenderer content={opt} className="inline" /></span>
                 </button>
               );
             })}

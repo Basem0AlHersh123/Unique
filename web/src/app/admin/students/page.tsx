@@ -31,7 +31,7 @@ interface Student {
 
 export default function StudentsPage() {
   const { showToast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -121,7 +121,7 @@ export default function StudentsPage() {
         body: JSON.stringify({ isActive: newActive }),
       });
       showToast(
-        newActive ? "تم إعادة تفعيل الحساب" : "تم تعطيل الحساب",
+        newActive ? "تم إعادة تفعيل الحساب" : "تم تعليق الحساب",
         "success"
       );
       setDeactivateTarget(null);
@@ -207,7 +207,7 @@ export default function StudentsPage() {
                 ? "bg-danger/10 border-danger/30 text-danger"
                 : "bg-surface border-border text-text-muted hover:border-primary/30"
             }`}
-            title="إظهار الحسابات المعطلة"
+            title={lang === "ar" ? "إظهار الحسابات المعلقة" : "Show suspended accounts"}
           >
             {showDeactivated ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             <span className="text-sm hidden sm:inline">
@@ -242,7 +242,7 @@ export default function StudentsPage() {
                       <p className="text-xs text-text-muted">
                         {s.tier === "paid" ? t('admin.tier_paid') : t('admin.tier_free')}
                         {s.streak > 0 && ` · ${s.streak} ${t('admin.streak_days')}`}
-                        {isDeactivated && " · معطّل"}
+                        {isDeactivated && " · معلّق"}
                       </p>
                     </div>
                   </div>
@@ -260,7 +260,7 @@ export default function StudentsPage() {
                       {s.role === "admin" ? t('admin.admin_label') : s.role === "teacher" ? t('admin.teacher_label') : t('admin.student_label')}
                     </Badge>
                     {isDeactivated && (
-                      <Badge variant="danger">معطّل</Badge>
+                      <Badge variant="danger">معلّق</Badge>
                     )}
                   </div>
                 </TableCell>
@@ -320,7 +320,7 @@ export default function StudentsPage() {
                         onClick={() => handleToggleActive(s)}
                         disabled={processing === s._id}
                         className="p-2 rounded-lg text-teal hover:bg-teal/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50"
-                        title="إعادة تفعيل"
+                        title={lang === "ar" ? "إعادة تفعيل" : "Reactivate"}
                       >
                         {processing === s._id ? (
                           <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
@@ -336,7 +336,7 @@ export default function StudentsPage() {
                         onClick={() => setDeactivateTarget(s)}
                         disabled={processing === s._id}
                         className="p-2 rounded-lg text-warning hover:bg-warning/10 hover:scale-110 active:scale-95 transition-all duration-200 disabled:opacity-50"
-                        title="تعطيل"
+                        title={lang === "ar" ? "تعليق" : "Suspend"}
                       >
                         <Ban className="w-4 h-4" />
                       </button>
@@ -382,9 +382,9 @@ export default function StudentsPage() {
 
       <ConfirmDialog
         open={deactivateTarget !== null}
-        title="تعطيل الحساب"
-        message={`هل أنت متأكد من تعطيل حساب ${deactivateTarget?.name}؟`}
-        confirmLabel="تعطيل"
+        title="تعليق الحساب"
+        message={`هل أنت متأكد من تعليق حساب ${deactivateTarget?.name}؟`}
+        confirmLabel="تعليق"
         cancelLabel={t('common.cancel')}
         variant="danger"
         onConfirm={() => deactivateTarget && handleToggleActive(deactivateTarget)}

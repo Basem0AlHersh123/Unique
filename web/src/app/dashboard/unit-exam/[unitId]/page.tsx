@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getAuthOrRefresh } from "@/lib/auth-client";
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import {
   CheckCircle, XCircle, Award, ArrowLeft, AlertCircle, Clock, ChevronLeft,
 } from "lucide-react";
@@ -237,7 +238,7 @@ export default function UnitExamPage() {
           </div>
 
           <h3 className="text-lg font-bold text-text-primary mb-6">
-            {current.question}
+            <MarkdownRenderer content={current.question} />
           </h3>
 
           <div className="space-y-3 mb-8">
@@ -258,7 +259,7 @@ export default function UnitExamPage() {
                   }`}>
                     {labels[i]}
                   </span>
-                  <span className="text-sm">{opt}</span>
+                  <span className="text-sm"><MarkdownRenderer content={opt} className="inline" /></span>
                 </button>
               );
             })}

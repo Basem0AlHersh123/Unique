@@ -139,7 +139,7 @@ export default function AdminTeachersPage() {
         body: JSON.stringify({ userId: teacher._id, isActive: newActive }),
       });
       showToast(
-        newActive ? "تم إعادة تفعيل الحساب" : "تم تعطيل الحساب",
+        newActive ? "تم إعادة تفعيل الحساب" : "تم تعليق الحساب",
         "success"
       );
       const updated = await apiFetch<Teacher[]>("/api/admin/teachers");
@@ -236,7 +236,7 @@ export default function AdminTeachersPage() {
                   <div>
                     <p className="text-sm font-medium text-text-primary flex items-center gap-2">
                       {teacher.name}
-                      {isDeactivated && <Badge variant="danger">معطّل</Badge>}
+                      {isDeactivated && <Badge variant="danger">معلّق</Badge>}
                     </p>
                     <p className="text-xs text-text-muted">{teacher.email}</p>
                   </div>
@@ -246,7 +246,7 @@ export default function AdminTeachersPage() {
                         onClick={() => handleToggleActive(teacher)}
                         disabled={processing === teacher._id}
                         className="p-2 rounded-lg text-teal hover:bg-teal/10 transition-all disabled:opacity-50"
-                        title="إعادة تفعيل"
+                        title={lang === "ar" ? "إعادة تفعيل" : "Reactivate"}
                       >
                         <CheckCircle className="w-4 h-4" />
                       </button>
@@ -256,7 +256,7 @@ export default function AdminTeachersPage() {
                           onClick={() => handleToggleActive(teacher)}
                           disabled={processing === teacher._id}
                           className="p-2 rounded-lg text-warning hover:bg-warning/10 transition-all disabled:opacity-50"
-                          title="تعطيل"
+                          title={lang === "ar" ? "تعليق" : "Suspend"}
                         >
                           <Ban className="w-4 h-4" />
                         </button>
