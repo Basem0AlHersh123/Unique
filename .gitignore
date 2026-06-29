@@ -1,33 +1,15 @@
-
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-# debug
-# dependencies
-# env files (can opt-in for committing if needed)
-# expo
-# misc
-# next.js
-# production
-# testing
-# typescript
-# vercel
 *.pem
 *.tsbuildinfo
 .DS_Store
 .env*.local
+.env.local
 .expo/
 .pnp.*
 .pnpm-debug.log*
 .vercel
 .yarn/*
-/.next/
-/.pnp
-/build
-/coverage
-/node_modules
+.next/
+/node_modules/
 /out/
 app.zip
 next-env.d.ts
@@ -35,3 +17,7 @@ npm-debug.log*
 src.zip
 yarn-debug.log*
 yarn-error.log*
+web/.next/
+web/out/
+mobile/.expo/
+mobile/node_modules/
