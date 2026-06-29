@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { apiFetch } from "@/lib/api";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import axios from "axios";
 import api from "@/lib/api";
 import { UserPlus, ArrowLeft, Building2, ChevronLeft, Check } from "lucide-react";
@@ -60,6 +61,7 @@ export default function RegisterPage() {
     setValue,
     resetField,
     trigger,
+    watch,
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -201,13 +203,16 @@ export default function RegisterPage() {
                   error={errors.email?.message}
                 />
 
-                <Input
-                  label={t('auth.register.password')}
-                  type="password"
-                  placeholder="8 أحرف على الأقل"
-                  {...register("password")}
-                  error={errors.password?.message}
-                />
+                <div>
+                  <Input
+                    label={t('auth.register.password')}
+                    type="password"
+                    placeholder="8 أحرف على الأقل"
+                    {...register("password")}
+                    error={errors.password?.message}
+                  />
+                  <PasswordStrength password={watch?.("password") ?? ""} />
+                </div>
 
                 <div className="flex justify-center py-2 overflow-x-auto">
                   <div className="scale-[0.85] sm:scale-100 origin-center">

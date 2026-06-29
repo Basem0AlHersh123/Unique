@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
   ActivityIndicator, TouchableOpacity,
@@ -13,7 +13,7 @@ import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "@/lib/theme/context";
 import { showAlert } from "@/lib/ui/AlertModal";
 
-type FilterType = "all" | "starred" | "general" | "question" | "summary" | "important";
+type FilterType = "all" | "starred" | "general" | "question" | "summary" | "important" | "word" | "equation";
 
 const FILTERS: { key: FilterType; labelAr: string; labelEn: string }[] = [
   { key: "all",       labelAr: "الكل",        labelEn: "All" },
@@ -22,6 +22,8 @@ const FILTERS: { key: FilterType; labelAr: string; labelEn: string }[] = [
   { key: "question",  labelAr: "سؤال",        labelEn: "Question" },
   { key: "summary",   labelAr: "ملخص",        labelEn: "Summary" },
   { key: "important", labelAr: "مهم",         labelEn: "Important" },
+  { key: "word",      labelAr: "كلمة",        labelEn: "Word" },
+  { key: "equation",  labelAr: "معادلة",      labelEn: "Equation" },
 ];
 
 const TYPE_ICONS: Record<string, keyof typeof Feather.glyphMap> = {
@@ -85,6 +87,8 @@ export default function NotesScreen() {
       const res = await apiFetch<StudentNote[]>(url);
       if (res.success && res.data) {
         setNotes(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      } else if (!res.success) {
+        setError(res.error ?? "حدث خطأ في تحميل الملاحظات");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "حدث خطأ في تحميل الملاحظات");
@@ -93,6 +97,7 @@ export default function NotesScreen() {
     }
   }, [filter]);
 
+  useEffect(() => { loadNotes(); }, []);
   useFocusEffect(useCallback(() => { loadNotes(); }, [loadNotes]));
 
   async function toggleStar(note: StudentNote) {

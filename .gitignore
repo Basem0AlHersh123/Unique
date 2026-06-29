@@ -18,6 +18,12 @@ src.zip
 yarn-debug.log*
 yarn-error.log*
 web/.next/
+web/node_modules/
 web/out/
 mobile/.expo/
 mobile/node_modules/
+mobile/android/
+mobile/prompts/
+mobile/.npm/
+.env
+node_modules_old/

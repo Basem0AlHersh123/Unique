@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
   ActivityIndicator, Animated, Modal, FlatList, Alert,
+  Linking, Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -12,7 +13,7 @@ import { apiFetch } from "@/lib/api";
 import { ENDPOINTS, STORAGE_KEYS } from "@/constants/config";
 import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "@/lib/theme/context";
-import type { Subject, Level, Unit } from "@/lib/types";
+import type { Subject, Level, Unit, Announcement } from "@/lib/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,6 +204,58 @@ function UnitMountain({
   );
 }
 
+// ─── Announcement Banner ───────────────────────────────────────────────────────
+
+const ANN_COLORS = {
+  info:    { bg:"#6C63FF15", border:"#6C63FF40", icon:"#6C63FF", iconName:"info" as const },
+  promo:   { bg:"#F59E0B15", border:"#F59E0B40", icon:"#F59E0B", iconName:"gift" as const },
+  warning: { bg:"#EF444415", border:"#EF444440", icon:"#EF4444", iconName:"alert-triangle" as const },
+  success: { bg:"#22C55E15", border:"#22C55E40", icon:"#22C55E", iconName:"check-circle" as const },
+};
+
+function AnnouncementBanner({ announcement, lang, onDismiss }: { announcement: Announcement; lang: string; onDismiss: () => void }) {
+  const theme = ANN_COLORS[announcement.type] ?? ANN_COLORS.info;
+  const title = lang === "ar" ? announcement.titleAr : announcement.titleEn;
+  const body = lang === "ar" ? announcement.bodyAr : announcement.bodyEn;
+  const ctaText = lang === "ar" ? announcement.ctaTextAr : announcement.ctaTextEn;
+  return (
+    <View style={[annS.wrap, { backgroundColor:theme.bg, borderColor:theme.border }]}>
+      {announcement.imageUrl ? <Image source={{ uri:announcement.imageUrl }} style={annS.image} resizeMode="cover" /> : null}
+      <View style={annS.content}>
+        <View style={annS.row}>
+          <Pressable onPress={onDismiss} hitSlop={10} style={annS.close}><Feather name="x" size={16} color="#475569" /></Pressable>
+          <View style={{ flex:1 }}>
+            <View style={annS.titleRow}>
+              <Feather name={theme.iconName} size={14} color={theme.icon} />
+              <Text style={[annS.title, { color:"#fff" }]} numberOfLines={2}>{title}</Text>
+            </View>
+            {body ? <Text style={annS.body} numberOfLines={2}>{body}</Text> : null}
+          </View>
+        </View>
+        {ctaText && announcement.ctaUrl ? (
+          <Pressable style={[annS.cta, { backgroundColor:theme.icon }]}
+            onPress={() => { if (announcement.ctaUrl!.startsWith("http")) Linking.openURL(announcement.ctaUrl!); }}>
+            <Text style={annS.ctaText}>{ctaText}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+const annS = StyleSheet.create({
+  wrap: { marginHorizontal:16, marginBottom:12, borderRadius:14, borderWidth:1, overflow:"hidden" },
+  image: { width:"100%", height:80 },
+  content: { padding:12 },
+  row: { flexDirection:"row", alignItems:"flex-start", gap:8 },
+  close: { padding:2, marginTop:2 },
+  titleRow: { flexDirection:"row", alignItems:"center", gap:6, marginBottom:3 },
+  title: { fontSize:13, fontFamily:"Cairo_700Bold", textAlign:"right", flex:1 },
+  body: { fontSize:12, color:"#94a3b8", fontFamily:"Cairo_400Regular", textAlign:"right", lineHeight:18 },
+  cta: { marginTop:8, paddingHorizontal:16, paddingVertical:8, borderRadius:10, alignSelf:"flex-end" },
+  ctaText: { fontSize:12, color:"#fff", fontFamily:"Cairo_700Bold" },
+});
+
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function LearnScreen() {
@@ -221,6 +274,8 @@ export default function LearnScreen() {
   const [showLevelModal, setShowLevelModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingUnits, setLoadingUnits] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   useFocusEffect(useCallback(() => {
     let cancelled = false;
@@ -239,6 +294,8 @@ export default function LearnScreen() {
 
         const subs = subRes.data;
         setSubjects(subs);
+
+        await loadAnnouncements();
 
         const savedSubjectId = await SecureStore.getItemAsync("unique_subject_id");
         const subject = subs.find((s) => s._id === savedSubjectId) ?? subs[0] ?? null;
@@ -268,6 +325,25 @@ export default function LearnScreen() {
         if (!cancelled) await loadUnits(level._id);
       }
     }
+  }
+
+  async function loadAnnouncements() {
+    try {
+      const stored = await SecureStore.getItemAsync("unique_dismissed_announcements");
+      const dismissed: string[] = stored ? JSON.parse(stored) : [];
+      setDismissedIds(new Set(dismissed));
+      const res = await apiFetch<Announcement[]>(ENDPOINTS.ANNOUNCEMENTS);
+      if (res.success && res.data) {
+        setAnnouncements(res.data.filter((a) => !dismissed.includes(a._id)));
+      }
+    } catch {}
+  }
+
+  async function dismissAnnouncement(id: string) {
+    const newSet = new Set([...dismissedIds, id]);
+    setDismissedIds(newSet);
+    setAnnouncements((prev) => prev.filter((a) => a._id !== id));
+    await SecureStore.setItemAsync("unique_dismissed_announcements", JSON.stringify([...newSet]));
   }
 
   async function loadUnits(levelId: string) {
@@ -366,6 +442,15 @@ export default function LearnScreen() {
             <View style={[styles.levelProgressFill, { width: `${levelPct}%`, backgroundColor: primaryColor }]} />
           </View>
           <Text style={[styles.levelPct, { color: colors.textSecondary }]}>{levelPct}%</Text>
+        </View>
+      )}
+
+      {/* ── Announcements ── */}
+      {announcements.length > 0 && (
+        <View style={{ paddingTop:8 }}>
+          {announcements.slice(0, 2).map((ann) => (
+            <AnnouncementBanner key={ann._id} announcement={ann} lang={lang} onDismiss={() => dismissAnnouncement(ann._id)} />
+          ))}
         </View>
       )}
 

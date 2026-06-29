@@ -4,18 +4,20 @@
     "slug": "unique-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "unique",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.hammood.unique"
     },
     "android": {
       "package": "com.hammood.unique",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "buildToolsVersion": "34.0.0",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#6C63FF"
       },
       "allowBackup": true,
@@ -32,12 +34,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-navigation-bar",
-      "expo-system-ui",
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0f0a2e"
+          "backgroundColor": "#0f0a2e",
+          "image": "./assets/images/logo.png",
+          "resizeMode": "contain"
         }
       ],
       [
@@ -53,10 +57,7 @@
         {
           "backgroundColor": "#0f0a2e"
         }
-      ],
-      "expo-secure-store",
-      "expo-video",
-      "@react-native-community/datetimepicker"
+      ]
     ],
     "experiments": {
       "typedRoutes": true

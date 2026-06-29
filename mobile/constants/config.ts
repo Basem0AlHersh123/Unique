@@ -45,6 +45,13 @@ export const ENDPOINTS = {
   // Dashboard
   ADMIN_STATS:        "/api/admin/stats",
   TEACHER_STATS:      "/api/teacher/stats",
+
+  // App config & announcements
+  APP_CONFIG:         "/api/app/config",
+  ANNOUNCEMENTS:      "/api/announcements",
+
+  // Upload
+  UPLOAD:             "/api/admin/upload",
 } as const;
 
 // Replace with your Cloudflare Turnstile site key

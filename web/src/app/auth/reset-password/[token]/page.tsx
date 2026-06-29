@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { apiFetch } from "@/lib/api";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -103,15 +104,18 @@ export default function ResetPasswordPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("auth.reset.password")}
-              required
-              minLength={8}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
+            <div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("auth.reset.password")}
+                required
+                minLength={8}
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <PasswordStrength password={password} />
+            </div>
             <input
               type="password"
               value={confirm}

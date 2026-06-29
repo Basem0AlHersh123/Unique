@@ -174,7 +174,7 @@ export default function ProfileScreen() {
       } as any);
 
       const uploadRes = await apiClient.post<{ success: boolean; data?: { url: string } }>(
-        "/api/admin/upload",
+        ENDPOINTS.UPLOAD,
         formData,
         {
           headers: {
@@ -189,6 +189,9 @@ export default function ProfileScreen() {
           method: "PATCH",
           body: { profileImage: url },
         });
+        if (user) {
+          await saveUser({ ...user, profileImage: url } as any);
+        }
       }
     } catch {
       showAlert({ type: "error", title: "خطأ", message: "فشل رفع الصورة، حاول مرة أخرى" });

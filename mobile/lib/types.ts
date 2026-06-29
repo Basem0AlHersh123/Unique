@@ -106,7 +106,7 @@ export interface QuizResult {
   }[];
 }
 
-export type NoteType = "general" | "question" | "summary" | "important";
+export type NoteType = "general" | "question" | "summary" | "important" | "word" | "equation";
 
 export interface StudentNote {
   _id: string;
@@ -163,4 +163,20 @@ export interface AiConversation {
   messages: AiMessage[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Announcement {
+  _id: string;
+  titleAr: string;
+  titleEn: string;
+  bodyAr?: string;
+  bodyEn?: string;
+  ctaTextAr?: string;
+  ctaTextEn?: string;
+  ctaUrl?: string;
+  imageUrl?: string;
+  type: "info" | "promo" | "warning" | "success";
+  targetAudience: "all" | "free" | "paid";
+  isActive: boolean;
+  priority: number;
 }
