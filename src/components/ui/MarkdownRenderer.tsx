@@ -18,17 +18,17 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
         rehypePlugins={[rehypeKatex]}
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-          math: ({ children }) => (
+          math: ({ children }: any) => (
             <span className="text-primary font-medium" style={{ direction: "ltr" }}>
               {children}
             </span>
           ),
-          inlineMath: ({ children }) => (
+          inlineMath: ({ children }: any) => (
             <span className="text-primary font-medium" style={{ direction: "ltr" }}>
               {children}
             </span>
           ),
-        }}
+        } as any}
       >
         {content}
       </ReactMarkdown>
