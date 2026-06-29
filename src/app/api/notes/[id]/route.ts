@@ -8,8 +8,10 @@ const updateNoteSchema = z.object({
   content: z.string().min(1).max(5000).optional(),
   title: z.string().max(200).optional(),
   color: z.string().optional(),
-  type: z.enum(["general", "question", "summary", "important"]).optional(),
+  type: z.enum(["general", "question", "summary", "important", "word", "equation"]).optional(),
   isStarred: z.boolean().optional(),
+  tags: z.array(z.string().max(50)).max(20).optional(),
+  reminderAt: z.string().datetime({ offset: true }).optional().nullable(),
 });
 
 export async function PATCH(

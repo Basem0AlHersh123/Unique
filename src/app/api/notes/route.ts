@@ -11,8 +11,10 @@ const createNoteSchema = z.object({
   unitId: z.string().optional(),
   subjectId: z.string().optional(),
   color: z.string().optional(),
-  type: z.enum(["general", "question", "summary", "important"]).default("general"),
+  type: z.enum(["general", "question", "summary", "important", "word", "equation"]).default("general"),
   isStarred: z.boolean().default(false),
+  tags: z.array(z.string().max(50)).max(20).default([]),
+  reminderAt: z.string().datetime({ offset: true }).optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {
@@ -27,7 +29,7 @@ export async function GET(req: NextRequest) {
     if (searchParams.get("subjectId")) filter.subjectId = searchParams.get("subjectId");
     const typeParam = searchParams.get("type");
     const starredParam = searchParams.get("starred");
-    if (typeParam && ["general","question","summary","important"].includes(typeParam)) {
+    if (typeParam && ["general","question","summary","important","word","equation"].includes(typeParam)) {
       filter.type = typeParam;
     }
     if (starredParam === "true") filter.isStarred = true;
