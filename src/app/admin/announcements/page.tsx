@@ -74,15 +74,15 @@ export default function AnnouncementsPage() {
       const body = { ...form, priority:Number(form.priority),
         startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : undefined,
         endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : undefined };
-      if (editing) { await apiFetch(`/api/admin/announcements/${editing._id}`, { method:"PATCH", body }); showToast("تم التحديث","success"); }
-      else { await apiFetch("/api/admin/announcements", { method:"POST", body }); showToast("تم الإنشاء","success"); }
+      if (editing) { await apiFetch(`/api/admin/announcements/${editing._id}`, { method:"PATCH", body: JSON.stringify(body) }); showToast("تم التحديث","success"); }
+      else { await apiFetch("/api/admin/announcements", { method:"POST", body: JSON.stringify(body) }); showToast("تم الإنشاء","success"); }
       setShowForm(false); load();
     } catch (e) { showToast(e instanceof Error ? e.message : "حدث خطأ","error"); }
     finally { setSaving(false); }
   }
 
   async function toggleActive(ann: Announcement) {
-    await apiFetch(`/api/admin/announcements/${ann._id}`, { method:"PATCH", body:{ isActive:!ann.isActive } });
+    await apiFetch(`/api/admin/announcements/${ann._id}`, { method:"PATCH", body: JSON.stringify({ isActive:!ann.isActive }) });
     setAnnouncements(prev => prev.map(a => a._id===ann._id ? {...a, isActive:!a.isActive} : a));
   }
 

@@ -120,7 +120,7 @@ export default function SettingsPage() {
       if (res.success && res.data?.url) {
         const url = res.data.url;
         setProfileImage(url);
-        await apiFetch("/api/auth/profile", { method:"PATCH", body:{ profileImage: url } });
+        await apiFetch("/api/auth/profile", { method:"PATCH", body: JSON.stringify({ profileImage: url }) });
       }
     } catch { alert(lang === "ar" ? "فشل رفع الصورة" : "Upload failed"); }
     finally { setUploadingImage(false); }
@@ -132,7 +132,7 @@ export default function SettingsPage() {
     setSavingName(true);
     setNameMsg(null);
     try {
-      await apiFetch("/api/auth/profile", { method:"PATCH", body:{ name:name.trim() } });
+      await apiFetch("/api/auth/profile", { method:"PATCH", body: JSON.stringify({ name:name.trim() }) });
       setNameMsg({ text: lang === "ar" ? "تم حفظ الاسم بنجاح" : "Name saved successfully", type:"success" });
     } catch (e) {
       setNameMsg({ text: e instanceof Error ? e.message : "حدث خطأ", type:"error" });
@@ -152,7 +152,7 @@ export default function SettingsPage() {
     }
     setSavingPassword(true);
     try {
-      await apiFetch("/api/auth/change-password", { method:"POST", body:{ currentPassword, newPassword } });
+      await apiFetch("/api/auth/change-password", { method:"POST", body: JSON.stringify({ currentPassword, newPassword }) });
       setPasswordMsg({ text: lang === "ar" ? "تم تغيير كلمة المرور بنجاح" : "Password changed successfully", type:"success" });
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
     } catch (e) {
@@ -166,7 +166,7 @@ export default function SettingsPage() {
     setSavingCollege(true);
     setCollegeMsg(null);
     try {
-      await apiFetch("/api/auth/profile", { method:"PATCH", body:{ collegeId: selectedCollegeId } });
+      await apiFetch("/api/auth/profile", { method:"PATCH", body: JSON.stringify({ collegeId: selectedCollegeId }) });
       setCollegeMsg({ text: lang === "ar" ? "تم حفظ الكلية بنجاح" : "College saved", type:"success" });
     } catch (e) {
       setCollegeMsg({ text: e instanceof Error ? e.message : "حدث خطأ", type:"error" });

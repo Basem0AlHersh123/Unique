@@ -32,7 +32,7 @@ export default function AppSettingsPage() {
   async function handleSave() {
     setSaving(true);
     try {
-      await apiFetch("/api/admin/app-config", { method:"PATCH", body:config as any });
+      await apiFetch("/api/admin/app-config", { method:"PATCH", body: JSON.stringify(config) });
       showToast("تم حفظ الإعدادات","success");
     } catch (e) { showToast(e instanceof Error?e.message:"حدث خطأ","error"); }
     finally { setSaving(false); }
