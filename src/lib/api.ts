@@ -90,7 +90,7 @@ export async function apiFetch<T>(
     const res = await api({
       url,
       method: options?.method ?? "GET",
-      data: options?.body instanceof FormData ? options.body : (options?.body ? JSON.parse(options.body) : undefined),
+      data: options?.body instanceof FormData ? options.body : (typeof options?.body === "string" ? JSON.parse(options.body) : options?.body),
       headers: options?.headers,
     });
     return res.data;
