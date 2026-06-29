@@ -114,7 +114,7 @@ export default function SettingsPage() {
       const formData = new FormData();
       formData.append("file", file);
       const res = await apiFetch<{ url: string }>("/api/admin/upload", {
-        method: "POST", body: formData as any,
+        method: "POST", body: formData,
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (res.success && res.data?.url) {
