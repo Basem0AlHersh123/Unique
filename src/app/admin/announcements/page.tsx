@@ -26,9 +26,14 @@ const TYPE_CONFIG = {
   success: { label:"نجاح",     icon:CheckCircle,   color:"text-green-400",  bg:"bg-green-500/10" },
 };
 
-const emptyForm = {
+const emptyForm: {
+  titleAr: string; titleEn: string; bodyAr: string; bodyEn: string;
+  ctaTextAr: string; ctaTextEn: string; ctaUrl: string; imageUrl: string;
+  type: "info"|"promo"|"warning"|"success"; targetAudience: "all"|"free"|"paid";
+  isActive: boolean; priority: number; startsAt: string; endsAt: string;
+} = {
   titleAr:"", titleEn:"", bodyAr:"", bodyEn:"", ctaTextAr:"", ctaTextEn:"",
-  ctaUrl:"", imageUrl:"", type:"info" as const, targetAudience:"all" as const,
+  ctaUrl:"", imageUrl:"", type:"info", targetAudience:"all",
   isActive:true, priority:0, startsAt:"", endsAt:"",
 };
 
