@@ -496,236 +496,276 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* ── Settings Sheet ── */}
-      <Modal visible={showSettingsSheet} transparent animationType="slide" onRequestClose={() => setShowSettingsSheet(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowSettingsSheet(false)} />
-        <View style={[styles.sheetBody, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.sheetHandle} />
-          <Text style={[styles.sheetTitle, { color: colors.text }]}>
-            {lang === "ar" ? "الإعدادات" : "Settings"}
-          </Text>
+      {/* ── Settings Modal ── */}
+      <Modal visible={showSettingsSheet} animationType="slide" onRequestClose={() => setShowSettingsSheet(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+          <View style={[styles.fullHeader, { borderBottomColor: colors.border }]}>
+            <Pressable onPress={() => setShowSettingsSheet(false)} style={styles.fullClose} hitSlop={8}>
+              <Feather name="x" size={22} color={colors.text} />
+            </Pressable>
+            <Text style={[styles.fullTitle, { color: colors.text }]}>
+              {lang === "ar" ? "الإعدادات" : "Settings"}
+            </Text>
+            <View style={{ width: 38 }} />
+          </View>
 
-          <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <SettingsRow
-              label={lang === "ar" ? "تغيير الجامعة" : "Change University"}
-              icon="globe"
-              onPress={async () => {
-                showAlert({
-                  type: "confirm",
-                  title: lang === "ar" ? "تغيير الجامعة" : "Change University",
-                  message: lang === "ar" ? "هل تريد تغيير جامعتك؟ ستختار كلية جديدة بعد ذلك." : "Change your university? You'll pick a new college after.",
-                  buttons: [
-                    { text: lang === "ar" ? "إلغاء" : "Cancel", style: "cancel" },
-                    {
-                      text: lang === "ar" ? "تغيير" : "Change",
-                      onPress: async () => {
-                        await SecureStore.deleteItemAsync("unique_university_id");
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScroll}>
+            <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <SettingsRow
+                label={lang === "ar" ? "تغيير الجامعة" : "Change University"}
+                icon="globe"
+                onPress={async () => {
+                  showAlert({
+                    type: "confirm",
+                    title: lang === "ar" ? "تغيير الجامعة" : "Change University",
+                    message: lang === "ar" ? "هل تريد تغيير جامعتك؟ ستختار كلية جديدة بعد ذلك." : "Change your university? You'll pick a new college after.",
+                    buttons: [
+                      { text: lang === "ar" ? "إلغاء" : "Cancel", style: "cancel" },
+                      {
+                        text: lang === "ar" ? "تغيير" : "Change",
+                        onPress: async () => {
+                          await SecureStore.deleteItemAsync("unique_university_id");
+                          await SecureStore.deleteItemAsync("unique_college_id");
+                          router.replace("/university-picker" as any);
+                        },
+                      },
+                    ],
+                  });
+                }}
+              />
+              <SettingsRow
+                label={t("profile.change_college")}
+                icon="refresh-cw"
+                onPress={async () => {
+                  showAlert({
+                    type: "confirm",
+                    title: t("profile.change_college"),
+                    message: t("profile.change_college_confirm"),
+                    buttons: [
+                      { text: t("common.cancel"), style: "cancel" },
+                      { text: t("profile.change_college_action"), onPress: async () => {
                         await SecureStore.deleteItemAsync("unique_college_id");
-                        router.replace("/university-picker" as any);
-                      },
-                    },
-                  ],
-                });
-              }}
-            />
-            <SettingsRow
-              label={t("profile.change_college")}
-              icon="refresh-cw"
-              onPress={async () => {
-                showAlert({
-                  type: "confirm",
-                  title: t("profile.change_college"),
-                  message: t("profile.change_college_confirm"),
-                  buttons: [
-                    { text: t("common.cancel"), style: "cancel" },
-                    { text: t("profile.change_college_action"), onPress: async () => {
-                      await SecureStore.deleteItemAsync("unique_college_id");
-                      router.replace("/college-picker" as any);
-                    }},
-                  ],
-                });
-              }}
-            />
-            <SettingsRow
-              label={t("profile.language")}
-              value={lang === "ar" ? "العربية" : "English"}
-              icon="globe"
-              onPress={() => setShowLangPicker(true)}
-            />
-            <SettingsRow
-              label={t("profile.theme")}
-              value={mode === "dark" ? t("profile.dark") : t("profile.light")}
-              icon={mode === "dark" ? "moon" : "sun"}
-              onPress={() => setShowThemePicker(true)}
-            />
-          </View>
-
-          <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={[styles.settingsRow, { borderBottomColor: colors.border }]}>
-              <View style={styles.settingsRight}>
-                <Feather name="bookmark" size={20} color={colors.textSecondary} />
-                <View>
-                  <Text style={[styles.settingsLabel, { color: colors.text }]}>
-                    {lang === "ar" ? "وضع الدروس الأساسية" : "Essential Lessons Mode"}
-                  </Text>
-                  <Text style={[styles.settingsSub, { color: colors.textTertiary }]}>
-                    {lang === "ar" ? "عرض الدروس الأساسية فقط" : "Show only essential lessons for quick review"}
-                  </Text>
-                </View>
-              </View>
-              <Switch
-                value={essentialMode}
-                onValueChange={async (val) => {
-                  setEssentialMode(val);
-                  await SecureStore.setItemAsync("unique_essential_mode", val ? "true" : "false");
-                }}
-                trackColor={{ false: colors.border, true: colors.accent }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
-
-          <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={[styles.settingsRow, { borderBottomColor: colors.border }]}>
-              <View style={styles.settingsRight}>
-                <Feather name="bell" size={20} color={colors.textSecondary} />
-                <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.reminder")}</Text>
-              </View>
-              <Switch
-                value={reminderEnabled}
-                onValueChange={handleToggleReminder}
-                trackColor={{ false: colors.border, true: colors.accent }}
-                thumbColor="#fff"
-              />
-            </View>
-            {reminderEnabled && (
-              <>
-                <Pressable style={[styles.settingsRow, { borderBottomColor: colors.border }]} onPress={() => {
-                  if (Platform.OS === "android") {
-                    DateTimePickerAndroid.open({
-                      value: reminderTime,
-                      mode: "time",
-                      is24Hour: true,
-                      onChange: (_, date) => {
-                        if (date) setReminderTime(date);
-                      },
-                    });
-                  } else {
-                    setShowTimePicker(true);
-                  }
-                }}>
-                  <View style={styles.settingsRight}>
-                    <Feather name="clock" size={20} color={colors.textSecondary} />
-                    <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.reminder_time")}</Text>
-                  </View>
-                  <Text style={[styles.settingsValue, { color: colors.textSecondary }]}>
-                    {reminderTime.getHours().toString().padStart(2,"0")}:{reminderTime.getMinutes().toString().padStart(2,"0")}
-                  </Text>
-                </Pressable>
-                <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
-                  <View style={styles.settingsRight}>
-                    <Feather name="target" size={20} color={colors.textSecondary} />
-                    <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.daily_goal")}</Text>
-                  </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                    <Pressable onPress={() => setDailyGoal(g => Math.max(1, g - 1))}><Feather name="minus-circle" size={22} color={colors.accent} /></Pressable>
-                    <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 16, minWidth: 20, textAlign: "center", fontFamily: "Cairo_700Bold" }}>{dailyGoal}</Text>
-                    <Pressable onPress={() => setDailyGoal(g => Math.min(20, g + 1))}><Feather name="plus-circle" size={22} color={colors.accent} /></Pressable>
-                  </View>
-                </View>
-              </>
-            )}
-            {showTimePicker && Platform.OS === "ios" && (
-              <DateTimePicker
-                value={reminderTime}
-                mode="time"
-                is24Hour={true}
-                onChange={(_, date) => {
-                  setShowTimePicker(false);
-                  if (date) setReminderTime(date);
+                        router.replace("/college-picker" as any);
+                      }},
+                    ],
+                  });
                 }}
               />
-            )}
-          </View>
-        </View>
+              <SettingsRow
+                label={t("profile.language")}
+                value={lang === "ar" ? "العربية" : "English"}
+                icon="globe"
+                onPress={() => setShowLangPicker(true)}
+              />
+              <SettingsRow
+                label={t("profile.theme")}
+                value={mode === "dark" ? t("profile.dark") : t("profile.light")}
+                icon={mode === "dark" ? "moon" : "sun"}
+                onPress={() => setShowThemePicker(true)}
+              />
+            </View>
+
+            <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.settingsRow, { borderBottomColor: colors.border }]}>
+                <View style={styles.settingsRight}>
+                  <Feather name="bookmark" size={20} color={colors.textSecondary} />
+                  <View>
+                    <Text style={[styles.settingsLabel, { color: colors.text }]}>
+                      {lang === "ar" ? "وضع الدروس الأساسية" : "Essential Lessons Mode"}
+                    </Text>
+                    <Text style={[styles.settingsSub, { color: colors.textTertiary }]}>
+                      {lang === "ar" ? "عرض الدروس الأساسية فقط" : "Show only essential lessons for quick review"}
+                    </Text>
+                  </View>
+                </View>
+                <Switch
+                  value={essentialMode}
+                  onValueChange={async (val) => {
+                    setEssentialMode(val);
+                    await SecureStore.setItemAsync("unique_essential_mode", val ? "true" : "false");
+                  }}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </View>
+
+            <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.settingsRow, { borderBottomColor: colors.border }]}>
+                <View style={styles.settingsRight}>
+                  <Feather name="bell" size={20} color={colors.textSecondary} />
+                  <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.reminder")}</Text>
+                </View>
+                <Switch
+                  value={reminderEnabled}
+                  onValueChange={handleToggleReminder}
+                  trackColor={{ false: colors.border, true: colors.accent }}
+                  thumbColor="#fff"
+                />
+              </View>
+              {reminderEnabled && (
+                <>
+                  <Pressable style={[styles.settingsRow, { borderBottomColor: colors.border }]} onPress={() => {
+                    if (Platform.OS === "android") {
+                      DateTimePickerAndroid.open({
+                        value: reminderTime,
+                        mode: "time",
+                        is24Hour: true,
+                        onChange: (_, date) => {
+                          if (date) setReminderTime(date);
+                        },
+                      });
+                    } else {
+                      setShowTimePicker(true);
+                    }
+                  }}>
+                    <View style={styles.settingsRight}>
+                      <Feather name="clock" size={20} color={colors.textSecondary} />
+                      <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.reminder_time")}</Text>
+                    </View>
+                    <Text style={[styles.settingsValue, { color: colors.textSecondary }]}>
+                      {reminderTime.getHours().toString().padStart(2,"0")}:{reminderTime.getMinutes().toString().padStart(2,"0")}
+                    </Text>
+                  </Pressable>
+                  <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
+                    <View style={styles.settingsRight}>
+                      <Feather name="target" size={20} color={colors.textSecondary} />
+                      <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.daily_goal")}</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                      <Pressable onPress={() => setDailyGoal(g => Math.max(1, g - 1))}><Feather name="minus-circle" size={22} color={colors.accent} /></Pressable>
+                      <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 16, minWidth: 20, textAlign: "center", fontFamily: "Cairo_700Bold" }}>{dailyGoal}</Text>
+                      <Pressable onPress={() => setDailyGoal(g => Math.min(20, g + 1))}><Feather name="plus-circle" size={22} color={colors.accent} /></Pressable>
+                    </View>
+                  </View>
+                </>
+              )}
+              {showTimePicker && Platform.OS === "ios" && (
+                <DateTimePicker
+                  value={reminderTime}
+                  mode="time"
+                  is24Hour={true}
+                  onChange={(_, date) => {
+                    setShowTimePicker(false);
+                    if (date) setReminderTime(date);
+                  }}
+                />
+              )}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
 
-      {/* ── Edit Profile Sheet ── */}
-      <Modal visible={showEditSheet} transparent animationType="slide" onRequestClose={() => setShowEditSheet(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowEditSheet(false)} />
-        <View style={[styles.sheetBody, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.sheetHandle} />
-          <Text style={[styles.sheetTitle, { color: colors.text }]}>
-            {lang === "ar" ? "تعديل الحساب" : "Edit Profile"}
-          </Text>
-
-          {/* Avatar */}
-          <View style={styles.avatarSection}>
-            <Pressable onPress={handleImagePick} style={styles.avatarContainer}>
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-              ) : (
-                <View style={[styles.avatarCircle, { backgroundColor: colors.accent }]}>
-                  <Text style={styles.avatarInitial}>{user?.name?.charAt(0)?.toUpperCase() ?? "U"}</Text>
-                </View>
-              )}
-              {uploadingImage ? (
-                <View style={styles.avatarOverlay}>
-                  <ActivityIndicator color="#fff" size="small" />
-                </View>
-              ) : (
-                <View style={styles.avatarEdit}>
-                  <Feather name="camera" size={14} color="#fff" />
-                </View>
-              )}
+      {/* ── Edit Profile Modal ── */}
+      <Modal visible={showEditSheet} animationType="slide" onRequestClose={() => setShowEditSheet(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+          <View style={[styles.fullHeader, { borderBottomColor: colors.border }]}>
+            <Pressable onPress={() => setShowEditSheet(false)} style={styles.fullClose} hitSlop={8}>
+              <Feather name="x" size={22} color={colors.text} />
             </Pressable>
+            <Text style={[styles.fullTitle, { color: colors.text }]}>
+              {lang === "ar" ? "تعديل الحساب" : "Edit Profile"}
+            </Text>
+            <View style={{ width: 38 }} />
           </View>
 
-          {/* Name edit */}
-          {editingName ? (
-            <View style={styles.nameEditRow}>
-              <TextInput
-                style={[styles.nameInput, { color: colors.text, borderBottomColor: colors.accent }]}
-                value={nameInput}
-                onChangeText={setNameInput}
-                textAlign="center"
-                autoFocus
-              />
-              <Pressable onPress={async () => {
-                if (!nameInput.trim() || !user) return;
-                try {
-                  await apiFetch(ENDPOINTS.UPDATE_PROFILE, { method: "PATCH", body: { name: nameInput.trim() } });
-                  await saveUser({ ...user, name: nameInput.trim() });
-                  const updated = await getStoredUser();
-                  if (updated) setUser(updated);
-                  setEditingName(false);
-                  showAlert({ type: "success", title: t("common.success"), message: t("settings.name_saved") });
-                } catch {
-                  showAlert({ type: "error", title: t("common.error"), message: t("settings.name_error") });
-                }
-              }}>
-                <Feather name="check" size={22} color={colors.success} />
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScroll}>
+            {/* Avatar */}
+            <View style={styles.editAvatarSection}>
+              <Pressable onPress={handleImagePick} style={styles.avatarContainer}>
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+                ) : (
+                  <View style={[styles.avatarCircle, { backgroundColor: colors.accent }]}>
+                    <Text style={styles.avatarInitial}>{user?.name?.charAt(0)?.toUpperCase() ?? "U"}</Text>
+                  </View>
+                )}
+                {uploadingImage ? (
+                  <View style={styles.avatarOverlay}>
+                    <ActivityIndicator color="#fff" size="small" />
+                  </View>
+                ) : (
+                  <View style={styles.avatarEdit}>
+                    <Feather name="camera" size={14} color="#fff" />
+                  </View>
+                )}
               </Pressable>
+              <Text style={[styles.editHint, { color: colors.textTertiary }]}>
+                {lang === "ar" ? "اضغط لتغيير الصورة" : "Tap to change photo"}
+              </Text>
             </View>
-          ) : (
-            <Pressable onPress={() => { setEditingName(true); setNameInput(user?.name ?? ""); }} style={{ alignItems: "center", marginBottom: 16 }}>
-              <Text style={[styles.name, { color: colors.text }]}>{user?.name ?? t("profile.student")}</Text>
-            </Pressable>
-          )}
 
-          {/* Change password button */}
-          <SettingsRow
-            label={t("settings.password")}
-            icon="lock"
-            onPress={() => {
-              setCurrentPassword("");
-              setNewPassword("");
-              setConfirmPassword("");
-              setPasswordError("");
-              setShowPasswordModal(true);
-            }}
-          />
-        </View>
+            {/* Name edit */}
+            <View style={[styles.editCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {editingName ? (
+                <View style={styles.nameEditRow}>
+                  <TextInput
+                    style={[styles.nameInput, { color: colors.text, borderBottomColor: colors.accent }]}
+                    value={nameInput}
+                    onChangeText={setNameInput}
+                    textAlign="center"
+                    autoFocus
+                  />
+                  <Pressable onPress={async () => {
+                    if (!nameInput.trim() || !user) return;
+                    try {
+                      await apiFetch(ENDPOINTS.UPDATE_PROFILE, { method: "PATCH", body: { name: nameInput.trim() } });
+                      await saveUser({ ...user, name: nameInput.trim() });
+                      const updated = await getStoredUser();
+                      if (updated) setUser(updated);
+                      setEditingName(false);
+                      showAlert({ type: "success", title: t("common.success"), message: t("settings.name_saved") });
+                    } catch {
+                      showAlert({ type: "error", title: t("common.error"), message: t("settings.name_error") });
+                    }
+                  }}>
+                    <Feather name="check" size={22} color={colors.success} />
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable onPress={() => { setEditingName(true); setNameInput(user?.name ?? ""); }} style={styles.editNameRow}>
+                  <View style={styles.editNameContent}>
+                    <Feather name="user" size={18} color={colors.textSecondary} />
+                    <View>
+                      <Text style={[styles.editLabel, { color: colors.textSecondary }]}>
+                        {lang === "ar" ? "الاسم" : "Name"}
+                      </Text>
+                      <Text style={[styles.editName, { color: colors.text }]}>{user?.name ?? t("profile.student")}</Text>
+                    </View>
+                  </View>
+                  <Feather name="edit-2" size={18} color={colors.accent} />
+                </Pressable>
+              )}
+            </View>
+
+            {/* Change password button */}
+            <Pressable
+              style={[styles.editCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={() => {
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setPasswordError("");
+                setShowPasswordModal(true);
+              }}
+            >
+              <View style={styles.editNameRow}>
+                <View style={styles.editNameContent}>
+                  <Feather name="lock" size={18} color={colors.textSecondary} />
+                  <View>
+                    <Text style={[styles.editLabel, { color: colors.textSecondary }]}>
+                      {lang === "ar" ? "كلمة المرور" : "Password"}
+                    </Text>
+                    <Text style={[styles.editName, { color: colors.text }]}>
+                      {lang === "ar" ? "تغيير كلمة المرور" : "Change Password"}
+                    </Text>
+                  </View>
+                </View>
+                <Feather name="chevron-left" size={18} color={colors.textTertiary} />
+              </View>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
@@ -753,24 +793,62 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center", justifyContent: "center",
   },
-  sheetOverlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.6)",
+  fullHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
   },
-  sheetBody: {
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    borderTopWidth: 1, padding: 20, paddingBottom: 40,
-    maxHeight: "80%",
-    position: "absolute", bottom: 0, left: 0, right: 0,
+  fullClose: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: "rgba(108,99,255,0.12)",
+    alignItems: "center", justifyContent: "center",
   },
-  sheetHandle: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: "#2d1f6e", alignSelf: "center",
-    marginBottom: 16,
-  },
-  sheetTitle: {
+  fullTitle: {
     fontSize: 17, fontWeight: "700",
     fontFamily: "Cairo_700Bold", textAlign: "center",
+  },
+  fullScroll: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  editAvatarSection: {
+    alignItems: "center",
+    marginBottom: 32,
+    marginTop: 8,
+  },
+  editHint: {
+    fontSize: 13,
+    fontFamily: "Cairo_400Regular",
+    textAlign: "center",
+    marginTop: -4,
+  },
+  editCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
     marginBottom: 16,
+  },
+  editNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  editNameContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  editLabel: {
+    fontSize: 12,
+    fontFamily: "Cairo_400Regular",
+    marginBottom: 2,
+  },
+  editName: {
+    fontSize: 16,
+    fontFamily: "Cairo_700Bold",
   },
   scroll: {
     paddingHorizontal: 20,
