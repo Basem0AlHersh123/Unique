@@ -4,7 +4,8 @@ export interface IQuestion extends Document {
   question: string;
   options: string[];
   correctAnswer: number;
-  topicId: Schema.Types.ObjectId;
+  topicId?: Schema.Types.ObjectId;
+  unitId?: Schema.Types.ObjectId;
   subjectId: Schema.Types.ObjectId;
   difficulty: "easy" | "medium" | "hard";
   explanation: string;
@@ -38,7 +39,12 @@ const QuestionSchema = new Schema<IQuestion>(
     topicId: {
       type: Schema.Types.ObjectId,
       ref: "Topic",
-      required: [true, "الموضوع مطلوب"],
+      required: function () { return !this.unitId; },
+    },
+    unitId: {
+      type: Schema.Types.ObjectId,
+      ref: "Unit",
+      default: null,
     },
     subjectId: {
       type: Schema.Types.ObjectId,
@@ -75,6 +81,7 @@ QuestionSchema.index({ topicId: 1, order: 1 });
 QuestionSchema.index({ subjectId: 1 });
 QuestionSchema.index({ difficulty: 1 });
 QuestionSchema.index({ topicId: 1, difficulty: 1 });
+QuestionSchema.index({ unitId: 1, difficulty: 1 });
 QuestionSchema.index({ collegeId: 1 });
 
 export const Question =

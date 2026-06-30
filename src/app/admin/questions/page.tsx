@@ -11,7 +11,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import {
-  Plus, Edit2, Trash2, HelpCircle, Filter, Eye, EyeOff, PlusCircle, MinusCircle,
+  Plus, Edit2, Trash2, HelpCircle, Filter, Eye, EyeOff, PlusCircle, MinusCircle, FileText, FileQuestion,
 } from "lucide-react";
 
 interface Subject {
@@ -26,12 +26,19 @@ interface Topic {
   subjectId: string;
 }
 
+interface Unit {
+  _id: string;
+  title: string;
+  subjectId: string;
+}
+
 interface Question {
   _id: string;
   question: string;
   options: string[];
   correctAnswer: number;
-  topicId: string;
+  topicId?: string;
+  unitId?: string;
   subjectId: string;
   difficulty: string;
   explanation: string;
@@ -44,6 +51,7 @@ interface FormData {
   options: string[];
   correctAnswer: number;
   topicId: string;
+  unitId: string;
   subjectId: string;
   difficulty: string;
   explanation: string;
@@ -55,6 +63,7 @@ const emptyForm: FormData = {
   options: ["", "", "", ""],
   correctAnswer: 0,
   topicId: "",
+  unitId: "",
   subjectId: "",
   difficulty: "medium",
   explanation: "",
@@ -63,11 +72,13 @@ const emptyForm: FormData = {
 
 export default function QuestionsPage() {
   const { showToast } = useToast();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, lang } = useLanguage();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
+  const [filteredUnits, setFilteredUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -75,20 +86,26 @@ export default function QuestionsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterTopic, setFilterTopic] = useState("");
+  const [filterUnit, setFilterUnit] = useState("");
+  const [questionType, setQuestionType] = useState<"topic" | "exam">("topic");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [questionsRes, subjectsRes, topicsRes] = await Promise.all([
+      const [questionsRes, subjectsRes, topicsRes, unitsRes] = await Promise.all([
         apiFetch<Question[]>("/api/admin/questions"),
         apiFetch<Subject[]>("/api/admin/subjects"),
         apiFetch<Topic[]>("/api/admin/topics"),
+        apiFetch<Unit[]>("/api/admin/units"),
       ]);
       setQuestions(questionsRes.data ?? []);
       setSubjects(subjectsRes.data ?? []);
       const allTopics = topicsRes.data ?? [];
       setTopics(allTopics);
       setFilteredTopics(allTopics);
+      const allUnits = unitsRes.data ?? [];
+      setUnits(allUnits);
+      setFilteredUnits(allUnits);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -106,10 +123,12 @@ export default function QuestionsPage() {
   useEffect(() => {
     if (form.subjectId) {
       setFilteredTopics(topics.filter((t) => t.subjectId === form.subjectId));
+      setFilteredUnits(units.filter((u) => u.subjectId === form.subjectId));
     } else {
       setFilteredTopics(topics);
+      setFilteredUnits(units);
     }
-  }, [form.subjectId, topics]);
+  }, [form.subjectId, topics, units]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   function resetForm() {
@@ -117,14 +136,18 @@ export default function QuestionsPage() {
     setEditingId(null);
     setShowForm(false);
     setError(null);
+    setQuestionType("topic");
   }
 
   function openEdit(q: Question) {
+    const isExam = !!q.unitId;
+    setQuestionType(isExam ? "exam" : "topic");
     setForm({
       question: q.question,
       options: q.options.length >= 2 ? q.options : ["", ""],
       correctAnswer: q.correctAnswer,
-      topicId: q.topicId,
+      topicId: q.topicId || "",
+      unitId: q.unitId || "",
       subjectId: q.subjectId,
       difficulty: q.difficulty,
       explanation: q.explanation,
@@ -170,15 +193,24 @@ export default function QuestionsPage() {
         setSaving(false);
         return;
       }
-      const body = {
-        ...form,
+      const body: Record<string, unknown> = {
+        question: form.question,
         options: filteredOpts,
         correctAnswer: form.correctAnswer,
+        subjectId: form.subjectId,
+        difficulty: form.difficulty,
+        explanation: form.explanation,
+        order: form.order,
       };
-      if (body.correctAnswer < 0 || body.correctAnswer >= filteredOpts.length) {
+      if (form.correctAnswer < 0 || form.correctAnswer >= filteredOpts.length) {
         setError(t('admin.correct_answer_error'));
         setSaving(false);
         return;
+      }
+      if (questionType === "exam") {
+        body.unitId = form.unitId;
+      } else {
+        body.topicId = form.topicId;
       }
       if (editingId) {
         await apiFetch(`/api/admin/questions/${editingId}`, {
@@ -233,13 +265,20 @@ export default function QuestionsPage() {
     return topics.find((t) => t._id === id)?.title ?? id;
   }
 
+  function getUnitName(id: string): string {
+    return units.find((u) => u._id === id)?.title ?? id;
+  }
+
   function getSubjectName(id: string): string {
     return subjects.find((s) => s._id === id)?.name ?? id;
   }
 
-  const filteredQuestions = filterTopic
-    ? questions.filter((q) => q.topicId === filterTopic)
-    : questions;
+  const filteredQuestions = questions.filter((q) => {
+    if (filterTopic && q.topicId === filterTopic) return true;
+    if (filterUnit && q.unitId === filterUnit) return true;
+    if (!filterTopic && !filterUnit) return true;
+    return false;
+  });
 
   const difficultyLabels: Record<string, { label: string; color: "success" | "warning" | "danger" }> = {
     easy: { label: t('admin.easy'), color: "success" },
@@ -287,13 +326,38 @@ export default function QuestionsPage() {
               />
             </div>
 
+            <div className="flex gap-4 mb-2">
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
+                <input
+                  type="radio"
+                  name="questionType"
+                  checked={questionType === "topic"}
+                  onChange={() => { setQuestionType("topic"); setForm({ ...form, topicId: "", unitId: "" }); }}
+                  className="accent-primary w-4 h-4"
+                />
+                <FileText className="w-4 h-4" />
+                {lang === "ar" ? "سؤال درس" : "Lesson Question"}
+              </label>
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
+                <input
+                  type="radio"
+                  name="questionType"
+                  checked={questionType === "exam"}
+                  onChange={() => { setQuestionType("exam"); setForm({ ...form, topicId: "", unitId: "" }); }}
+                  className="accent-primary w-4 h-4"
+                />
+                <FileQuestion className="w-4 h-4" />
+                {lang === "ar" ? "سؤال اختبار الوحدة" : "Unit Exam Question"}
+              </label>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-text-secondary">{t('admin.subject')}</label>
                 <select
                   value={form.subjectId}
                   onChange={(e) => {
-                    setForm({ ...form, subjectId: e.target.value, topicId: "" });
+                    setForm({ ...form, subjectId: e.target.value, topicId: "", unitId: "" });
                   }}
                   className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
                 >
@@ -303,19 +367,35 @@ export default function QuestionsPage() {
                   ))}
                 </select>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-text-secondary">{t('admin.topic')}</label>
-                <select
-                  value={form.topicId}
-                  onChange={(e) => setForm({ ...form, topicId: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
-                >
-                  <option value="">{t('admin.select_topic')}</option>
-                  {filteredTopics.map((t) => (
-                    <option key={t._id} value={t._id}>{t.title}</option>
-                  ))}
-                </select>
-              </div>
+              {questionType === "topic" ? (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-secondary">{t('admin.topic')}</label>
+                  <select
+                    value={form.topicId}
+                    onChange={(e) => setForm({ ...form, topicId: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
+                  >
+                    <option value="">{t('admin.select_topic')}</option>
+                    {filteredTopics.map((t) => (
+                      <option key={t._id} value={t._id}>{t.title}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-text-secondary">{lang === "ar" ? "الوحدة" : "Unit"}</label>
+                  <select
+                    value={form.unitId}
+                    onChange={(e) => setForm({ ...form, unitId: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
+                  >
+                    <option value="">{lang === "ar" ? "اختر وحدة" : "Select unit"}</option>
+                    {filteredUnits.map((u) => (
+                      <option key={u._id} value={u._id}>{u.title}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -403,9 +483,9 @@ export default function QuestionsPage() {
 
       <div className="flex gap-2 flex-wrap">
         <button
-          onClick={() => setFilterTopic("")}
+          onClick={() => { setFilterTopic(""); setFilterUnit(""); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-            !filterTopic
+            !filterTopic && !filterUnit
               ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"
               : "bg-surface text-text-secondary border border-border hover:border-primary/50"
           }`}
@@ -413,10 +493,23 @@ export default function QuestionsPage() {
           <Filter className="w-4 h-4" />
           {t('admin.all')}
         </button>
-        {topics.slice(0, 20).map((t) => (
+        {units.slice(0, 10).map((u) => (
+          <button
+            key={u._id}
+            onClick={() => { setFilterUnit(u._id); setFilterTopic(""); }}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+              filterUnit === u._id
+                ? "bg-gradient-to-r from-secondary to-primary text-white shadow-lg shadow-primary/20"
+                : "bg-surface text-text-secondary border border-border hover:border-primary/50"
+            }`}
+          >
+            {lang === "ar" ? `اختبار: ${u.title}` : `Exam: ${u.title}`}
+          </button>
+        ))}
+        {topics.slice(0, 15).map((t) => (
           <button
             key={t._id}
-            onClick={() => setFilterTopic(t._id)}
+            onClick={() => { setFilterTopic(t._id); setFilterUnit(""); }}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
               filterTopic === t._id
                 ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"
@@ -429,7 +522,7 @@ export default function QuestionsPage() {
       </div>
 
       <Table
-        headers={[t('admin.question'), t('admin.topic'), t('admin.difficulty'), t('admin.published'), t('admin.actions')]}
+        headers={[t('admin.question'), lang === "ar" ? "المصدر" : "Source", t('admin.difficulty'), t('admin.published'), t('admin.actions')]}
       >
         {filteredQuestions.length === 0 ? (
           <TableRow>
@@ -440,6 +533,7 @@ export default function QuestionsPage() {
         ) : (
           filteredQuestions.map((q) => {
             const difficulty = difficultyLabels[q.difficulty] || { label: q.difficulty, color: "info" };
+            const isExam = !!q.unitId;
             return (
               <TableRow key={q._id}>
                 <TableCell>
@@ -449,7 +543,13 @@ export default function QuestionsPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-text-muted text-sm">
-                  {getTopicName(q.topicId)}
+                  {isExam ? (
+                    <Badge variant="info">
+                      {lang === "ar" ? "اختبار وحدة" : "Unit Exam"}
+                    </Badge>
+                  ) : (
+                    getTopicName(q.topicId || "")
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge variant={difficulty.color}>

@@ -36,11 +36,17 @@ function UserPlus(props: React.SVGProps<SVGSVGElement>) { return <Users {...prop
 export default function Home() {
   const { t } = useLanguage();
   const [homeVideo, setHomeVideo] = useState<string | null>(null);
+  const [homeHero, setHomeHero] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<{ videoUrl?: string }>("/api/site-content?section=home-video")
       .then((res) => {
         if (res.success && res.data?.videoUrl) setHomeVideo(res.data.videoUrl);
+      })
+      .catch(() => {});
+    apiFetch<{ imageUrl?: string }>("/api/site-content?section=home-hero")
+      .then((res) => {
+        if (res.success && res.data?.imageUrl) setHomeHero(res.data.imageUrl);
       })
       .catch(() => {});
   }, []);
@@ -180,39 +186,60 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right: Illustration */}
+            {/* Right: Illustration / Hero Image */}
             <div className="hidden lg:flex items-center justify-center relative">
-              <div className="relative w-full max-w-lg">
-                <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-3 h-3 rounded-full bg-danger" />
-                    <div className="w-3 h-3 rounded-full bg-warning" />
-                    <div className="w-3 h-3 rounded-full bg-teal" />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="h-4 bg-white/20 rounded-full w-3/4" />
-                    <div className="h-4 bg-white/20 rounded-full w-1/2" />
-                    <div className="grid grid-cols-2 gap-3 mt-6">
-                      {[1,2,3,4].map((i) => (
-                        <div key={i} className="h-20 bg-white/10 rounded-xl border border-white/10 p-3">
-                          <div className="h-2 bg-white/20 rounded-full w-1/2 mb-2" />
-                          <div className="h-2 bg-white/20 rounded-full w-3/4" />
-                        </div>
-                      ))}
+              {homeHero ? (
+                <div className="relative w-full max-w-lg">
+                  <Image
+                    src={homeHero}
+                    alt="hero"
+                    width={600}
+                    height={450}
+                    className="w-full h-auto rounded-3xl shadow-2xl"
+                  />
+                  <div className="absolute -bottom-4 -left-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-xl">
+                    <div className="flex items-center gap-3">
+                      <Award className="w-8 h-8 text-warning" />
+                      <div>
+                        <p className="text-white text-sm font-bold">{t('landing.trust_progress')}</p>
+                        <p className="text-white/60 text-xs">{t('landing.trust_percent')}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-                {/* Floating badge */}
-                <div className="absolute -bottom-4 -left-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-xl">
-                  <div className="flex items-center gap-3">
-                    <Award className="w-8 h-8 text-warning" />
-                    <div>
-                      <p className="text-white text-sm font-bold">{t('landing.trust_progress')}</p>
-                      <p className="text-white/60 text-xs">{t('landing.trust_percent')}</p>
+              ) : (
+                <div className="relative w-full max-w-lg">
+                  <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-3 h-3 rounded-full bg-danger" />
+                      <div className="w-3 h-3 rounded-full bg-warning" />
+                      <div className="w-3 h-3 rounded-full bg-teal" />
+                    </div>
+                    <div className="space-y-4">
+                      <div className="h-4 bg-white/20 rounded-full w-3/4" />
+                      <div className="h-4 bg-white/20 rounded-full w-1/2" />
+                      <div className="grid grid-cols-2 gap-3 mt-6">
+                        {[1,2,3,4].map((i) => (
+                          <div key={i} className="h-20 bg-white/10 rounded-xl border border-white/10 p-3">
+                            <div className="h-2 bg-white/20 rounded-full w-1/2 mb-2" />
+                            <div className="h-2 bg-white/20 rounded-full w-3/4" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Floating badge */}
+                  <div className="absolute -bottom-4 -left-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-xl">
+                    <div className="flex items-center gap-3">
+                      <Award className="w-8 h-8 text-warning" />
+                      <div>
+                        <p className="text-white text-sm font-bold">{t('landing.trust_progress')}</p>
+                        <p className="text-white/60 text-xs">{t('landing.trust_percent')}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 

@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Always fetch topics for fallback
     const topics = await Topic.find({ unitId, isPublished: true }).select("_id");
     const topicIds = topics.map((t) => t._id);
 
@@ -92,10 +93,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const allQuestions = await Question.find({
-      topicId: { $in: topicIds },
+    // Check for curated exam questions first; fall back to topic questions
+    let allQuestions = await Question.find({
+      unitId,
       isPublished: true,
     }).lean();
+
+    if (allQuestions.length === 0) {
+      allQuestions = await Question.find({
+        topicId: { $in: topicIds },
+        isPublished: true,
+      }).lean();
+    }
 
     if (allQuestions.length === 0) {
       return NextResponse.json(

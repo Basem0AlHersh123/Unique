@@ -6,7 +6,7 @@ import Link from "next/link";
 import NextImage from "next/image";
 import {
   Menu, LogOut, BarChart3, GraduationCap, BookOpen, Layers, HelpCircle,
-  Users, UserCheck, MessageCircle, Sparkles, GitBranch, FolderOpen, Building2, Image as ImageIcon, Mail, ChevronRight,
+  Users, UserCheck, MessageCircle, Sparkles, GitBranch, FolderOpen, Building2, Image as ImageIcon, Mail, ChevronRight, ArrowLeft,
   Megaphone, Settings,
 } from "lucide-react";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
@@ -82,12 +82,23 @@ export default function AdminLayout({
 
   const sidebar = (
     <aside className={`flex flex-col bg-surface border-l border-border shrink-0 h-full overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"}`}>
-      <div className="p-6 border-b border-border">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <NextImage src="/logo.svg" alt="UNIQUE" width={28} height={28} className="shrink-0" />
+          <NextImage src="/logo.svg" alt="UNIQUE" width={sidebarCollapsed ? 24 : 28} height={sidebarCollapsed ? 24 : 28} className="shrink-0" />
           {!sidebarCollapsed && <h1 className="text-xl font-bold text-primary">UNIQUE</h1>}
+          <button
+            onClick={() => setSidebarCollapsed(c => {
+              const newVal = !c;
+              localStorage.setItem("admin_sidebar_collapsed", String(newVal));
+              return newVal;
+            })}
+            className={`p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors ${sidebarCollapsed ? "mx-auto" : "mr-auto"}`}
+            title={sidebarCollapsed ? (lang === "ar" ? "توسيع القائمة" : "Expand menu") : (lang === "ar" ? "طي القائمة" : "Collapse menu")}
+          >
+            <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? "rotate-180" : ""}`} />
+          </button>
         </div>
-        {!sidebarCollapsed && <p className="text-xs text-text-muted mt-0.5">{t('admin.title')}</p>}
+        {!sidebarCollapsed && <p className="text-xs text-text-muted mt-0.5 mr-auto">{t('admin.title')}</p>}
       </div>
       <nav className="flex-1 p-4 flex flex-col gap-1">
         {navItems.map((item) => {
@@ -99,37 +110,26 @@ export default function AdminLayout({
               href={item.href}
               title={sidebarCollapsed ? item.label : undefined}
               className={`flex items-center justify-center lg:justify-start gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                sidebarCollapsed ? "px-0" : "px-4"
+                sidebarCollapsed ? "justify-center" : "px-4"
               } ${
                 isActive
                   ? "bg-primary text-white"
                   : "text-text-secondary hover:bg-surface-hover"
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className="w-5 h-5 shrink-0" />
               {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
             </Link>
           );
         })}
       </nav>
       <div className="p-4 border-t border-border flex flex-col gap-2">
-        <button
-          onClick={() => setSidebarCollapsed(c => {
-            const newVal = !c;
-            localStorage.setItem("admin_sidebar_collapsed", String(newVal));
-            return newVal;
-          })}
-          className="flex items-center justify-center w-full p-3 text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors rounded-lg"
-          title={sidebarCollapsed ? (lang === "ar" ? "توسيع القائمة" : "Expand menu") : (lang === "ar" ? "طي القائمة" : "Collapse menu")}
-        >
-          <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? "rotate-180" : ""}`} />
-          {!sidebarCollapsed && <span className="text-xs mr-2">{lang === "ar" ? "طي القائمة" : "Collapse"}</span>}
-        </button>
         <Link
           href="/dashboard"
-          className="flex items-center justify-center lg:justify-start gap-2 text-sm text-text-muted hover:text-primary transition-colors"
+          className="flex items-center justify-center gap-2 text-sm text-text-muted hover:text-primary transition-colors"
           title={sidebarCollapsed ? t('admin.back') : undefined}
         >
+          <ArrowLeft className="w-4 h-4 shrink-0" />
           {!sidebarCollapsed && t('admin.back')}
         </Link>
         <button

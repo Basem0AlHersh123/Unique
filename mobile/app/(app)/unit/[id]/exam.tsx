@@ -7,7 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { apiFetch } from "@/lib/api";
 import ExamTimer from "@/components/learning/ExamTimer";
-import type { ExamEligibility, Question, Lesson } from "@/lib/types";
+import type { ExamEligibility, Question } from "@/lib/types";
 import { showAlert } from "@/lib/ui/AlertModal";
 
 type Screen = "loading" | "blocked_cooldown" | "blocked_limit" | "already_passed" | "intro" | "exam" | "result";
@@ -19,25 +19,6 @@ interface ExamResult {
   totalQuestions: number;
   attemptNumber: number;
   nextAttemptAt: string | null;
-}
-
-function pickQuestions(questions: Question[], target = 20): Question[] {
-  const easy = questions.filter(q => q.difficulty === "easy");
-  const medium = questions.filter(q => q.difficulty === "medium");
-  const hard = questions.filter(q => q.difficulty === "hard");
-
-  const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
-
-  const easyPick = shuffle(easy).slice(0, 6);
-  const mediumPick = shuffle(medium).slice(0, 9);
-  const hardPick = shuffle(hard).slice(0, 5);
-
-  const picked = [...easyPick, ...mediumPick, ...hardPick];
-  if (picked.length >= target) return shuffle(picked);
-
-  const usedIds = new Set(picked.map(q => q._id));
-  const rest = shuffle(questions.filter(q => !usedIds.has(q._id)));
-  return shuffle([...picked, ...rest].slice(0, target));
 }
 
 export default function UnitExamScreen() {
@@ -78,36 +59,19 @@ export default function UnitExamScreen() {
   async function handleStartExam() {
     setLoadingQuestions(true);
     try {
-      const lessonsRes = await apiFetch<Lesson[]>(`/api/admin/topics?unitId=${id}`);
-      if (!lessonsRes.success || !lessonsRes.data || lessonsRes.data.length === 0) {
-        showAlert({ type: "error", title: "خطأ", message: "لا توجد دروس في هذه الوحدة" });
-        return;
-      }
-      const publishedLessons = lessonsRes.data.filter(l => l.isPublished);
-      if (publishedLessons.length === 0) {
-        showAlert({ type: "error", title: "خطأ", message: "لا توجد دروس منشورة في هذه الوحدة" });
-        return;
-      }
+      const res = await apiFetch<{
+        questions: Question[];
+        subjectId: string;
+        totalQuestions: number;
+      }>(`/api/progress/unit-exam/questions?unitId=${id}`);
 
-      setSubjectId(publishedLessons[0].subjectId);
-
-      const allQuestions: Question[] = [];
-      await Promise.all(
-        publishedLessons.map(async (lesson) => {
-          try {
-            const qRes = await apiFetch<Question[]>(`/api/questions/${lesson.slug}`);
-            if (qRes.success && qRes.data) allQuestions.push(...qRes.data);
-          } catch { /* skip lesson if questions fail */ }
-        })
-      );
-
-      if (allQuestions.length === 0) {
+      if (!res.success || !res.data || !res.data.questions || res.data.questions.length === 0) {
         showAlert({ type: "error", title: "خطأ", message: "لا توجد أسئلة متاحة لهذه الوحدة" });
         return;
       }
 
-      const picked = pickQuestions(allQuestions);
-      setQuestions(picked);
+      setSubjectId(res.data.subjectId);
+      setQuestions(res.data.questions);
       setSelected({});
       setCurrentIdx(0);
       setScreen("exam");

@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch all published lessons (topics) for this unit
+    // Always fetch topics for pass-unlock logic
     const topics = await Topic.find({ unitId, isPublished: true }).select("_id");
     const topicIds = topics.map((t) => t._id);
 
@@ -237,11 +237,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch published questions from those topics
-    const allQuestions = await Question.find({
-      topicId: { $in: topicIds },
+    // Check for curated exam questions first; fall back to topic questions
+    let allQuestions = await Question.find({
+      unitId,
       isPublished: true,
     }).lean();
+
+    if (allQuestions.length === 0) {
+      allQuestions = await Question.find({
+        topicId: { $in: topicIds },
+        isPublished: true,
+      }).lean();
+    }
 
     if (allQuestions.length === 0) {
       return NextResponse.json(

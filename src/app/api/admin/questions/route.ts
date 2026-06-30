@@ -11,12 +11,16 @@ const createQuestionSchema = z.object({
     .min(2, "يجب إضافة خيارين على الأقل")
     .max(6, "الحد الأقصى 6 خيارات"),
   correctAnswer: z.number().min(0, "يجب تحديد الإجابة الصحيحة"),
-  topicId: z.string().min(1, "يجب اختيار موضوع"),
+  topicId: z.string().optional(),
+  unitId: z.string().optional(),
   subjectId: z.string().min(1, "يجب اختيار مادة"),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
   explanation: z.string().optional(),
   order: z.number().optional(),
-});
+}).refine(
+  (data) => data.topicId || data.unitId,
+  { message: "يجب اختيار موضوع أو وحدة للاختبار" }
+);
 
 export async function GET(req: NextRequest) {
   const adminCheck = requireAdmin(req);
@@ -25,10 +29,12 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const topicId = req.nextUrl.searchParams.get("topicId");
+    const unitId = req.nextUrl.searchParams.get("unitId");
     const subjectId = req.nextUrl.searchParams.get("subjectId");
 
     const filter: Record<string, string> = {};
     if (topicId) filter.topicId = topicId;
+    if (unitId) filter.unitId = unitId;
     if (subjectId) filter.subjectId = subjectId;
 
     const questions = await Question.find(filter).sort({ order: 1 });

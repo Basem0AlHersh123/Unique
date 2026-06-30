@@ -39,11 +39,17 @@ interface AboutVideo {
 export default function AboutPage() {
   const { t } = useLanguage();
   const [aboutVideos, setAboutVideos] = useState<AboutVideo[]>([]);
+  const [aboutHero, setAboutHero] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<{ items: AboutVideo[] }>("/api/site-content?section=about-videos")
       .then((res) => {
         if (res.success && res.data?.items) setAboutVideos(res.data.items);
+      })
+      .catch(() => {});
+    apiFetch<{ imageUrl?: string }>("/api/site-content?section=about-hero")
+      .then((res) => {
+        if (res.success && res.data?.imageUrl) setAboutHero(res.data.imageUrl);
       })
       .catch(() => {});
   }, []);
@@ -103,6 +109,17 @@ export default function AboutPage() {
           <p className="text-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">
             {t('about.desc')}
           </p>
+          {aboutHero && (
+            <div className="mt-8 max-w-3xl mx-auto">
+              <Image
+                src={aboutHero}
+                alt={t('about.title')}
+                width={800}
+                height={400}
+                className="w-full h-auto rounded-2xl shadow-lg"
+              />
+            </div>
+          )}
         </div>
       </section>
 

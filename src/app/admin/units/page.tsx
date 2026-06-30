@@ -38,6 +38,8 @@ interface Unit {
   comingSoon: boolean;
   description?: string;
   examEnabled: boolean;
+  passingScore?: number;
+  questionCount?: number;
 }
 
 interface FormData {
@@ -50,6 +52,8 @@ interface FormData {
   comingSoon: boolean;
   isPublished: boolean;
   examEnabled: boolean;
+  passingScore: number;
+  questionCount: number;
 }
 
 const emptyForm: FormData = {
@@ -62,6 +66,8 @@ const emptyForm: FormData = {
   comingSoon: false,
   isPublished: false,
   examEnabled: true,
+  passingScore: 70,
+  questionCount: 20,
 };
 
 export default function UnitsPage() {
@@ -134,6 +140,8 @@ export default function UnitsPage() {
       comingSoon: u.comingSoon,
       isPublished: u.isPublished,
       examEnabled: u.examEnabled,
+      passingScore: u.passingScore ?? 70,
+      questionCount: u.questionCount ?? 20,
     });
     setEditingId(u._id);
     setShowForm(true);
@@ -319,7 +327,27 @@ export default function UnitsPage() {
               }
               placeholder={t('admin.description')}
             />
-            <div className="flex flex-col gap-2 mt-8">
+            <Input
+              label={lang === "ar" ? "درجة النجاح (%)" : "Passing Score (%)"}
+              type="number"
+              value={String(form.passingScore)}
+              onChange={(e) =>
+                setForm({ ...form, passingScore: parseInt(e.target.value) || 70 })
+              }
+              min={1}
+              max={100}
+            />
+            <Input
+              label={lang === "ar" ? "عدد الأسئلة" : "Question Count"}
+              type="number"
+              value={String(form.questionCount)}
+              onChange={(e) =>
+                setForm({ ...form, questionCount: parseInt(e.target.value) || 20 })
+              }
+              min={1}
+              max={100}
+            />
+            <div className="flex flex-col gap-2 mt-2">
               <label className="flex items-center gap-2 text-text-secondary text-sm">
                 <input
                   type="checkbox"

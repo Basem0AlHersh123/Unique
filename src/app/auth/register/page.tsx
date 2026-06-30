@@ -152,16 +152,14 @@ export default function RegisterPage() {
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-6 relative">
-      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:w-auto">
+      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:right-6 sm:max-w-none">
         <ThemeToggle />
-        <div className="sm:absolute sm:top-0 sm:-right-0">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 ml-1" />
-              العودة
-            </Button>
-          </Link>
-        </div>
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="w-4 h-4 ml-1" />
+            العودة
+          </Button>
+        </Link>
       </div>
 
       <div className="w-full max-w-md relative mt-2 sm:mt-0">
