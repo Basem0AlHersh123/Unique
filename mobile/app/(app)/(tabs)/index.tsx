@@ -207,10 +207,10 @@ function UnitMountain({
 // ─── Announcement Banner ───────────────────────────────────────────────────────
 
 const ANN_COLORS = {
-  info:    { bg:"#6C63FF15", border:"#6C63FF40", icon:"#6C63FF", iconName:"info" as const },
-  promo:   { bg:"#F59E0B15", border:"#F59E0B40", icon:"#F59E0B", iconName:"gift" as const },
-  warning: { bg:"#EF444415", border:"#EF444440", icon:"#EF4444", iconName:"alert-triangle" as const },
-  success: { bg:"#22C55E15", border:"#22C55E40", icon:"#22C55E", iconName:"check-circle" as const },
+  info:    { color:"#6C63FF", bg:"#6C63FF18", border:"#6C63FF35", icon:"info" as const },
+  promo:   { color:"#F59E0B", bg:"#F59E0B18", border:"#F59E0B35", icon:"gift" as const },
+  warning: { color:"#EF4444", bg:"#EF444418", border:"#EF444435", icon:"alert-triangle" as const },
+  success: { color:"#22C55E", bg:"#22C55E18", border:"#22C55E35", icon:"check-circle" as const },
 };
 
 function AnnouncementBanner({ announcement, lang, onDismiss }: { announcement: Announcement; lang: string; onDismiss: () => void }) {
@@ -218,24 +218,32 @@ function AnnouncementBanner({ announcement, lang, onDismiss }: { announcement: A
   const title = lang === "ar" ? announcement.titleAr : announcement.titleEn;
   const body = lang === "ar" ? announcement.bodyAr : announcement.bodyEn;
   const ctaText = lang === "ar" ? announcement.ctaTextAr : announcement.ctaTextEn;
+  const hasImage = !!announcement.imageUrl;
   return (
-    <View style={[annS.wrap, { backgroundColor:theme.bg, borderColor:theme.border }]}>
-      {announcement.imageUrl ? <Image source={{ uri:announcement.imageUrl }} style={annS.image} resizeMode="cover" /> : null}
+    <View style={[annS.wrap, { backgroundColor:hasImage ? theme.color+"10" : theme.bg, borderColor:theme.border }]}>
+      <View style={[annS.accent, { backgroundColor:theme.color }]} />
+      {hasImage && (
+        <View style={annS.imageWrap}>
+          <Image source={{ uri:announcement.imageUrl! }} style={annS.image} resizeMode="cover" />
+          <View style={[annS.imageOverlay, { backgroundColor:theme.color+"80" }]} />
+        </View>
+      )}
       <View style={annS.content}>
-        <View style={annS.row}>
-          <Pressable onPress={onDismiss} hitSlop={10} style={annS.close}><Feather name="x" size={16} color="#475569" /></Pressable>
-          <View style={{ flex:1 }}>
-            <View style={annS.titleRow}>
-              <Feather name={theme.iconName} size={14} color={theme.icon} />
-              <Text style={[annS.title, { color:"#fff" }]} numberOfLines={2}>{title}</Text>
-            </View>
-            {body ? <Text style={annS.body} numberOfLines={2}>{body}</Text> : null}
+        <View style={annS.topRow}>
+          <Pressable onPress={onDismiss} hitSlop={10} style={[annS.closeBtn, { backgroundColor:theme.color+"20" }]}>
+            <Feather name="x" size={14} color={theme.color} />
+          </Pressable>
+          <View style={annS.badge}>
+            <Feather name={theme.icon} size={12} color={theme.color} />
           </View>
         </View>
+        <Text style={[annS.title, { color:announcement.imageUrl ? "#fff" : "#fff" }]} numberOfLines={2}>{title}</Text>
+        {body ? <Text style={annS.body} numberOfLines={2}>{body}</Text> : null}
         {ctaText && announcement.ctaUrl ? (
-          <Pressable style={[annS.cta, { backgroundColor:theme.icon }]}
+          <Pressable style={[annS.cta, { backgroundColor:theme.color }]}
             onPress={() => { if (announcement.ctaUrl!.startsWith("http")) Linking.openURL(announcement.ctaUrl!); }}>
             <Text style={annS.ctaText}>{ctaText}</Text>
+            <Feather name="arrow-left" size={14} color="#fff" />
           </Pressable>
         ) : null}
       </View>
@@ -244,15 +252,44 @@ function AnnouncementBanner({ announcement, lang, onDismiss }: { announcement: A
 }
 
 const annS = StyleSheet.create({
-  wrap: { marginHorizontal:16, marginBottom:12, borderRadius:14, borderWidth:1, overflow:"hidden" },
-  image: { width:"100%", height:80 },
-  content: { padding:12 },
-  row: { flexDirection:"row", alignItems:"flex-start", gap:8 },
-  close: { padding:2, marginTop:2 },
-  titleRow: { flexDirection:"row", alignItems:"center", gap:6, marginBottom:3 },
-  title: { fontSize:13, fontFamily:"Cairo_700Bold", textAlign:"right", flex:1 },
-  body: { fontSize:12, color:"#94a3b8", fontFamily:"Cairo_400Regular", textAlign:"right", lineHeight:18 },
-  cta: { marginTop:8, paddingHorizontal:16, paddingVertical:8, borderRadius:10, alignSelf:"flex-end" },
+  wrap: {
+    marginHorizontal:16, marginBottom:14, borderRadius:16, borderWidth:1,
+    overflow:"hidden", flexDirection:"row",
+  },
+  accent: { width:4 },
+  imageWrap: { position:"absolute", top:0, left:4, right:0, bottom:0 },
+  image: { width:"100%", height:"100%" },
+  imageOverlay: { ...StyleSheet.absoluteFillObject, top:0, left:0 },
+  content: {
+    flex:1, padding:14, paddingLeft:12,
+    zIndex:1,
+  },
+  topRow: {
+    flexDirection:"row", justifyContent:"space-between", alignItems:"center",
+    marginBottom:8,
+  },
+  closeBtn: {
+    width:26, height:26, borderRadius:13,
+    alignItems:"center", justifyContent:"center",
+  },
+  badge: {
+    width:28, height:28, borderRadius:8,
+    backgroundColor:"rgba(255,255,255,0.08)",
+    alignItems:"center", justifyContent:"center",
+  },
+  title: {
+    fontSize:14, fontFamily:"Cairo_700Bold", textAlign:"right",
+    lineHeight:20, marginBottom:4,
+  },
+  body: {
+    fontSize:12, color:"#94a3b8", fontFamily:"Cairo_400Regular",
+    textAlign:"right", lineHeight:18,
+  },
+  cta: {
+    marginTop:10, paddingHorizontal:16, paddingVertical:9,
+    borderRadius:10, alignSelf:"flex-end",
+    flexDirection:"row", alignItems:"center", gap:6,
+  },
   ctaText: { fontSize:12, color:"#fff", fontFamily:"Cairo_700Bold" },
 });
 
