@@ -17,7 +17,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
-          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+          p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
           math: ({ children }: any) => (
             <span className="text-primary font-medium" style={{ direction: "ltr" }}>
               {children}
