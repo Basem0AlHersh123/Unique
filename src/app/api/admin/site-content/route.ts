@@ -3,8 +3,8 @@ import { connectDB } from "@/lib/db";
 import { SiteContent } from "@/models/SiteContent";
 import { requireAdmin } from "@/lib/requireAdmin";
 
-export async function GET() {
-  const adminCheck = requireAdmin(undefined as unknown as NextRequest);
+export async function GET(req: NextRequest) {
+  const adminCheck = requireAdmin(req);
   if (adminCheck) return adminCheck;
 
   try {
