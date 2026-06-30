@@ -14,6 +14,30 @@ const updateNoteSchema = z.object({
   reminderAt: z.string().datetime({ offset: true }).optional().nullable(),
 });
 
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = requireAuth(_req);
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const { id } = await params;
+    await connectDB();
+    const note = await StudentNote.findById(id).lean();
+    if (!note) {
+      return NextResponse.json({ success: false, error: "الملاحظة غير موجودة" }, { status: 404 });
+    }
+    if (note.userId.toString() !== auth.payload.userId) {
+      return NextResponse.json({ success: false, error: "غير مصرح" }, { status: 403 });
+    }
+    return NextResponse.json({ success: true, data: note });
+  } catch (err) {
+    console.error("Get note error:", err);
+    return NextResponse.json({ success: false, error: "حدث خطأ في الخادم" }, { status: 500 });
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
