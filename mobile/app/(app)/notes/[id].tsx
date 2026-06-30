@@ -191,12 +191,10 @@ export default function NoteEditorScreen() {
           {tags.length > 0 ? (
             <View style={s.tagList}>
               {tags.map((tag) => (
-                <View key={tag} style={[s.tagChip, { backgroundColor: colors.accent + "20", borderColor: colors.accent + "40" }]}>
+                <Pressable key={tag} style={[s.tagChip, { backgroundColor: colors.accent + "20", borderColor: colors.accent + "40" }]} onPress={() => removeTag(tag)}>
                   <Text style={[s.tagChipText, { color: colors.accent }]}>{tag}</Text>
-                  <Pressable onPress={() => removeTag(tag)}>
-                    <Feather name="x" size={14} color={colors.accent} />
-                  </Pressable>
-                </View>
+                  <Feather name="x" size={14} color={colors.accent} />
+                </Pressable>
               ))}
             </View>
           ) : (
