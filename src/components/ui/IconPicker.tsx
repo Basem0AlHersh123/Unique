@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Search, Check } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
@@ -102,7 +103,7 @@ export function IconPicker({ value, onChange, label }: IconPickerProps) {
             })}
             {filtered.length === 0 && (
               <div className="col-span-4 text-center py-6 text-text-muted text-sm">
-                لا توجد أيقونات
+                {lang === "ar" ? "لا توجد أيقونات" : "No icons found"}
               </div>
             )}
           </div>
