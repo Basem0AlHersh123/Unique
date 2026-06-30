@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
-  ActivityIndicator, TouchableOpacity,
+  ActivityIndicator, TouchableOpacity, TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -70,8 +70,9 @@ export default function NotesScreen() {
   const router = useRouter();
   const { lang } = useLanguage();
   const { colors } = useTheme();
-  const [notes, setNotes] = useState<StudentNote[]>([]);
+  const [allNotes, setAllNotes] = useState<StudentNote[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,14 +80,9 @@ export default function NotesScreen() {
     setLoading(true);
     setError(null);
     try {
-      const url = filter === "all"
-        ? ENDPOINTS.NOTES
-        : filter === "starred"
-        ? `${ENDPOINTS.NOTES}?starred=true`
-        : `${ENDPOINTS.NOTES}?type=${filter}`;
-      const res = await apiFetch<StudentNote[]>(url);
+      const res = await apiFetch<StudentNote[]>(ENDPOINTS.NOTES);
       if (res.success && res.data) {
-        setNotes(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        setAllNotes(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
       } else if (!res.success) {
         setError(res.error ?? "حدث خطأ في تحميل الملاحظات");
       }
@@ -95,26 +91,42 @@ export default function NotesScreen() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, []);
 
-  useEffect(() => { loadNotes(); }, []);
   useFocusEffect(useCallback(() => { loadNotes(); }, [loadNotes]));
+
+  const filteredNotes = useMemo(() => {
+    let result = allNotes;
+    if (filter === "starred") {
+      result = result.filter((n) => n.isStarred);
+    } else if (filter !== "all") {
+      result = result.filter((n) => n.type === filter);
+    }
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (n) =>
+          (n.title && n.title.toLowerCase().includes(q)) ||
+          n.content.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [allNotes, filter, searchQuery]);
 
   async function toggleStar(note: StudentNote) {
     const newStarred = !note.isStarred;
-    setNotes((prev) => prev.map((n) => n._id === note._id ? { ...n, isStarred: newStarred } : n));
+    setAllNotes((prev) => prev.map((n) => n._id === note._id ? { ...n, isStarred: newStarred } : n));
     try {
       await apiFetch(ENDPOINTS.NOTE(note._id), { method: "PATCH", body: { isStarred: newStarred } });
-      await loadNotes();
     } catch {
-      setNotes((prev) => prev.map((n) => n._id === note._id ? { ...n, isStarred: note.isStarred } : n));
+      setAllNotes((prev) => prev.map((n) => n._id === note._id ? { ...n, isStarred: note.isStarred } : n));
     }
   }
 
   async function handleDelete(id: string) {
     try {
       await apiFetch(ENDPOINTS.NOTE(id), { method: "DELETE" });
-      setNotes((prev) => prev.filter((n) => n._id !== id));
+      setAllNotes((prev) => prev.filter((n) => n._id !== id));
     } catch {
       showAlert({ type: "error", title: "خطأ", message: "تعذر حذف الملاحظة" });
     }
@@ -132,7 +144,7 @@ export default function NotesScreen() {
     });
   }
 
-  const grouped = groupByDate(notes);
+  const grouped = groupByDate(filteredNotes);
 
   if (loading) {
     return (
@@ -146,6 +158,24 @@ export default function NotesScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>{lang === "ar" ? "ملاحظاتي" : "My Notes"}</Text>
+      </View>
+
+      {/* Search bar */}
+      <View style={[styles.searchRow, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+        <Feather name="search" size={16} color={colors.textTertiary} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder={lang === "ar" ? "ابحث في الملاحظات..." : "Search notes..."}
+          placeholderTextColor={colors.textTertiary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          textAlign={lang === "ar" ? "right" : "left"}
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
+            <Feather name="x" size={16} color={colors.textTertiary} />
+          </Pressable>
+        )}
       </View>
 
       <ScrollView
@@ -182,22 +212,26 @@ export default function NotesScreen() {
         </View>
       )}
 
-      {!error && notes.length === 0 && !loading && (
+      {!error && filteredNotes.length === 0 && !loading && (
         <View style={styles.center}>
           <Text style={{ fontSize: 56, marginBottom: 12 }}>📝</Text>
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            {filter === "all"
-              ? (lang === "ar" ? "لا توجد ملاحظات بعد" : "No notes yet")
-              : (lang === "ar" ? "لا توجد ملاحظات في هذا التصنيف" : "No notes match this filter")
+            {searchQuery.trim()
+              ? (lang === "ar" ? "لا توجد نتائج للبحث" : "No search results")
+              : filter !== "all"
+              ? (lang === "ar" ? "لا توجد ملاحظات في هذا التصنيف" : "No notes match this filter")
+              : (lang === "ar" ? "لا توجد ملاحظات بعد" : "No notes yet")
             }
           </Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            {filter === "all"
-              ? (lang === "ar" ? "اضغط على الزر أدناه لإضافة ملاحظتك الأولى" : "Tap the button below to create your first note")
-              : (lang === "ar" ? "جرب تصفية أخرى أو اعرض الكل" : "Try a different filter or view all")
+            {searchQuery.trim()
+              ? (lang === "ar" ? "جرب كلمات بحث مختلفة" : "Try different search terms")
+              : filter !== "all"
+              ? (lang === "ar" ? "جرب تصفية أخرى أو اعرض الكل" : "Try a different filter or view all")
+              : (lang === "ar" ? "اضغط على الزر أدناه لإضافة ملاحظتك الأولى" : "Tap the button below to create your first note")
             }
           </Text>
-          {filter !== "all" && (
+          {filter !== "all" && !searchQuery.trim() && (
             <Pressable
               style={[styles.retryBtn, { backgroundColor: "#6C63FF" }]}
               onPress={() => setFilter("all")}
@@ -210,7 +244,7 @@ export default function NotesScreen() {
         </View>
       )}
 
-      {!error && notes.length > 0 && (
+      {!error && filteredNotes.length > 0 && (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {grouped.map(([date, group]) => (
             <View key={date} style={styles.dateGroup}>
@@ -285,6 +319,13 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontFamily: "Cairo_700Bold", textAlign: "right" },
   filterRowScroll: { flexGrow: 0 },
   filterRow: { flexDirection: "row", paddingHorizontal: 16, paddingVertical: 8, gap: 8, alignItems: "center" },
+  searchRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    marginHorizontal: 16, marginTop: 4, marginBottom: 4,
+    borderRadius: 12, borderWidth: 1,
+    paddingHorizontal: 14, height: 42,
+  },
+  searchInput: { flex: 1, fontSize: 14, fontFamily: "Cairo_400Regular", paddingVertical: 0 },
   filterPill: {
     paddingHorizontal: 16, paddingVertical: 7,
     borderRadius: 20, borderWidth: 1.5,
