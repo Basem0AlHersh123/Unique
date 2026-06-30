@@ -118,3 +118,35 @@ export async function POST(
     );
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const { id } = await params;
+    await connectDB();
+
+    const userId = auth.payload.userId;
+
+    const request = await JoinRequest.findOne({ groupId: id, userId, status: "pending" });
+    if (!request) {
+      return NextResponse.json(
+        { success: false, error: "لا يوجد طلب قيد المراجعة" },
+        { status: 404 }
+      );
+    }
+
+    await JoinRequest.findByIdAndDelete(request._id);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Cancel join request error:", err);
+    return NextResponse.json(
+      { success: false, error: "حدث خطأ في الخادم" },
+      { status: 500 }
+    );
+  }
+}

@@ -14,6 +14,20 @@ import {
   CheckCircle, Quote, Award, Phone, Mail, MapPin,
 } from "lucide-react";
 
+function extractYoutubeId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match?.[1] ?? null;
+}
+
+function getEmbedUrl(url: string): string | null {
+  const youtubeId = extractYoutubeId(url);
+  if (youtubeId) return `https://www.youtube.com/embed/${youtubeId}`;
+  if (url.match(/\.(mp4|webm|ogg)(\?|$)/i)) return url;
+  return null;
+}
+
 function AnimatedStat({ icon: Icon, label, value, suffix }: {
   icon: React.ElementType; label: string; value: number; suffix: string;
 }) {
@@ -368,19 +382,31 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Video placeholder */}
+            {/* Video embed */}
             <div className="relative group">
-              {homeVideo ? (
-                <a href={homeVideo} target="_blank" rel="noopener noreferrer" className="block relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video flex items-center justify-center shadow-xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
-                  <div className="relative text-center">
-                    <div className="w-20 h-20 mx-auto rounded-full bg-white/90 shadow-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 cursor-pointer">
-                      <Play className="w-8 h-8 text-primary mr-0.5" />
-                    </div>
-                    <p className="text-text-secondary mt-4 text-sm font-medium">{t('video.play')}</p>
+              {homeVideo ? (() => {
+                const embedUrl = getEmbedUrl(homeVideo);
+                return embedUrl ? (
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video shadow-xl">
+                    <iframe
+                      src={embedUrl}
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
                   </div>
-                </a>
-              ) : (
+                ) : (
+                  <a href={homeVideo} target="_blank" rel="noopener noreferrer" className="block relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video flex items-center justify-center shadow-xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
+                    <div className="relative text-center">
+                      <div className="w-20 h-20 mx-auto rounded-full bg-white/90 shadow-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 cursor-pointer">
+                        <Play className="w-8 h-8 text-primary mr-0.5" />
+                      </div>
+                      <p className="text-text-secondary mt-4 text-sm font-medium">{t('video.play')}</p>
+                    </div>
+                  </a>
+                );
+              })() : (
                 <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video flex items-center justify-center shadow-xl">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
                   <div className="relative text-center">

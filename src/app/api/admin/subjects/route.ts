@@ -15,6 +15,7 @@ const createSubjectSchema = z.object({
   imageType: z.enum(["icon", "url", "cloudinary"]).optional(),
   imageUrl: z.string().optional(),
   icon: z.string().optional(),
+  aiModel: z.string().optional(),
 });
 
 // GET — list subjects, optionally filtered by college.

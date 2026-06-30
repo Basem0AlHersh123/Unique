@@ -21,7 +21,8 @@ export async function callGemini(
   messages: GeminiMessage[],
   systemInstruction: string,
   userId: string,
-  endpoint: string
+  endpoint: string,
+  modelOverride?: string
 ): Promise<GeminiResult> {
   await connectDB();
 
@@ -31,7 +32,7 @@ export async function callGemini(
   }
 
   const apiKey = decrypt(setting.key);
-  const model = setting.aiModel || "gemini-2.0-flash";
+  const model = modelOverride || setting.aiModel || "gemini-2.0-flash";
 
   const body = {
     system_instruction: { parts: [{ text: systemInstruction }] },
@@ -80,7 +81,7 @@ export async function callGemini(
 }
 
 export const AVAILABLE_MODELS = [
+  { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash Lite" },
   { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
-  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
-  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
 ] as const;

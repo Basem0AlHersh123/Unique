@@ -99,7 +99,6 @@ export default function SettingsPage() {
       formData.append("file", file);
       const res = await apiFetch<{ url: string }>("/api/admin/upload", {
         method: "POST", body: formData,
-        headers: { "Content-Type": "multipart/form-data" },
       });
       if (res.success && res.data?.url) {
         const url = res.data.url;
@@ -259,7 +258,7 @@ export default function SettingsPage() {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all"
-                  dir={lang === "ar" ? "rtl" : "ltr"}
+                  dir="auto"
                 />
                 {nameMsg && <StatusMsg msg={nameMsg.text} type={nameMsg.type} />}
                 <div className="flex justify-end">
@@ -338,7 +337,7 @@ export default function SettingsPage() {
                   </label>
                   <select value={selectedUniversityId} onChange={e => { setSelectedUniversityId(e.target.value); setSelectedCollegeId(""); }}
                     className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 transition-all appearance-none"
-                    dir={lang === "ar" ? "rtl" : "ltr"}>
+                    dir="auto">
                     <option value="">{lang === "ar" ? "— اختر الجامعة —" : "— Select University —"}</option>
                     {universities.map(u => <option key={u._id} value={u._id}>{lang === "ar" ? u.nameAr : u.nameEn || u.name}</option>)}
                   </select>
@@ -349,7 +348,7 @@ export default function SettingsPage() {
                   </label>
                   <select value={selectedCollegeId} onChange={e => setSelectedCollegeId(e.target.value)}
                     className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 transition-all appearance-none"
-                    dir={lang === "ar" ? "rtl" : "ltr"}>
+                    dir="auto">
                     <option value="">{lang === "ar" ? "— اختر الكلية —" : "— Select College —"}</option>
                     {filteredColleges.map(c => <option key={c._id} value={c._id}>{lang === "ar" ? c.nameAr : c.nameEn || c.name}</option>)}
                   </select>

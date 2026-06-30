@@ -19,6 +19,51 @@ function canManageRequests(group: GroupDoc, userId: string, role: string): boole
   return isAdmin;
 }
 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; requestId: string }> }
+) {
+  const auth = requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const { id, requestId } = await params;
+    await connectDB();
+
+    const request = await JoinRequest.findById(requestId);
+    if (!request || request.groupId.toString() !== id) {
+      return NextResponse.json(
+        { success: false, error: "الطلب غير موجود" },
+        { status: 404 }
+      );
+    }
+
+    if (request.userId.toString() !== auth.payload.userId) {
+      return NextResponse.json(
+        { success: false, error: "ليس لديك صلاحية" },
+        { status: 403 }
+      );
+    }
+
+    if (request.status !== "pending") {
+      return NextResponse.json(
+        { success: false, error: "تمت معالجة هذا الطلب بالفعل" },
+        { status: 400 }
+      );
+    }
+
+    await JoinRequest.findByIdAndDelete(requestId);
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Cancel join request error:", err);
+    return NextResponse.json(
+      { success: false, error: "حدث خطأ في الخادم" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; requestId: string }> }

@@ -10,6 +10,7 @@ export interface ISubject extends Document {
   imageType: "icon" | "url" | "cloudinary";
   imageUrl?: string;
   icon: string;
+  aiModel?: string;
   topics: Schema.Types.ObjectId[];
   teacherIds: Schema.Types.ObjectId[];
   createdAt: Date;
@@ -63,6 +64,10 @@ const SubjectSchema = new Schema<ISubject>(
     icon: {
       type: String,
       default: "BookOpen",
+    },
+    aiModel: {
+      type: String,
+      default: "",
     },
     topics: [
       {

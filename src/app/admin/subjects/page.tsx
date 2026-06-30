@@ -32,6 +32,7 @@ interface Subject {
   imageType: "icon" | "url" | "cloudinary";
   imageUrl?: string;
   icon: string;
+  aiModel?: string;
 }
 
 interface FormData {
@@ -44,6 +45,7 @@ interface FormData {
   imageType: "icon" | "url" | "cloudinary";
   imageUrl: string;
   icon: string;
+  aiModel?: string;
 }
 
 const emptyForm: FormData = {
@@ -299,6 +301,21 @@ export default function SubjectsPage() {
                 onImageUrlChange={(v) => setForm({ ...form, imageUrl: v })}
                 onIconChange={(v) => setForm({ ...form, icon: v })}
               />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-secondary">
+                {lang === "ar" ? "نموذج الذكاء الاصطناعي" : "AI Model"}
+              </label>
+              <select
+                value={form.aiModel || ""}
+                onChange={(e) => setForm({ ...form, aiModel: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
+              >
+                <option value="">{lang === "ar" ? "— النموذج الافتراضي —" : "— Default Model —"}</option>
+                <option value="gemini-2.0-flash-lite">{lang === "ar" ? "جيميني 2.0 فلاش لايت" : "Gemini 2.0 Flash Lite"}</option>
+                <option value="gemini-2.0-flash">{lang === "ar" ? "جيميني 2.0 فلاش" : "Gemini 2.0 Flash"}</option>
+                <option value="gemini-2.5-pro">{lang === "ar" ? "جيميني 2.5 برو" : "Gemini 2.5 Pro"}</option>
+              </select>
             </div>
           </div>
           <div className="flex gap-3">

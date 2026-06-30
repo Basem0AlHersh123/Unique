@@ -42,7 +42,6 @@ function YouTubePlayer({
   onWatched: () => void;
 }) {
   const [loading, setLoading] = useState(true);
-  const [blocked, setBlocked] = useState(false);
   const [webViewError, setWebViewError] = useState(false);
   const called = useRef(false);
 
@@ -52,92 +51,13 @@ function YouTubePlayer({
     onWatched();
   }
 
-  // The HTML embeds the YouTube IFrame API.
-  // Setting baseUrl to 'https://www.youtube.com' makes the WebView's origin
-  // appear as youtube.com to the iframe, which prevents Error 101/150/153.
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
-        #player { width: 100%; height: 100%; }
-        iframe { width: 100% !important; height: 100% !important; }
-      </style>
-    </head>
-    <body>
-      <div id="player"></div>
-      <script>
-        var tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?playsinline=1&modestbranding=1&rel=0&fs=1`;
 
-        var player;
-        window.onYouTubeIframeAPIReady = function() {
-          player = new YT.Player('player', {
-            videoId: '${videoId}',
-            playerVars: {
-              autoplay: 0,
-              playsinline: 1,
-              rel: 0,
-              modestbranding: 1,
-              controls: 1,
-              fs: 1,
-              origin: 'https://www.youtube.com'
-            },
-            events: {
-              onReady: function() {
-                window.ReactNativeWebView.postMessage('ready');
-              },
-              onStateChange: function(e) {
-                if (e.data === YT.PlayerState.ENDED) {
-                  window.ReactNativeWebView.postMessage('ended');
-                }
-              },
-              onError: function(e) {
-                window.ReactNativeWebView.postMessage('error:' + e.data);
-              }
-            }
-          });
-        };
-      </script>
-    </body>
-    </html>
-  `;
-
-  function onMessage(e: { nativeEvent: { data: string } }) {
-    const msg = e.nativeEvent.data;
-    if (msg === "ready") {
-      setLoading(false);
-    } else if (msg === "ended") {
-      setLoading(false);
-      handleWatched();
-    } else if (msg.startsWith("error:")) {
-      const code = msg.split(":")[1];
-      console.log("[VideoPlayer] YouTube error code:", code);
-      setLoading(false);
-      // Codes 100=not found, 101=embed not allowed, 150=same as 101, 153=restricted
-      // PLUS any other error code (like 152-4) as blocked
-      if (["100", "101", "150", "153"].includes(code)) {
-        setBlocked(true);
-      } else {
-        // Treat other errors (including 152-4) as blocked
-        setBlocked(true);
-      }
-    }
-  }
-
-  // If WebView fails to load or is blocked, show fallback
-  if (blocked || webViewError) {
+  if (webViewError) {
     return (
       <View style={[s.wrapper, s.center]}>
         <Feather name="youtube" size={44} color="#FF0000" />
         <Text style={s.blockedTitle}>لا يمكن تشغيل هذا الفيديو داخل التطبيق</Text>
-        <Text style={s.blockedSub}>
-          {webViewError ? "حدث خطأ في تحميل المشغل" : "صاحب الفيديو قيّد تضمينه أو حدث خطأ في الشبكة"}
-        </Text>
         <Pressable
           style={s.ytBtn}
           onPress={() =>
@@ -157,7 +77,10 @@ function YouTubePlayer({
   return (
     <View style={s.wrapper}>
       <WebView
-        source={{ html, baseUrl: "https://www.youtube.com" }}
+        source={{
+          uri: embedUrl,
+          headers: { Referer: "https://unique-tech-blond.vercel.app" },
+        }}
         style={s.fill}
         javaScriptEnabled
         domStorageEnabled
@@ -165,22 +88,14 @@ function YouTubePlayer({
         mediaPlaybackRequiresUserAction={false}
         allowsFullscreenVideo
         originWhitelist={["*"]}
-        onMessage={onMessage}
         scrollEnabled={false}
         bounces={false}
-        // ─── YOUR REQUESTED ENHANCEMENTS ───
         androidLayerType={Platform.OS === "android" ? "hardware" : undefined}
-        androidHardwareAccelerationDisabled={false}
         mixedContentMode="always"
         thirdPartyCookiesEnabled={true}
         sharedCookiesEnabled={true}
-        onError={() => {
-          setLoading(false);
-          setWebViewError(true);
-        }}
-        // ────────────────────────────────────
-        // Hide the WebView until the player is ready to avoid flash
-        opacity={loading ? 0 : 1}
+        onError={() => setWebViewError(true)}
+        onLoadEnd={() => setLoading(false)}
       />
       {loading && (
         <View style={s.overlay} pointerEvents="none">
@@ -188,6 +103,9 @@ function YouTubePlayer({
           <Text style={s.loadingText}>جاري تحميل الفيديو...</Text>
         </View>
       )}
+      <Pressable style={s.skipBtn} onPress={handleWatched}>
+        <Text style={s.skipText}>تخطي الفيديو والمتابعة ←</Text>
+      </Pressable>
     </View>
   );
 }

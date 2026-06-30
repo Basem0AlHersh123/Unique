@@ -169,10 +169,13 @@ export default function ChatPage() {
   const [joinRequests, setJoinRequests] = useState<JoinRequestData[]>([]);
   const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
 
+  const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set());
+
   const [addMemberEmail, setAddMemberEmail] = useState("");
   const [addingMember, setAddingMember] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
   const [manageProcessing, setManageProcessing] = useState<string | null>(null);
 
@@ -222,6 +225,14 @@ export default function ChatPage() {
       })
       .catch((err: Error) => setGroupsError(err.message))
       .finally(() => setGroupsLoading(false));
+
+    apiFetch<{ groupId: string; status: string }[]>("/api/my-join-requests")
+      .then((res) => {
+        if (res.success && res.data) {
+          setPendingRequests(new Set(res.data.filter((r) => r.status === "pending").map((r) => r.groupId)));
+        }
+      })
+      .catch(() => {});
   }, [authed]);
 
   const loadMessages = useCallback(async (groupId: string) => {
@@ -411,12 +422,33 @@ export default function ChatPage() {
       const res = await apiFetch(`/api/groups/${groupId}/join-requests`, { method: "POST" });
       if (res.success) {
         showToast(t("chat.request_sent"), "success");
+        setPendingRequests((prev) => new Set(prev).add(groupId));
       } else {
         showToast(res.error || t("chat.request_failed"), "error");
       }
     } catch (err) {
       showToast((err as Error).message, "error");
     }
+  }
+
+  async function handleCancelRequest(groupId: string) {
+    try {
+      const res = await apiFetch(`/api/groups/${groupId}/join-requests`, { method: "DELETE" });
+      if (res.success) {
+        showToast(t("chat.request_cancelled"), "success");
+        setPendingRequests((prev) => { const next = new Set(prev); next.delete(groupId); return next; });
+      } else {
+        showToast(res.error || t("chat.cancel_failed"), "error");
+      }
+    } catch (err) {
+      showToast((err as Error).message, "error");
+    }
+    setCancelTarget(null);
+  }
+
+  async function confirmCancel() {
+    if (!cancelTarget) return;
+    await handleCancelRequest(cancelTarget);
   }
 
   function openManage(group: GroupData) {
@@ -802,9 +834,15 @@ export default function ChatPage() {
                     </Button>
                   )}
                   {!selectedIsMember && selectedGroup.joinMode === "request" && (
-                    <Button size="sm" variant="secondary" onClick={() => handleRequestJoin(selectedGroup._id)} className="text-xs sm:text-sm px-2 sm:px-3">
-                      <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1" /> {t("chat.request_join")}
-                    </Button>
+                    pendingRequests.has(selectedGroup._id) ? (
+                      <Button size="sm" variant="secondary" onClick={() => setCancelTarget(selectedGroup._id)} className="text-xs sm:text-sm px-2 sm:px-3">
+                        <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1" /> {t("chat.pending")}
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="secondary" onClick={() => handleRequestJoin(selectedGroup._id)} className="text-xs sm:text-sm px-2 sm:px-3">
+                        <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1" /> {t("chat.request_join")}
+                      </Button>
+                    )
                   )}
                   {selectedIsAdmin && (
                     <button
@@ -882,6 +920,7 @@ export default function ChatPage() {
                                     setEditInput("");
                                   }
                                 }}
+                                dir="auto"
                                 className="flex-1 bg-surface/20 border border-white/20 rounded-lg px-2 py-1 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/50"
                               />
                               <button
@@ -953,7 +992,7 @@ export default function ChatPage() {
                       onKeyDown={handleKeyDown}
                       placeholder={t("chat.message_placeholder")}
                       className="flex-1 bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-                      dir={isRTL ? "rtl" : "ltr"}
+                      dir="auto"
                     />
                     <button
                       onClick={handleSend}
@@ -973,6 +1012,7 @@ export default function ChatPage() {
       {renderCreateDialog()}
       {renderManagePanel()}
       {renderConfirmDelete()}
+      {renderCancelRequest()}
     </div>
   );
 
@@ -1519,6 +1559,21 @@ export default function ChatPage() {
         variant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+    );
+  }
+
+  function renderCancelRequest() {
+    return (
+      <ConfirmDialog
+        open={cancelTarget !== null}
+        title={t("chat.cancel_request_title")}
+        message={t("chat.cancel_request_msg")}
+        confirmLabel={t("chat.cancel_request_confirm")}
+        cancelLabel={t("common.cancel")}
+        variant="primary"
+        onConfirm={confirmCancel}
+        onCancel={() => setCancelTarget(null)}
       />
     );
   }

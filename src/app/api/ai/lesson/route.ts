@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Topic } from "@/models/Topic";
+import { Subject } from "@/models/Subject";
 import { requireAuth } from "@/lib/requireAuth";
 import { callGemini } from "@/lib/gemini";
 
@@ -69,11 +70,20 @@ ${lessonContext}
       { role: "user" as const, parts: [{ text: question }] },
     ];
 
+    let modelOverride: string | undefined;
+    if (lesson.subjectId) {
+      try {
+        const subject = await Subject.findById(lesson.subjectId).select("aiModel").lean();
+        if (subject?.aiModel) modelOverride = subject.aiModel;
+      } catch { /* fallback to default model */ }
+    }
+
     const result = await callGemini(
       geminiMessages,
       systemInstruction,
       userId,
-      "lesson-ai"
+      "lesson-ai",
+      modelOverride
     );
 
     return NextResponse.json({

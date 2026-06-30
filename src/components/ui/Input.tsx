@@ -27,6 +27,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           <input
             ref={ref}
+            dir="auto"
             type={isPassword ? (showPassword ? "text" : "password") : type}
             className={`w-full px-4 py-3 rounded-xl bg-surface border-2 text-text-primary
               placeholder:text-text-muted outline-none transition-all duration-300
