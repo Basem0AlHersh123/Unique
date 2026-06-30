@@ -19,7 +19,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -36,10 +36,10 @@ export default function AdminLayout({
     { href: "/admin/teachers", label: t('admin.teachers'), icon: UserCheck },
     { href: "/admin/groups", label: t('nav.groups'), icon: MessageCircle },
     { href: "/admin/ai", label: t('admin.ai_settings'), icon: Sparkles },
-    { href: "/admin/cms", label: "محتوى الموقع", icon: ImageIcon },
-    { href: "/admin/contact-messages", label: "رسائل التواصل", icon: Mail },
-    { href: "/admin/announcements", label: "الإعلانات", icon: Megaphone },
-    { href: "/admin/app-settings", label: "إعدادات التطبيق", icon: Settings },
+    { href: "/admin/cms", label: lang === "ar" ? "محتوى الموقع" : "Site Content", icon: ImageIcon },
+    { href: "/admin/contact-messages", label: lang === "ar" ? "رسائل التواصل" : "Contact Messages", icon: Mail },
+    { href: "/admin/announcements", label: lang === "ar" ? "الإعلانات" : "Announcements", icon: Megaphone },
+    { href: "/admin/app-settings", label: lang === "ar" ? "إعدادات التطبيق" : "App Settings", icon: Settings },
   ];
   const [isAuthed, setIsAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -120,10 +120,10 @@ export default function AdminLayout({
             return newVal;
           })}
           className="flex items-center justify-center w-full p-3 text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors rounded-lg"
-          title={sidebarCollapsed ? "توسيع القائمة" : "طي القائمة"}
+          title={sidebarCollapsed ? (lang === "ar" ? "توسيع القائمة" : "Expand menu") : (lang === "ar" ? "طي القائمة" : "Collapse menu")}
         >
           <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? "rotate-180" : ""}`} />
-          {!sidebarCollapsed && <span className="text-xs mr-2">طي القائمة</span>}
+          {!sidebarCollapsed && <span className="text-xs mr-2">{lang === "ar" ? "طي القائمة" : "Collapse"}</span>}
         </button>
         <Link
           href="/dashboard"

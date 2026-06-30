@@ -5,6 +5,7 @@ import { apiFetch } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Mail, User, MessageSquare, CheckCircle, Clock, Search } from "lucide-react";
 
 interface ContactMsg {
@@ -17,6 +18,7 @@ interface ContactMsg {
 }
 
 export default function AdminContactMessagesPage() {
+  const { lang } = useLanguage();
   const { showToast } = useToast();
   const [messages, setMessages] = useState<ContactMsg[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export default function AdminContactMessagesPage() {
       const res = await apiFetch<ContactMsg[]>("/api/admin/contact-messages");
       setMessages(res.data ?? []);
     } catch {
-      showToast("حدث خطأ", "error");
+      showToast(lang === "ar" ? "حدث خطأ" : "An error occurred", "error");
     } finally {
       setLoading(false);
     }
@@ -60,9 +62,9 @@ export default function AdminContactMessagesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">رسائل التواصل</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">{lang === "ar" ? "رسائل التواصل" : "Contact Messages"}</h2>
           <p className="text-text-secondary mt-1 text-sm">
-            {unread > 0 ? `${unread} رسائل غير مقروءة` : "جميع الرسائل مقروءة"}
+            {unread > 0 ? (lang === "ar" ? `${unread} رسائل غير مقروءة` : `${unread} unread messages`) : (lang === "ar" ? "جميع الرسائل مقروءة" : "All messages read")}
           </p>
         </div>
       </div>
@@ -73,7 +75,7 @@ export default function AdminContactMessagesPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="ابحث عن رسالة بالاسم أو البريد..."
+          placeholder={lang === "ar" ? "ابحث عن رسالة بالاسم أو البريد..." : "Search by name or email..."}
           className="w-full px-4 py-2 pr-10 rounded-xl bg-background border border-border text-text-primary text-sm outline-none focus:border-primary transition-all"
         />
       </div>
@@ -81,7 +83,7 @@ export default function AdminContactMessagesPage() {
         <Card withGlass>
           <div className="text-center py-12 text-text-muted">
             <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            لا توجد رسائل بعد
+            {lang === "ar" ? "لا توجد رسائل بعد" : "No messages yet"}
           </div>
         </Card>
       ) : (
@@ -113,7 +115,7 @@ export default function AdminContactMessagesPage() {
                 <p className="text-xs text-text-muted truncate">{msg.email}</p>
                 <p className="text-xs text-text-muted mt-1 truncate">{msg.message.slice(0, 60)}...</p>
                 <p className="text-[10px] text-text-muted mt-1">
-                  {new Date(msg.createdAt).toLocaleDateString("ar-SA")}
+                  {new Date(msg.createdAt).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US")}
                 </p>
               </button>
             ))}
@@ -134,10 +136,10 @@ export default function AdminContactMessagesPage() {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-text-muted">
                     <Clock className="w-3 h-3" />
-                    {new Date(selected.createdAt).toLocaleString("ar-SA")}
+                    {new Date(selected.createdAt).toLocaleString(lang === "ar" ? "ar-SA" : "en-US")}
                     {selected.read && (
                       <span className="flex items-center gap-1 text-teal">
-                        <CheckCircle className="w-3 h-3" /> مقروءة
+                        <CheckCircle className="w-3 h-3" /> {lang === "ar" ? "مقروءة" : "Read"}
                       </span>
                     )}
                   </div>
@@ -145,7 +147,7 @@ export default function AdminContactMessagesPage() {
                 <div className="p-4 bg-background rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-2 text-sm text-text-muted">
                     <MessageSquare className="w-4 h-4" />
-                    الرسالة
+                    {lang === "ar" ? "الرسالة" : "Message"}
                   </div>
                   <p className="text-text-primary leading-relaxed whitespace-pre-line">
                     {selected.message}
@@ -156,7 +158,7 @@ export default function AdminContactMessagesPage() {
               <Card withGlass>
                 <div className="text-center py-12 text-text-muted">
                   <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  اختر رسالة لعرضها
+                  {lang === "ar" ? "اختر رسالة لعرضها" : "Select a message to view"}
                 </div>
               </Card>
             )}

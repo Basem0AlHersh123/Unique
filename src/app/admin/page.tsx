@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Link from "next/link";
 import {
   Users, BookOpen, HelpCircle, Activity, TrendingUp, TrendingDown,
@@ -98,17 +99,18 @@ function PctBar({ pct, color = "primary" }: { pct: number; color?: string }) {
   );
 }
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string, lang: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "الآن";
-  if (m < 60) return `${m}د`;
+  if (m < 1) return lang === "ar" ? "الآن" : "now";
+  if (m < 60) return lang === "ar" ? `${m}د` : `${m}m`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}س`;
-  return `${Math.floor(h / 24)}ي`;
+  if (h < 24) return lang === "ar" ? `${h}س` : `${h}h`;
+  return lang === "ar" ? `${Math.floor(h / 24)}ي` : `${Math.floor(h / 24)}d`;
 }
 
 export default function AdminHome() {
+  const { lang } = useLanguage();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -132,10 +134,10 @@ export default function AdminHome() {
         <div>
           <h1 className="text-xl font-bold text-text-primary flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
-            لوحة التحكم — SIEM
+            {lang === "ar" ? "لوحة التحكم — SIEM" : "Dashboard — SIEM"}
           </h1>
           <p className="text-xs text-text-muted mt-0.5">
-            آخر تحديث: {lastRefresh.toLocaleTimeString("ar")}
+            {lang === "ar" ? "آخر تحديث:" : "Last updated:"} {lastRefresh.toLocaleTimeString(lang === "ar" ? "ar" : "en")}
           </p>
         </div>
         <button
@@ -144,7 +146,7 @@ export default function AdminHome() {
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border text-text-secondary text-xs hover:bg-surface-hover transition-all disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          تحديث
+          {lang === "ar" ? "تحديث" : "Refresh"}
         </button>
       </div>
 
@@ -220,7 +222,7 @@ export default function AdminHome() {
                     <p className={`text-xs font-bold ${a.pct >= 70 ? "text-green-400" : a.pct >= 40 ? "text-yellow-400" : "text-red-400"}`}>
                       {a.pct}%
                     </p>
-                    <p className="text-[10px] text-text-muted">{timeAgo(a.completedAt)}</p>
+                    <p className="text-[10px] text-text-muted">{timeAgo(a.completedAt, lang)}</p>
                   </div>
                 </div>
               ))
@@ -287,7 +289,7 @@ export default function AdminHome() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-text-primary truncate">{s.name}</p>
-                      <p className="text-[10px] text-text-muted">{timeAgo(s.joinedAt)}</p>
+                      <p className="text-[10px] text-text-muted">{timeAgo(s.joinedAt, lang)}</p>
                     </div>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${s.tier === "paid" ? "bg-yellow-500/10 text-yellow-400" : "bg-border text-text-muted"}`}>
                       {s.tier === "paid" ? "مدفوع" : "مجاني"}

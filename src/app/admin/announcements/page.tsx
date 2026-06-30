@@ -68,16 +68,16 @@ export default function AnnouncementsPage() {
   }
 
   async function handleSave() {
-    if (!form.titleAr.trim() || !form.titleEn.trim()) { showToast("يرجى إدخال العنوان", "error"); return; }
+    if (!form.titleAr.trim() || !form.titleEn.trim()) { showToast(lang === "ar" ? "يرجى إدخال العنوان" : "Please enter both titles", "error"); return; }
     setSaving(true);
     try {
       const body = { ...form, priority:Number(form.priority),
         startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : undefined,
         endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : undefined };
-      if (editing) { await apiFetch(`/api/admin/announcements/${editing._id}`, { method:"PATCH", body: JSON.stringify(body) }); showToast("تم التحديث","success"); }
-      else { await apiFetch("/api/admin/announcements", { method:"POST", body: JSON.stringify(body) }); showToast("تم الإنشاء","success"); }
+      if (editing) { await apiFetch(`/api/admin/announcements/${editing._id}`, { method:"PATCH", body: JSON.stringify(body) }); showToast(lang === "ar" ? "تم التحديث" : "Updated","success"); }
+      else { await apiFetch("/api/admin/announcements", { method:"POST", body: JSON.stringify(body) }); showToast(lang === "ar" ? "تم الإنشاء" : "Created","success"); }
       setShowForm(false); load();
-    } catch (e) { showToast(e instanceof Error ? e.message : "حدث خطأ","error"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : (lang === "ar" ? "حدث خطأ" : "An error occurred"),"error"); }
     finally { setSaving(false); }
   }
 
@@ -89,7 +89,7 @@ export default function AnnouncementsPage() {
   async function handleDelete() {
     if (!deleteId) return;
     await apiFetch(`/api/admin/announcements/${deleteId}`, { method:"DELETE" });
-    showToast("تم الحذف","success"); setDeleteId(null); load();
+    showToast(lang === "ar" ? "تم الحذف" : "Deleted","success"); setDeleteId(null); load();
   }
 
   return (
@@ -98,57 +98,57 @@ export default function AnnouncementsPage() {
         <div className="flex items-center gap-3">
           <Megaphone className="w-6 h-6 text-primary" />
           <div>
-            <h1 className="text-xl font-bold text-text-primary">الإعلانات</h1>
-            <p className="text-xs text-text-muted">تظهر للطلاب في التطبيق والموقع</p>
+            <h1 className="text-xl font-bold text-text-primary">{lang === "ar" ? "الإعلانات" : "Announcements"}</h1>
+            <p className="text-xs text-text-muted">{lang === "ar" ? "تظهر للطلاب في التطبيق والموقع" : "Shown to students in app and website"}</p>
           </div>
         </div>
-        <Button onClick={openCreate}><Plus className="w-4 h-4 mr-1" /> إعلان جديد</Button>
+        <Button onClick={openCreate}><Plus className="w-4 h-4 mr-1" /> {lang === "ar" ? "إعلان جديد" : "New Announcement"}</Button>
       </div>
 
       {showForm && (
         <Card className="p-6 space-y-4">
-          <h2 className="text-lg font-bold text-text-primary">{editing ? "تعديل الإعلان" : "إعلان جديد"}</h2>
+          <h2 className="text-lg font-bold text-text-primary">{editing ? (lang === "ar" ? "تعديل الإعلان" : "Edit Announcement") : (lang === "ar" ? "إعلان جديد" : "New Announcement")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="العنوان بالعربي *" value={form.titleAr} onChange={e=>setForm(f=>({...f,titleAr:e.target.value}))} dir="rtl" />
-            <Input label="العنوان بالإنجليزي *" value={form.titleEn} onChange={e=>setForm(f=>({...f,titleEn:e.target.value}))} />
-            <Input label="النص بالعربي" value={form.bodyAr} onChange={e=>setForm(f=>({...f,bodyAr:e.target.value}))} dir="rtl" />
-            <Input label="النص بالإنجليزي" value={form.bodyEn} onChange={e=>setForm(f=>({...f,bodyEn:e.target.value}))} />
-            <Input label="نص الزر (عربي)" value={form.ctaTextAr} onChange={e=>setForm(f=>({...f,ctaTextAr:e.target.value}))} dir="rtl" />
-            <Input label="نص الزر (إنجليزي)" value={form.ctaTextEn} onChange={e=>setForm(f=>({...f,ctaTextEn:e.target.value}))} />
-            <Input label="رابط الزر" value={form.ctaUrl} onChange={e=>setForm(f=>({...f,ctaUrl:e.target.value}))} placeholder="https://..." />
-            <Input label="رابط صورة" value={form.imageUrl} onChange={e=>setForm(f=>({...f,imageUrl:e.target.value}))} />
+            <Input label={lang === "ar" ? "العنوان بالعربي *" : "Title (Arabic) *"} value={form.titleAr} onChange={e=>setForm(f=>({...f,titleAr:e.target.value}))} dir="rtl" />
+            <Input label={lang === "ar" ? "العنوان بالإنجليزي *" : "Title (English) *"} value={form.titleEn} onChange={e=>setForm(f=>({...f,titleEn:e.target.value}))} />
+            <Input label={lang === "ar" ? "النص بالعربي" : "Body (Arabic)"} value={form.bodyAr} onChange={e=>setForm(f=>({...f,bodyAr:e.target.value}))} dir="rtl" />
+            <Input label={lang === "ar" ? "النص بالإنجليزي" : "Body (English)"} value={form.bodyEn} onChange={e=>setForm(f=>({...f,bodyEn:e.target.value}))} />
+            <Input label={lang === "ar" ? "نص الزر (عربي)" : "CTA Text (Arabic)"} value={form.ctaTextAr} onChange={e=>setForm(f=>({...f,ctaTextAr:e.target.value}))} dir="rtl" />
+            <Input label={lang === "ar" ? "نص الزر (إنجليزي)" : "CTA Text (English)"} value={form.ctaTextEn} onChange={e=>setForm(f=>({...f,ctaTextEn:e.target.value}))} />
+            <Input label={lang === "ar" ? "رابط الزر" : "CTA URL"} value={form.ctaUrl} onChange={e=>setForm(f=>({...f,ctaUrl:e.target.value}))} placeholder="https://..." />
+            <Input label={lang === "ar" ? "رابط صورة" : "Image URL"} value={form.imageUrl} onChange={e=>setForm(f=>({...f,imageUrl:e.target.value}))} />
             <div>
-              <label className="block text-sm text-text-secondary mb-1">النوع</label>
+              <label className="block text-sm text-text-secondary mb-1">{lang === "ar" ? "النوع" : "Type"}</label>
               <select className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary text-sm"
                 value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value as any}))}>
-                <option value="info">معلومة</option><option value="promo">عرض</option>
-                <option value="warning">تحذير</option><option value="success">نجاح</option>
+                <option value="info">{lang === "ar" ? "معلومة" : "Info"}</option><option value="promo">{lang === "ar" ? "عرض" : "Promo"}</option>
+                <option value="warning">{lang === "ar" ? "تحذير" : "Warning"}</option><option value="success">{lang === "ar" ? "نجاح" : "Success"}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm text-text-secondary mb-1">الجمهور</label>
+              <label className="block text-sm text-text-secondary mb-1">{lang === "ar" ? "الجمهور" : "Audience"}</label>
               <select className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary text-sm"
                 value={form.targetAudience} onChange={e=>setForm(f=>({...f,targetAudience:e.target.value as any}))}>
-                <option value="all">الجميع</option><option value="free">مجاني فقط</option><option value="paid">مدفوع فقط</option>
+                <option value="all">{lang === "ar" ? "الجميع" : "All"}</option><option value="free">{lang === "ar" ? "مجاني فقط" : "Free Only"}</option><option value="paid">{lang === "ar" ? "مدفوع فقط" : "Paid Only"}</option>
               </select>
             </div>
-            <Input label="تاريخ البدء" type="datetime-local" value={form.startsAt} onChange={e=>setForm(f=>({...f,startsAt:e.target.value}))} />
-            <Input label="تاريخ الانتهاء" type="datetime-local" value={form.endsAt} onChange={e=>setForm(f=>({...f,endsAt:e.target.value}))} />
-            <Input label="الأولوية" type="number" value={String(form.priority)} onChange={e=>setForm(f=>({...f,priority:Number(e.target.value)}))} />
+            <Input label={lang === "ar" ? "تاريخ البدء" : "Start Date"} type="datetime-local" value={form.startsAt} onChange={e=>setForm(f=>({...f,startsAt:e.target.value}))} />
+            <Input label={lang === "ar" ? "تاريخ الانتهاء" : "End Date"} type="datetime-local" value={form.endsAt} onChange={e=>setForm(f=>({...f,endsAt:e.target.value}))} />
+            <Input label={lang === "ar" ? "الأولوية" : "Priority"} type="number" value={String(form.priority)} onChange={e=>setForm(f=>({...f,priority:Number(e.target.value)}))} />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.isActive} onChange={e=>setForm(f=>({...f,isActive:e.target.checked}))} className="w-4 h-4 accent-primary" />
-            <span className="text-sm text-text-secondary">نشط الآن</span>
+            <span className="text-sm text-text-secondary">{lang === "ar" ? "نشط الآن" : "Active now"}</span>
           </label>
           <div className="flex gap-3 justify-end">
-            <Button variant="ghost" onClick={()=>setShowForm(false)}>إلغاء</Button>
-            <Button onClick={handleSave} disabled={saving}>{saving?"جاري الحفظ...":"حفظ"}</Button>
+            <Button variant="ghost" onClick={()=>setShowForm(false)}>{lang === "ar" ? "إلغاء" : "Cancel"}</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? (lang === "ar" ? "جاري الحفظ..." : "Saving...") : (lang === "ar" ? "حفظ" : "Save")}</Button>
           </div>
         </Card>
       )}
 
       {loading ? <div className="h-32 shimmer rounded-xl" /> :
-       announcements.length === 0 ? <Card className="p-12 text-center text-text-muted">لا توجد إعلانات</Card> : (
+       announcements.length === 0 ? <Card className="p-12 text-center text-text-muted">{lang === "ar" ? "لا توجد إعلانات" : "No announcements"}</Card> : (
         <div className="space-y-3">
           {announcements.map(ann => {
             const cfg = TYPE_CONFIG[ann.type]; const Icon = cfg.icon;
@@ -159,9 +159,9 @@ export default function AnnouncementsPage() {
                   <p className="font-bold text-text-primary text-sm">{ann.titleAr}</p>
                   <p className="text-xs text-text-muted">{ann.titleEn}</p>
                   <div className="flex gap-2 mt-1">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-border text-text-muted">{cfg.label}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-border text-text-muted">{ann.targetAudience==="all"?"الجميع":ann.targetAudience==="free"?"مجاني":"مدفوع"}</span>
-                    <span className="text-[10px] text-text-muted">أولوية: {ann.priority}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-border text-text-muted">{lang === "ar" ? cfg.label : ({ info:"Info", promo:"Promo", warning:"Warning", success:"Success" })[ann.type]}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-border text-text-muted">{ann.targetAudience==="all"?(lang==="ar"?"الجميع":"All"):ann.targetAudience==="free"?(lang==="ar"?"مجاني":"Free"):(lang==="ar"?"مدفوع":"Paid")}</span>
+                    <span className="text-[10px] text-text-muted">{lang === "ar" ? "أولوية:" : "Priority:"} {ann.priority}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -176,7 +176,8 @@ export default function AnnouncementsPage() {
           })}
         </div>
       )}
-      <ConfirmDialog open={!!deleteId} title="حذف الإعلان" message="هل أنت متأكد؟"
+      <ConfirmDialog open={!!deleteId} title={lang === "ar" ? "حذف الإعلان" : "Delete Announcement"} message={lang === "ar" ? "هل أنت متأكد؟" : "Are you sure?"}
+        confirmLabel={lang === "ar" ? "حذف" : "Delete"} cancelLabel={lang === "ar" ? "إلغاء" : "Cancel"}
         onConfirm={handleDelete} onCancel={()=>setDeleteId(null)} />
     </div>
   );

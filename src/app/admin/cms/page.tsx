@@ -18,44 +18,44 @@ interface SiteContentSection {
 const SECTIONS = [
   {
     key: "home-video",
-    label: "الفيديو التعريفي (الرئيسية)",
+    labelAr: "الفيديو التعريفي (الرئيسية)", labelEn: "Hero Video (Home)",
     fields: [
-      { key: "videoUrl", label: "رابط الفيديو", type: "text" },
-      { key: "videoType", label: "النوع", type: "select", options: ["youtube", "direct"] },
+      { key: "videoUrl", labelAr: "رابط الفيديو", labelEn: "Video URL", type: "text" },
+      { key: "videoType", labelAr: "النوع", labelEn: "Type", type: "select", options: ["youtube", "direct"] },
     ],
   },
   {
     key: "about-videos",
-    label: "فيديوهات الشهادات (عن المنصة)",
+    labelAr: "فيديوهات الشهادات (عن المنصة)", labelEn: "Testimonial Videos (About)",
     fields: [],
     isArray: true,
     arrayFields: [
-      { key: "name", label: "الاسم", type: "text" },
-      { key: "role", label: "الدور", type: "text" },
-      { key: "title", label: "عنوان الفيديو", type: "text" },
-      { key: "desc", label: "الوصف", type: "text" },
-      { key: "videoUrl", label: "رابط الفيديو", type: "text" },
+      { key: "name", labelAr: "الاسم", labelEn: "Name", type: "text" },
+      { key: "role", labelAr: "الدور", labelEn: "Role", type: "text" },
+      { key: "title", labelAr: "عنوان الفيديو", labelEn: "Video Title", type: "text" },
+      { key: "desc", labelAr: "الوصف", labelEn: "Description", type: "text" },
+      { key: "videoUrl", labelAr: "رابط الفيديو", labelEn: "Video URL", type: "text" },
     ],
   },
   {
     key: "home-hero",
-    label: "صورة الهيرو (الرئيسية)",
+    labelAr: "صورة الهيرو (الرئيسية)", labelEn: "Hero Image (Home)",
     fields: [
-      { key: "imageUrl", label: "رابط الصورة", type: "text" },
+      { key: "imageUrl", labelAr: "رابط الصورة", labelEn: "Image URL", type: "text" },
     ],
   },
   {
     key: "about-hero",
-    label: "صورة الهيرو (عن المنصة)",
+    labelAr: "صورة الهيرو (عن المنصة)", labelEn: "Hero Image (About)",
     fields: [
-      { key: "imageUrl", label: "رابط الصورة", type: "text" },
+      { key: "imageUrl", labelAr: "رابط الصورة", labelEn: "Image URL", type: "text" },
     ],
   },
 ];
 
 export default function AdminCMSPage() {
   const { showToast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [contents, setContents] = useState<Record<string, Record<string, unknown>>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
@@ -72,11 +72,11 @@ export default function AdminCMSPage() {
       }
       setContents(map);
     } catch {
-      showToast("حدث خطأ في تحميل المحتوى", "error");
+      showToast(lang === "ar" ? "حدث خطأ في تحميل المحتوى" : "Error loading content", "error");
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, lang]);
 
   useEffect(() => {
     fetchData();
@@ -145,10 +145,10 @@ export default function AdminCMSPage() {
         body: JSON.stringify({ section: sectionKey, data }),
       });
       if (res.success) {
-        showToast("تم الحفظ", "success");
+        showToast(lang === "ar" ? "تم الحفظ" : "Saved", "success");
       }
     } catch {
-      showToast("حدث خطأ", "error");
+      showToast(lang === "ar" ? "حدث خطأ" : "An error occurred", "error");
     } finally {
       setSaving(null);
     }
@@ -160,10 +160,10 @@ export default function AdminCMSPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">
-          إدارة محتوى الموقع
+          {lang === "ar" ? "إدارة محتوى الموقع" : "Site Content Management"}
         </h2>
         <p className="text-text-secondary mt-1 text-sm sm:text-base">
-          تحكم في الفيديوهات والصور المعروضة في الصفحة الرئيسية وصفحة عن المنصة
+          {lang === "ar" ? "تحكم في الفيديوهات والصور المعروضة في الصفحة الرئيسية وصفحة عن المنصة" : "Manage videos and images on the home and about pages"}
         </p>
       </div>
 
@@ -178,7 +178,7 @@ export default function AdminCMSPage() {
             >
               <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
                 {section.isArray ? <Video className="w-5 h-5 text-primary" /> : <Image className="w-5 h-5 text-primary" />}
-                {section.label}
+                {lang === "ar" ? section.labelAr : section.labelEn}
               </h3>
               {isOpen ? <ChevronUp className="w-5 h-5 text-text-muted" /> : <ChevronDown className="w-5 h-5 text-text-muted" />}
             </button>
@@ -188,7 +188,7 @@ export default function AdminCMSPage() {
                 {!section.isArray && section.fields.map((field) => (
                   <div key={field.key}>
                     <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                      {field.label}
+                      {lang === "ar" ? field.labelAr : field.labelEn}
                     </label>
                     {field.type === "select" ? (
                       <select
@@ -205,7 +205,7 @@ export default function AdminCMSPage() {
                         type="text"
                         value={(data[field.key] as string) || ""}
                         onChange={(e) => setField(section.key, field.key, e.target.value)}
-                        placeholder={`أدخل ${field.label}`}
+                        placeholder={lang === "ar" ? `أدخل ${field.labelAr}` : `Enter ${field.labelEn}`}
                         className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary placeholder:text-text-muted outline-none focus:border-primary transition-all duration-300"
                       />
                     )}
@@ -222,12 +222,12 @@ export default function AdminCMSPage() {
                             onClick={() => removeArrayItem(section.key, idx)}
                             className="text-xs text-danger hover:text-danger/80"
                           >
-                            حذف
+                            {lang === "ar" ? "حذف" : "Delete"}
                           </button>
                         </div>
                         {section.arrayFields.map((af) => (
                           <div key={af.key}>
-                            <label className="block text-xs text-text-muted mb-1">{af.label}</label>
+                            <label className="block text-xs text-text-muted mb-1">{lang === "ar" ? af.labelAr : af.labelEn}</label>
                             <input
                               type="text"
                               value={item[af.key] || ""}
@@ -242,7 +242,7 @@ export default function AdminCMSPage() {
                       onClick={() => addArrayItem(section.key)}
                       className="text-sm text-primary hover:text-primary/80"
                     >
-                      + إضافة عنصر
+                      {lang === "ar" ? "+ إضافة عنصر" : "+ Add Item"}
                     </button>
                   </div>
                 )}
@@ -253,7 +253,7 @@ export default function AdminCMSPage() {
                     isLoading={saving === section.key}
                   >
                     <Save className="w-4 h-4 ml-2" />
-                    حفظ
+                    {lang === "ar" ? "حفظ" : "Save"}
                   </Button>
                 </div>
               </div>

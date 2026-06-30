@@ -211,7 +211,7 @@ export default function StudentsPage() {
           >
             {showDeactivated ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             <span className="text-sm hidden sm:inline">
-              {showDeactivated ? "جميع الحسابات" : "النشطة فقط"}
+              {showDeactivated ? (lang === "ar" ? "جميع الحسابات" : "All Accounts") : (lang === "ar" ? "النشطة فقط" : "Active Only")}
             </span>
           </button>
         </div>
@@ -242,7 +242,7 @@ export default function StudentsPage() {
                       <p className="text-xs text-text-muted">
                         {s.tier === "paid" ? t('admin.tier_paid') : t('admin.tier_free')}
                         {s.streak > 0 && ` · ${s.streak} ${t('admin.streak_days')}`}
-                        {isDeactivated && " · معلّق"}
+                        {isDeactivated && ` · ${lang === "ar" ? "معلّق" : "Suspended"}`}
                       </p>
                     </div>
                   </div>
@@ -260,17 +260,17 @@ export default function StudentsPage() {
                       {s.role === "admin" ? t('admin.admin_label') : s.role === "teacher" ? t('admin.teacher_label') : t('admin.student_label')}
                     </Badge>
                     {isDeactivated && (
-                      <Badge variant="danger">معلّق</Badge>
+                      <Badge variant="danger">{lang === "ar" ? "معلّق" : "Suspended"}</Badge>
                     )}
                   </div>
                 </TableCell>
                 <TableCell className="text-text-muted text-sm">
-                  {new Date(s.lastActive).toLocaleDateString("ar-SA")}
+                  {new Date(s.lastActive).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US")}
                 </TableCell>
                 <TableCell className="text-text-muted text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
-                    {new Date(s.createdAt).toLocaleDateString("ar-SA")}
+                    {new Date(s.createdAt).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US")}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -382,9 +382,9 @@ export default function StudentsPage() {
 
       <ConfirmDialog
         open={deactivateTarget !== null}
-        title="تعليق الحساب"
-        message={`هل أنت متأكد من تعليق حساب ${deactivateTarget?.name}؟`}
-        confirmLabel="تعليق"
+        title={lang === "ar" ? "تعليق الحساب" : "Suspend Account"}
+        message={lang === "ar" ? `هل أنت متأكد من تعليق حساب ${deactivateTarget?.name}؟` : `Are you sure you want to suspend ${deactivateTarget?.name}?`}
+        confirmLabel={lang === "ar" ? "تعليق" : "Suspend"}
         cancelLabel={t('common.cancel')}
         variant="danger"
         onConfirm={() => deactivateTarget && handleToggleActive(deactivateTarget)}

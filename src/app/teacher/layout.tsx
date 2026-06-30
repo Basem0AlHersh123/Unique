@@ -17,7 +17,7 @@ function TeacherLayoutInner({
 }: {
   children: React.ReactNode;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -109,10 +109,10 @@ function TeacherLayoutInner({
             return newVal;
           })}
           className="flex items-center justify-center w-full p-3 text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors rounded-lg"
-          title={sidebarCollapsed ? "توسيع القائمة" : "طي القائمة"}
+          title={sidebarCollapsed ? (lang === "ar" ? "توسيع القائمة" : "Expand menu") : (lang === "ar" ? "طي القائمة" : "Collapse menu")}
         >
           <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? "rotate-180" : ""}`} />
-          {!sidebarCollapsed && <span className="text-xs mr-2">طي القائمة</span>}
+          {!sidebarCollapsed && <span className="text-xs mr-2">{lang === "ar" ? "طي القائمة" : "Collapse"}</span>}
         </button>
         <Link
           href="/dashboard"

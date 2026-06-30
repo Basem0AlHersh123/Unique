@@ -133,7 +133,7 @@ export default function ChatPage() {
   }
 
   const router = useRouter();
-  const { t, isRTL } = useLanguage();
+  const { t, lang, isRTL } = useLanguage();
   const { showToast } = useToast();
 
   const [user, setUser] = useState<UserInfo | null>(null);
@@ -910,14 +910,14 @@ export default function ChatPage() {
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingMessageId(msg._id); setEditInput(msg.content); setMenuMessageId(null); }}
                             className="p-1 rounded-lg bg-surface border border-border text-text-muted hover:text-primary hover:border-primary/30 transition-all"
-                            title="تعديل"
+                            title={lang === "ar" ? "تعديل" : "Edit"}
                           >
                             <Pencil className="w-3 h-3" />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDeleteMessage(msg._id); }}
                             className="p-1 rounded-lg bg-surface border border-border text-text-muted hover:text-danger hover:border-danger/30 transition-all"
-                            title="حذف"
+                            title={lang === "ar" ? "حذف" : "Delete"}
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>

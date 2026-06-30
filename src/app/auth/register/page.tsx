@@ -41,7 +41,7 @@ interface College {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { t, isRTL } = useLanguage();
+  const { t, lang, isRTL } = useLanguage();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
@@ -190,7 +190,7 @@ export default function RegisterPage() {
               <>
                 <Input
                   label={t('auth.register.name')}
-                  placeholder="مثال: أحمد محمد"
+                  placeholder={lang === "ar" ? "مثال: أحمد محمد" : "e.g. Ahmed Mohammed"}
                   {...register("name")}
                   error={errors.name?.message}
                 />
@@ -207,7 +207,7 @@ export default function RegisterPage() {
                   <Input
                     label={t('auth.register.password')}
                     type="password"
-                    placeholder="8 أحرف على الأقل"
+                    placeholder={lang === "ar" ? "8 أحرف على الأقل" : "At least 8 characters"}
                     {...register("password")}
                     error={errors.password?.message}
                   />

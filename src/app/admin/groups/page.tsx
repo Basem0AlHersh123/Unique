@@ -46,7 +46,7 @@ function getUserName(user: string | { name?: string } | null | undefined): strin
 }
 
 export default function AdminGroupsPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [groups, setGroups] = useState<GroupData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -112,7 +112,7 @@ export default function AdminGroupsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="ابحث عن مجموعة..."
+              placeholder={lang === "ar" ? "ابحث عن مجموعة..." : "Search groups..."}
               className="w-full px-4 py-2 pr-10 rounded-xl bg-background border border-border text-text-primary text-sm outline-none focus:border-primary transition-all"
             />
           </div>

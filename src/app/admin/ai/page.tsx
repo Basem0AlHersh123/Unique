@@ -49,7 +49,7 @@ interface UsageData {
 
 export default function AdminAIPage() {
   const { showToast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const [setting, setSetting] = useState<ApiSettingData | null>(null);
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -194,7 +194,7 @@ export default function AdminAIPage() {
             {setting.updatedAt && (
               <span className="text-xs">
                 {t('admin.last_updated')}{" "}
-                {new Date(setting.updatedAt).toLocaleDateString("ar-SA", {
+                {new Date(setting.updatedAt).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
@@ -236,19 +236,19 @@ export default function AdminAIPage() {
         <Card withGlass className="text-center">
           <Activity className="w-8 h-8 text-primary mx-auto mb-2" />
           <p className="text-2xl font-bold text-text-primary">
-            {(setting?.usage.totalRequests ?? 0).toLocaleString("ar-SA")}
+            {(setting?.usage.totalRequests ?? 0).toLocaleString(lang === "ar" ? "ar-SA" : "en-US")}
           </p>
           <p className="text-sm text-text-muted">{t('admin.total_requests')}</p>
         </Card>
         <Card withGlass className="text-center">
           <p className="text-2xl font-bold text-text-primary">
-            {(setting?.usage.totalTokensIn ?? 0).toLocaleString("ar-SA")}
+            {(setting?.usage.totalTokensIn ?? 0)    .toLocaleString(lang === "ar" ? "ar-SA" : "en-US")}
           </p>
           <p className="text-sm text-text-muted">{t('admin.input_tokens')}</p>
         </Card>
         <Card withGlass className="text-center">
           <p className="text-2xl font-bold text-text-primary">
-            {(setting?.usage.totalTokensOut ?? 0).toLocaleString("ar-SA")}
+            {(setting?.usage.totalTokensOut ?? 0)    .toLocaleString(lang === "ar" ? "ar-SA" : "en-US")}
           </p>
           <p className="text-sm text-text-muted">{t('admin.output_tokens')}</p>
         </Card>
@@ -308,14 +308,14 @@ export default function AdminAIPage() {
                     {u.email}
                   </TableCell>
                   <TableCell className="text-text-primary">
-                    {u.tokensIn.toLocaleString("ar-SA")}
+                    {u.tokensIn    .toLocaleString(lang === "ar" ? "ar-SA" : "en-US")}
                   </TableCell>
                   <TableCell className="text-text-primary">
-                    {u.tokensOut.toLocaleString("ar-SA")}
+                    {u.tokensOut    .toLocaleString(lang === "ar" ? "ar-SA" : "en-US")}
                   </TableCell>
                   <TableCell>
                     <Badge variant="info">
-                      {u.requests.toLocaleString("ar-SA")} {t('admin.request_count')}
+                      {u.requests    .toLocaleString(lang === "ar" ? "ar-SA" : "en-US")} {t('admin.request_count')}
                     </Badge>
                   </TableCell>
                 </TableRow>
