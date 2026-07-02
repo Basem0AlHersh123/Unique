@@ -1,8 +1,9 @@
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 interface CardProps {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
   withGlass?: boolean;
   withTilt?: boolean;
   withHover?: boolean;
@@ -12,6 +13,7 @@ interface CardProps {
 export function Card({
   children,
   className = "",
+  style,
   withGlass = false,
   withTilt = false,
   withHover = true,
@@ -30,6 +32,7 @@ export function Card({
   return (
     <div
       className={`${base} ${glass} ${hover} ${tilt} ${clickable} ${className}`}
+      style={style}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}

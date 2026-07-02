@@ -47,14 +47,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: TranslationKey): string => {
-      if (lang === "en") {
+      if (lang === 'en') {
         const enDict = translations.en;
-        return enDict[key] ?? formatEnglishKey(key);
+        return enDict[key] ?? translations.ar[key] ?? formatEnglishKey(key);
       }
       const arDict = translations.ar;
       return arDict[key] ?? key;
     },
-    [lang]
+    [lang],
   );
 
   useEffect(() => {
