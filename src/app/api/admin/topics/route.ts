@@ -11,6 +11,8 @@ const createTopicSchema = z.object({
   subjectId: z.string().min(1, "يجب اختيار مادة"),
   unitId: z.string().optional(),
   videoUrl: z.string().optional(),
+  videoType: z.enum(["youtube", "direct"]).default("youtube"),
+  isEssential: z.boolean().default(true),
   contentType: z.enum(["video", "audio", "text", "pdf"]).default("video"),
   audioUrl: z.string().optional(),
   pdfUrl: z.string().optional(),

@@ -7,6 +7,8 @@ const contactSchema = z.object({
   name: z.string().min(2, "الاسم قصير جداً").max(100),
   email: z.string().email("البريد الإلكتروني غير صالح"),
   message: z.string().min(10, "الرسالة قصيرة جداً").max(2000, "الرسالة طويلة جداً"),
+  type: z.enum(["suggestion", "complaint", "other"]).default("other"),
+  imageUrl: z.string().url().optional(),
 });
 
 export async function POST(req: NextRequest) {

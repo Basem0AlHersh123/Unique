@@ -236,7 +236,6 @@ function StudentView({ stats, lang, colors }: { stats: any; colors: any; lang: s
 
   const strengthSubjects = subjectBreakdown.filter((s: any) => s.avgPct >= 70);
   const weakSubjects = subjectBreakdown.filter((s: any) => s.avgPct < 70 && s.attempts > 0);
-
   return (
     <>
       {/* Overall score donut */}

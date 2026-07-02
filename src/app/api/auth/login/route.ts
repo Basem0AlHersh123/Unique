@@ -78,7 +78,23 @@ export async function POST(req: NextRequest) {
     const accessToken = signAccessToken({ userId: user._id.toString(), role: user.role, name: user.name, tier: user.tier });
     const refreshToken = signRefreshToken({ userId: user._id.toString(), role: user.role, name: user.name });
 
-    user.lastActive = new Date();
+    // ── Streak tracking ─────────────────────────────────────────────────────
+    const now = new Date();
+    const lastActive = user.lastActive ? new Date(user.lastActive) : null;
+    if (lastActive) {
+      const todayStr = now.toDateString();
+      const lastStr = lastActive.toDateString();
+      if (lastStr !== todayStr) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = lastStr === yesterday.toDateString();
+        user.streak = isYesterday ? (user.streak || 0) + 1 : 1;
+      }
+    } else {
+      user.streak = 1;
+    }
+    user.lastActive = now;
+    // ── End streak tracking ──────────────────────────────────────────────────
     user.refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
     await user.save();
 

@@ -8,6 +8,8 @@ import { requireAdmin } from "@/lib/requireAdmin";
 const updateTopicSchema = z.object({
   title: z.string().min(2, "عنوان الموضوع قصير جداً").optional(),
   videoUrl: z.string().optional(),
+  videoType: z.enum(["youtube", "direct"]).optional(),
+  isEssential: z.boolean().optional(),
   contentType: z.enum(["video", "audio", "text", "pdf"]).optional(),
   audioUrl: z.string().optional(),
   pdfUrl: z.string().optional(),

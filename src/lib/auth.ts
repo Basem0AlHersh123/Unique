@@ -44,7 +44,7 @@ export function signAccessToken(payload: TokenPayload): string {
  */
 export function signRefreshToken(payload: TokenPayload): string {
   if (!REFRESH_SECRET) throw new Error("JWT_REFRESH_SECRET is not set");
-  return jwt.sign(payload, REFRESH_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, REFRESH_SECRET, { expiresIn: "30d" });
 }
 
 export function verifyAccessToken(token: string): TokenPayload {

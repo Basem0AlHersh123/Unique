@@ -652,6 +652,25 @@ export default function ProfileScreen() {
                 />
               )}
             </View>
+
+            <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <SettingsRow
+                label={lang === "ar" ? "تواصل معنا" : "Contact Us"}
+                icon="send"
+                onPress={() => {
+                  setShowSettingsSheet(false);
+                  setTimeout(() => router.push("/(app)/contact" as any), 300);
+                }}
+              />
+              <SettingsRow
+                label={lang === "ar" ? "عن المنصة" : "About"}
+                icon="info"
+                onPress={() => {
+                  setShowSettingsSheet(false);
+                  setTimeout(() => router.push("/(app)/about" as any), 300);
+                }}
+              />
+            </View>
           </ScrollView>
         </SafeAreaView>
       </Modal>

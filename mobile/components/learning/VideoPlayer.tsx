@@ -76,18 +76,22 @@ function YouTubePlayer({
 
   return (
     <View style={s.wrapper}>
-      <WebView
-        source={{
-          uri: embedUrl,
-          headers: { Referer: "https://unique-tech-blond.vercel.app" },
-        }}
-        style={s.fill}
-        javaScriptEnabled
-        domStorageEnabled
-        allowsInlineMediaPlayback
+    <WebView
+  source={{
+    uri: embedUrl,
+    headers: { Referer: "https://unique-tech-blond.vercel.app" },
+  }}
+  // Add these two properties to Code 1 if you encounter any weird blank page issues on iOS:
+  originWhitelist={["*"]}
+  baseUrl="https://www.youtube.com" 
+  
+  // Keep all your other props exactly the same...
+  style={s.fill}
+  javaScriptEnabled
+  domStorageEnabled
+  allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         allowsFullscreenVideo
-        originWhitelist={["*"]}
         scrollEnabled={false}
         bounces={false}
         androidLayerType={Platform.OS === "android" ? "hardware" : undefined}

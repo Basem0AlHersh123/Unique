@@ -5,24 +5,14 @@ export function isMobileClient(req: NextRequest): boolean {
   const mobileKey = req.headers.get("x-mobile-key");
   const serverKey = process.env.MOBILE_API_KEY;
 
-  console.error("[mobileAuth] x-mobile-key header:", mobileKey ?? "MISSING");
-  console.error("[mobileAuth] MOBILE_API_KEY env:", serverKey ?? "MISSING");
-  console.error("[mobileAuth] keys match length:", mobileKey?.length, "vs", serverKey?.length);
-
-  if (!serverKey || !mobileKey) {
-    console.error("[mobileAuth] returning false — one key is missing");
-    return false;
-  }
+  if (!serverKey || !mobileKey) return false;
 
   try {
-    const result = crypto.timingSafeEqual(
-      Buffer.from(mobileKey, "utf8"),
-      Buffer.from(serverKey, "utf8")
-    );
-    console.error("[mobileAuth] timingSafeEqual result:", result);
-    return result;
-  } catch (e) {
-    console.error("[mobileAuth] timingSafeEqual threw (length mismatch?):", e);
+    const a = Buffer.from(mobileKey, "utf8");
+    const b = Buffer.from(serverKey, "utf8");
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch {
     return false;
   }
 }
