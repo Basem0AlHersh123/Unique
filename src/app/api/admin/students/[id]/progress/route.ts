@@ -5,14 +5,15 @@ import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = requireAdmin(req);
   if (authError) return authError;
 
   await connectDB();
 
-  const user = await User.findById(params.id).select("progress");
+  const { id } = await params;
+  const user = await User.findById(id).select("progress");
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -22,7 +23,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = requireAdmin(req);
   if (authError) return authError;
@@ -30,7 +31,8 @@ export async function PATCH(
   const body = await req.json();
   await connectDB();
 
-  const user = await User.findById(params.id);
+  const { id } = await params;
+  const user = await User.findById(id);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
