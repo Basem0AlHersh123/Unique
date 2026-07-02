@@ -1,3 +1,18 @@
+# Group: Settings
+# These files implement the user settings section of the Unique platform.
+# They handle profile management, display name changes, password updates,
+# university/college selection, profile image upload, and account deletion.
+# Together they form the complete account management UI for logged-in users.
+# Included files:
+#   - src/app/settings/layout.tsx       (settings layout wrapper)
+#   - src/app/settings/page.tsx         (main settings page with all sections)
+
+# File: src/app/settings/layout.tsx
+export default function SettingsLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+
+# File: src/app/settings/page.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";

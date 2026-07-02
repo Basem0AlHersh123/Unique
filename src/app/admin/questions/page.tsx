@@ -24,6 +24,7 @@ interface Topic {
   _id: string;
   title: string;
   subjectId: string;
+  isEssential?: boolean;
 }
 
 interface Unit {
@@ -87,6 +88,7 @@ export default function QuestionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterTopic, setFilterTopic] = useState("");
   const [filterUnit, setFilterUnit] = useState("");
+  const [filterEssential, setFilterEssential] = useState<"" | "essential" | "non-essential">("");
   const [questionType, setQuestionType] = useState<"topic" | "exam">("topic");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
@@ -273,11 +275,13 @@ export default function QuestionsPage() {
     return subjects.find((s) => s._id === id)?.name ?? id;
   }
 
+  const topicEssentialMap = Object.fromEntries(topics.map(t => [t._id, t.isEssential ?? true]));
   const filteredQuestions = questions.filter((q) => {
-    if (filterTopic && q.topicId === filterTopic) return true;
-    if (filterUnit && q.unitId === filterUnit) return true;
-    if (!filterTopic && !filterUnit) return true;
-    return false;
+    if (filterTopic && q.topicId !== filterTopic) return false;
+    if (filterUnit && q.unitId !== filterUnit) return false;
+    if (filterEssential === "essential" && !topicEssentialMap[q.topicId ?? ""]) return false;
+    if (filterEssential === "non-essential" && topicEssentialMap[q.topicId ?? ""]) return false;
+    return true;
   });
 
   const difficultyLabels: Record<string, { label: string; color: "success" | "warning" | "danger" }> = {
@@ -483,9 +487,9 @@ export default function QuestionsPage() {
 
       <div className="flex gap-2 flex-wrap">
         <button
-          onClick={() => { setFilterTopic(""); setFilterUnit(""); }}
+          onClick={() => { setFilterTopic(""); setFilterUnit(""); setFilterEssential(""); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-            !filterTopic && !filterUnit
+            !filterTopic && !filterUnit && !filterEssential
               ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"
               : "bg-surface text-text-secondary border border-border hover:border-primary/50"
           }`}
@@ -493,10 +497,30 @@ export default function QuestionsPage() {
           <Filter className="w-4 h-4" />
           {t('admin.all')}
         </button>
+        <button
+          onClick={() => { setFilterEssential("essential"); setFilterTopic(""); setFilterUnit(""); }}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+            filterEssential === "essential"
+              ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"
+              : "bg-surface text-text-secondary border border-border hover:border-primary/50"
+          }`}
+        >
+          {lang === "ar" ? "أساسي" : "Essential"}
+        </button>
+        <button
+          onClick={() => { setFilterEssential("non-essential"); setFilterTopic(""); setFilterUnit(""); }}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+            filterEssential === "non-essential"
+              ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"
+              : "bg-surface text-text-secondary border border-border hover:border-primary/50"
+          }`}
+        >
+          {lang === "ar" ? "غير أساسي" : "Non-Essential"}
+        </button>
         {units.slice(0, 10).map((u) => (
           <button
             key={u._id}
-            onClick={() => { setFilterUnit(u._id); setFilterTopic(""); }}
+            onClick={() => { setFilterUnit(u._id); setFilterTopic(""); setFilterEssential(""); }}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
               filterUnit === u._id
                 ? "bg-gradient-to-r from-secondary to-primary text-white shadow-lg shadow-primary/20"
@@ -509,7 +533,7 @@ export default function QuestionsPage() {
         {topics.slice(0, 15).map((t) => (
           <button
             key={t._id}
-            onClick={() => { setFilterTopic(t._id); setFilterUnit(""); }}
+            onClick={() => { setFilterTopic(t._id); setFilterUnit(""); setFilterEssential(""); }}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
               filterTopic === t._id
                 ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"

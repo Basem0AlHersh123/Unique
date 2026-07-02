@@ -37,8 +37,8 @@ export function Button({
     primary:
       "bg-primary text-white hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]",
     secondary:
-      "bg-transparent border-2 border-primary text-primary hover:bg-surface-hover",
-    danger: "bg-danger text-white hover:scale-[1.02] hover:shadow-lg",
+      "bg-transparent border-2 border-primary text-primary hover:bg-surface-hover active:scale-[0.98] active:border-primary-dark",
+    danger: "bg-danger text-white hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]",
     ghost: "bg-transparent text-text-secondary hover:text-primary transition-colors",
   };
 

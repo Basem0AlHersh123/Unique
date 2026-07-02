@@ -17,38 +17,48 @@ const LanguageContext = createContext<LanguageContextType | null>(null);
 
 const STORAGE_KEY = 'unique_lang';
 
-function getInitialLanguage(): Language {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'ar' || stored === 'en') return stored;
-    const navLang = navigator.language?.slice(0, 2);
-    if (navLang === 'ar') return 'ar';
-  }
-  return 'ar';
+function formatEnglishKey(key: TranslationKey): string {
+  const parts = key.split('.');
+  return parts[parts.length - 1]
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>(getInitialLanguage);
+  const [lang, setLangState] = useState<Language>('ar');
 
   const setLang = useCallback((newLang: Language) => {
     setLangState(newLang);
-    localStorage.setItem(STORAGE_KEY, newLang);
+    try { localStorage.setItem(STORAGE_KEY, newLang); } catch { /* noop */ }
     document.documentElement.lang = newLang;
     document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
   }, []);
 
   const t = useCallback(
     (key: TranslationKey): string => {
-      const dict = translations[lang] ?? translations.ar;
-      return dict[key] ?? key;
+      if (lang === 'en') {
+        const enDict = translations.en;
+        return enDict[key] ?? formatEnglishKey(key);
+      }
+      const arDict = translations.ar;
+      return arDict[key] ?? key;
     },
     [lang],
   );
 
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'ar' || stored === 'en') {
+        setLangState(stored);
+        document.documentElement.lang = stored;
+        document.documentElement.dir = stored === 'ar' ? 'rtl' : 'ltr';
+        return;
+      }
+    } catch { /* noop */ }
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  }, [lang]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
   const isRTL = lang === 'ar';

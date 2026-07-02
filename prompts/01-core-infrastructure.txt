@@ -1,0 +1,1001 @@
+<!-- ============================================================
+# Core Infrastructure
+These files form the foundation of the Next.js app. They include the
+root layout, global styles, not-found page, navigation bar, theme/i18n
+providers, particles background, auth client, and API/HTTP client.
+Every page and component depends on this layer.
+============================================================ -->
+
+<!-- ============================================================
+/src/app/layout.tsx
+Root layout — font loading, metadata, provider hierarchy.
+============================================================ -->
+import type { Metadata } from "next";
+import { Cairo, Inter } from "next/font/google";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import  ParticlesBackground  from "@/components/layout/ParticlesBackground";
+import { ToastProvider } from "@/components/ui/ToastProvider";
+import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
+import "./globals.css";
+
+const cairo = Cairo({
+  variable: "--font-cairo",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+export const metadata: Metadata = {
+  title: "UNIQUE — منصة التعلم الذكي",
+  description: "منصة UNIQUE للتعلم الذكي — استعد لاختبارات القبول الجامعي بثقة",
+  icons: {
+    icon: "/apple-icon.svg",
+    shortcut: "/apple-icon.svg",
+    apple: "/apple-icon.png",
+  },
+};
+
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="ar"
+      dir="rtl"
+      data-scroll-behavior="smooth"
+      className={`${cairo.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full flex flex-col bg-background text-text-primary relative">
+        <ParticlesBackground />
+        <ThemeProvider>
+          <LanguageProvider>
+          <ToastProvider>
+            <div className="relative z-10 flex-1 flex flex-col">
+              {children}
+            </div>
+          </ToastProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+
+<!-- ============================================================
+/src/app/globals.css
+Global styles — CSS variables, Tailwind theme tokens, animations,
+glassmorphism, scrollbar, particle keyframes.
+============================================================ -->
+@import "tailwindcss";
+
+:root {
+  --color-primary: #6C63FF;
+  --color-primary-dark: #5A52D5;
+  --color-secondary: #FF6584;
+  --color-accent: #FFD166;
+  --color-teal: #14B8A6;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+
+  --color-background: #F8F7FF;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #E8E6FF;
+  --color-border: #E5E7EB;
+
+  --color-text-primary: #1A1A2E;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+}
+
+.dark {
+  --color-primary-dark: #7C73FF;
+  --color-background: #1A1A2E;
+  --color-surface: #16213E;
+  --color-surface-hover: #0F3460;
+  --color-border: #2A2A45;
+
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-teal: var(--color-teal);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-border: var(--color-border);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --font-arabic: var(--font-cairo);
+  --font-latin: var(--font-inter);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-cairo), var(--font-inter), Arial, sans-serif;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Selection */
+::selection {
+  background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* Glassmorphism */
+.glass {
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
+}
+
+.glass-dark {
+  background: color-mix(in srgb, var(--color-surface) 50%, transparent);
+  backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--color-border) 20%, transparent);
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg,
+      var(--color-surface) 25%,
+      var(--color-surface-hover) 50%,
+      var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 30%, transparent); }
+  50% { box-shadow: 0 0 40px color-mix(in srgb, var(--color-primary) 60%, transparent); }
+}
+
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg,
+      var(--color-primary),
+      var(--color-secondary),
+      var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 300% 300%;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Scale on hover */
+.hover-scale {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  animation: stagger-fade 0.6s ease forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes stagger-fade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide-in from right */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.slide-in-right {
+  animation: slide-in-right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Toast animations */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(100px) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(100px) scale(0.9); }
+}
+
+.toast-in {
+  animation: toast-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toast-out {
+  animation: toast-out 0.3s ease forwards;
+}
+
+/* Dark mode toggle animation */
+.theme-toggle {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle:hover {
+  transform: rotate(90deg) scale(1.1);
+}
+
+.theme-toggle:active {
+  transform: rotate(180deg) scale(0.9);
+}
+
+/* Particles Background */
+.particles-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  bottom: -10px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  opacity: 0.15;
+  animation: particle-rise linear infinite;
+}
+
+@keyframes particle-rise {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-100vh) scale(0);
+    opacity: 0;
+  }
+}
+
+<!-- ============================================================
+/src/app/not-found.tsx
+Custom 404 page with gradient text and bilingual links.
+============================================================ -->
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-6">
+      <div className="text-center max-w-md">
+        <div className="text-8xl font-extrabold gradient-text mb-4">404</div>
+        <h1 className="text-2xl font-bold text-text-primary mb-2">الصفحة غير موجودة</h1>
+        <p className="text-text-secondary mb-8">
+          عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها.
+        </p>
+        <div className="flex gap-3 justify-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 font-medium"
+          >
+            العودة للرئيسية
+          </Link>
+          <Link
+            href="/colleges"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-surface border border-border text-text-primary hover:bg-surface-hover transition-all duration-300 font-medium"
+          >
+            تصفح الكليات
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+<!-- ============================================================
+/src/components/layout/Navbar.tsx
+Responsive navigation bar — links, auth-aware role routing,
+logout confirmation dialog, theme/language toggles.
+============================================================ -->
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { getStoredAuth, getAuthOrRefresh, type AuthUser } from "@/lib/auth-client";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import {
+  MessageCircle, Settings, LayoutDashboard, LogOut, ArrowRight,
+  Building2, Info, ShieldCheck, Presentation, LogIn, UserPlus, Bot, Phone,
+} from "lucide-react";
+import Image from "next/image";
+
+interface NavbarProps {
+  variant?: "full" | "minimal";
+  showBack?: boolean;
+}
+
+function NavLink({ href, icon: Icon, label }: { href: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
+  return (
+    <Link
+      href={href}
+      title={label}
+      className="group flex items-center p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-hover transition-all duration-200"
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm">
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+function NavLinkPrimary({ href, icon: Icon, label }: { href: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
+  return (
+    <Link
+      href={href}
+      title={label}
+      className="group flex items-center p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-200"
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+export function Navbar({ variant = "full", showBack }: NavbarProps) {
+  const { t, isRTL } = useLanguage();
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setUser(getStoredAuth());
+    (async () => {
+      const u = await getAuthOrRefresh();
+      if (u) setUser(u);
+    })();
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  function handleLogout() {
+    setLogoutConfirm(true);
+  }
+
+  function confirmLogout() {
+    localStorage.removeItem("accessToken");
+    window.location.href = "/";
+  }
+
+  return (
+    <>
+      <nav className="sticky top-0 z-50 glass border-b border-border/20 px-4 sm:px-6 py-4 shrink-0">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          {/* Left: Brand */}
+          <div className="flex items-center gap-3 min-w-0">
+            {showBack && (
+              <button
+                onClick={() => router.back()}
+                className="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-hover transition-all duration-200 shrink-0"
+                aria-label={t('common.back')}
+              >
+                <ArrowRight className={`w-5 h-5 ${isRTL ? "" : "rotate-180"}`} />
+              </button>
+            )}
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+            <Image
+  src="/logo.svg"
+  alt="UNIQUE"
+  width={45}
+  height={45}
+  priority
+  className="shrink-0"
+/>            <span className="text-2xl font-bold gradient-text hidden sm:inline">{t('common.brand')}</span>
+            </Link>
+          </div>
+
+          {/* Center: Nav links */}
+          {variant === "full" && (
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none mx-2">
+              {user ? (
+                <>
+                  {user.role === "student" && (
+                    <NavLinkPrimary href="/dashboard" icon={LayoutDashboard} label={t('nav.dashboard')} />
+                  )}
+                  {user.role === "admin" && (
+                    <NavLinkPrimary href="/admin" icon={ShieldCheck} label={t('nav.admin')} />
+                  )}
+                  {user.role === "teacher" && (
+                    <NavLinkPrimary href="/teacher/dashboard" icon={Presentation} label={t('nav.teacher_dashboard')} />
+                  )}
+                  <NavLink href="/colleges" icon={Building2} label={t('nav.colleges')} />
+                  <NavLink href="/chat" icon={MessageCircle} label={t('nav.chat')} />
+                  <NavLink href="/ai/chat" icon={Bot} label={t('nav.ai_chat')} />
+                  <NavLink href="/about" icon={Info} label={t('nav.about')} />
+                  <NavLink href="/contact" icon={Phone} label={t('nav.contact')} />
+                  <NavLink href="/settings" icon={Settings} label={t('nav.settings')} />
+                </>
+              ) : (
+                <>
+                  <NavLink href="/colleges" icon={Building2} label={t('nav.colleges')} />
+                  <NavLink href="/about" icon={Info} label={t('nav.about')} />
+                  <NavLink href="/contact" icon={Phone} label={t('nav.contact')} />
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Right: Toggles + Account */}
+          <div className="flex items-center gap-1 shrink-0">
+            {variant === "minimal" && user && (
+              <>
+                {user.role === "student" && (
+                  <NavLinkPrimary href="/dashboard" icon={LayoutDashboard} label={t('nav.dashboard')} />
+                )}
+                {user.role === "admin" && (
+                  <NavLinkPrimary href="/admin" icon={ShieldCheck} label={t('nav.admin')} />
+                )}
+                {user.role === "teacher" && (
+                  <NavLinkPrimary href="/teacher/dashboard" icon={Presentation} label={t('nav.teacher_dashboard')} />
+                )}
+              </>
+            )}
+            <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+            <ThemeToggle />
+            <LanguageToggle />
+            {user ? (
+              <button
+                onClick={handleLogout}
+                title={t('nav.logout')}
+                className="group flex items-center p-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200"
+              >
+                <LogOut className="w-5 h-5 shrink-0" />
+                <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm">
+                  {t('nav.logout')}
+                </span>
+              </button>
+            ) : (
+              <>
+                <NavLink href="/auth/login" icon={LogIn} label={t('nav.login')} />
+                <NavLinkPrimary href="/auth/register" icon={UserPlus} label={t('nav.register')} />
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <ConfirmDialog
+        open={logoutConfirm}
+        title={t("logout.title")}
+        message={t("logout.message")}
+        confirmLabel={t("logout.confirm")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={confirmLogout}
+        onCancel={() => setLogoutConfirm(false)}
+      />
+    </>
+  );
+}
+
+<!-- ============================================================
+/src/components/layout/ThemeProvider.tsx
+Wraps the app using next-themes; toggles `dark` class on <html>.
+============================================================ -->
+"use client";
+
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import type { ReactNode } from "react";
+
+/**
+ * Wraps the app so any component can call useTheme() to read/toggle
+ * dark vs light mode. attribute="class" means it toggles the `dark`
+ * class on <html>, which is exactly what our globals.css .dark rules
+ * are waiting for.
+ */
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  return (
+    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+      {children}
+    </NextThemesProvider>
+  );
+}
+
+<!-- ============================================================
+/src/components/layout/LanguageToggle.tsx
+Toggles Arabic/English; shows language badge on the icon.
+============================================================ -->
+'use client';
+
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { Languages } from "lucide-react";
+
+export function LanguageToggle() {
+  const { lang, setLang } = useLanguage();
+
+  return (
+    <button
+      onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+      className="group p-2 rounded-xl text-text-muted hover:text-primary hover:bg-primary/10 transition-all duration-200 relative"
+      aria-label={lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+    >
+      <Languages className="w-5 h-5 shrink-0" />
+      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-primary text-white px-0.5 rounded-sm leading-none">
+        {lang === 'ar' ? 'EN' : 'AR'}
+      </span>
+    </button>
+  );
+}
+
+<!-- ============================================================
+/src/components/layout/ThemeToggle.tsx
+Dark/light mode toggle with shimmer skeleton until client-hydrated.
+============================================================ -->
+"use client";
+
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className="w-10 h-10 shimmer rounded-full" />;
+
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="theme-toggle relative w-12 h-12 rounded-2xl bg-surface border border-border hover:border-primary/50 transition-all duration-300 flex items-center justify-center group"
+      aria-label="Toggle theme"
+    >
+      <div className="relative">
+        {isDark ? (
+          <Moon className="w-5 h-5 text-primary group-hover:rotate-12 transition-transform" />
+        ) : (
+          <Sun className="w-5 h-5 text-warning group-hover:rotate-12 transition-transform" />
+        )}
+      </div>
+      <span className="absolute inset-0 rounded-2xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </button>
+  );
+}
+
+<!-- ============================================================
+/src/components/layout/ParticlesBackground.tsx
+CSS-animated floating particle effect rendered in a fixed container.
+============================================================ -->
+"use client";
+
+import { useEffect, useState } from "react";
+
+export default function ParticlesBackground() {
+  const [particles, setParticles] = useState<{ id: number; x: number; delay: number; size: number; duration: number }[]>([]);
+
+  useEffect(() => {
+    const count = 50;
+    const newParticles = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      delay: Math.random() * 20,
+      size: Math.random() * 3 + 2,
+      duration: Math.random() * 20 + 15,
+    }));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setParticles(newParticles);
+  }, []);
+
+  return (
+    <div className="particles-container">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="particle"
+          style={{
+            left: `${p.x}%`,
+            animationDelay: `${p.delay}s`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            animationDuration: `${p.duration}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+<!-- ============================================================
+/src/lib/auth-client.ts
+JWT decode, expiry check (client-side), token refresh orchestration.
+Also exposes AuthUser type with name/role/userId/tier.
+============================================================ -->
+import axios from "axios";
+
+export interface AuthUser {
+  name: string;
+  role?: string;
+  userId?: string;
+  tier?: string;
+}
+
+function b64Decode(b64: string): string {
+  return decodeURIComponent(
+    Array.from(atob(b64), (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
+  );
+}
+
+function decodeToken(token: string): AuthUser & { exp?: number } | null {
+  try {
+    const payload = JSON.parse(b64Decode(token.split(".")[1]));
+    return {
+      name: payload.name || "طالب",
+      role: payload.role,
+      userId: payload.userId || payload.id,
+      tier: payload.tier,
+      exp: payload.exp,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isExpired(payload: { exp?: number }): boolean {
+  if (!payload.exp) return false;
+  return payload.exp < Date.now() / 1000;
+}
+
+export function getStoredAuth(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+  const token = localStorage.getItem("accessToken");
+  if (!token) return null;
+  const payload = decodeToken(token);
+  if (!payload) return null;
+  if (isExpired(payload)) return null;
+  return { name: payload.name, role: payload.role, userId: payload.userId, tier: payload.tier };
+}
+
+export async function tryRefreshToken(): Promise<boolean> {
+  try {
+    const res = await axios.post("/api/auth/refresh", {}, {
+      withCredentials: true,
+    });
+    const { accessToken } = res.data.data;
+    localStorage.setItem("accessToken", accessToken);
+    return true;
+  } catch {
+    localStorage.removeItem("accessToken");
+    return false;
+  }
+}
+
+export function clearAuth(): void {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+}
+
+export async function getAuthOrRefresh(): Promise<AuthUser | null> {
+  const token = localStorage.getItem("accessToken");
+  if (!token) return null;
+
+  const payload = decodeToken(token);
+  if (!payload) {
+    localStorage.removeItem("accessToken");
+    return null;
+  }
+
+  if (!isExpired(payload)) {
+    return { name: payload.name, role: payload.role, userId: payload.userId, tier: payload.tier };
+  }
+
+  const refreshed = await tryRefreshToken();
+  if (!refreshed) return null;
+
+  const newToken = localStorage.getItem("accessToken");
+  if (!newToken) return null;
+  const newPayload = decodeToken(newToken);
+  if (!newPayload) return null;
+  return { name: newPayload.name, role: newPayload.role, userId: newPayload.userId, tier: newPayload.tier };
+}
+
+<!-- ============================================================
+/src/lib/api.ts
+Axios instance with request interceptor (Bearer token) and response
+interceptor (automatic 401 → refresh → retry, deduped with queue).
+Exports `apiFetch` convenience wrapper.
+============================================================ -->
+import axios from "axios";
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown, token: string | null) {
+  failedQueue.forEach((p) => {
+    if (error) {
+      p.reject(error);
+    } else {
+      p.resolve(token!);
+    }
+  });
+  failedQueue = [];
+}
+
+const api = axios.create();
+
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    const originalRequest = err.config;
+
+    if (
+      err.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh") &&
+      !originalRequest.url?.includes("/auth/login")
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token: string) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const res = await axios.post("/api/auth/refresh", {}, {
+          withCredentials: true,
+        });
+        const { accessToken } = res.data.data;
+        localStorage.setItem("accessToken", accessToken);
+        processQueue(null, accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem("accessToken");
+        if (typeof window !== "undefined") {
+          window.location.href = "/auth/login";
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(err);
+  }
+);
+
+export async function apiFetch<T>(
+  url: string,
+  options?: { method?: string; body?: unknown; headers?: Record<string, string> }
+): Promise<{ success: boolean; data?: T; error?: string }> {
+  try {
+    const res = await api({
+      url,
+      method: options?.method ?? "GET",
+      data: options?.body instanceof FormData ? options.body : (typeof options?.body === "string" ? JSON.parse(options.body) : options?.body),
+      headers: options?.headers,
+    });
+    return res.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.data?.error) {
+      throw new Error(err.response.data.error);
+    }
+    throw new Error("حدث خطأ في الخادم");
+  }
+}
+
+export default api;
+
+<!-- ============================================================
+/src/lib/i18n/LanguageProvider.tsx
+React context for Arabic/English switching, localStorage persistence,
+document dir/lang mutation, and a `t()` translation lookup with
+English fallback formatting.
+============================================================ -->
+'use client';
+
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { translations, type TranslationKey } from './translations';
+
+type Language = 'ar' | 'en';
+
+interface LanguageContextType {
+  lang: Language;
+  setLang: (lang: Language) => void;
+  t: (key: TranslationKey) => string;
+  dir: 'rtl' | 'ltr';
+  isRTL: boolean;
+}
+
+const LanguageContext = createContext<LanguageContextType | null>(null);
+
+const STORAGE_KEY = 'unique_lang';
+
+function formatEnglishKey(key: TranslationKey): string {
+  const parts = key.split('.');
+  return parts[parts.length - 1]
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Language>('ar');
+
+  const setLang = useCallback((newLang: Language) => {
+    setLangState(newLang);
+    try { localStorage.setItem(STORAGE_KEY, newLang); } catch { /* noop */ }
+    document.documentElement.lang = newLang;
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+  }, []);
+
+  const t = useCallback(
+    (key: TranslationKey): string => {
+      if (lang === 'en') {
+        const enDict = translations.en;
+        return enDict[key] ?? formatEnglishKey(key);
+      }
+      const arDict = translations.ar;
+      return arDict[key] ?? key;
+    },
+    [lang],
+  );
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'ar' || stored === 'en') {
+        setLangState(stored);
+        document.documentElement.lang = stored;
+        document.documentElement.dir = stored === 'ar' ? 'rtl' : 'ltr';
+        return;
+      }
+    } catch { /* noop */ }
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const isRTL = lang === 'ar';
+
+  return (
+    <LanguageContext.Provider value={{ lang, setLang, t, dir, isRTL }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage() {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error('useLanguage must be used within LanguageProvider');
+  return ctx;
+}
+
+<!-- ============================================================
+/src/lib/i18n/index.ts
+Re-exports LanguageProvider, useLanguage, and the TranslationKey type.
+============================================================ -->
+export { LanguageProvider, useLanguage } from './LanguageProvider';
+export type { TranslationKey } from './translations';

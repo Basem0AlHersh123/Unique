@@ -1,3 +1,10 @@
+<!--
+Group: Translations Dictionary
+Contains all Arabic/English translation keys used across the app.
+Files: src/lib/i18n/translations.ts
+-->
+
+<!-- src/lib/i18n/translations.ts -->
 const dict = {
     /* ───── Common ───── */
     "common.brand": "UNIQUE",

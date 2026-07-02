@@ -1,0 +1,904 @@
+<!--
+   Authentication — Login, Register, Forgot Password, Reset Password pages plus Zod validation schemas.
+
+   This group covers the full auth flow:
+   - src/lib/validation/auth.ts — shared Zod schemas for login/register (used both client- and server-side)
+   - src/app/auth/login/page.tsx — login form with Turnstile CAPTCHA, deactivation reactivation dialog
+   - src/app/auth/register/page.tsx — two-step registration (basic info → university/college selection)
+   - src/app/auth/forgot-password/page.tsx — forgot password form → email sent confirmation
+   - src/app/auth/reset-password/[token]/page.tsx — token validation, new password form, success/error states
+
+   All pages are bilingual (Arabic/English via useLanguage hook), use the glass-morphism design,
+   and share the same gradient icon + card layout pattern.
+-->
+
+
+// ============================================================
+// src/lib/validation/auth.ts
+// ============================================================
+
+import { z } from "zod";
+
+/**
+ * This is the ONE place that defines what a valid registration looks like.
+ * The frontend form uses this (via react-hook-form + @hookform/resolvers)
+ * to show inline errors instantly. The API route uses this same schema
+ * to reject bad data before it ever touches MongoDB.
+ *
+ * One rule, two places it's enforced, zero duplication.
+ */
+export const registerSchema = z.object({
+  name: z
+    .string()
+    .min(2, "الاسم يجب أن يكون حرفين على الأقل")
+    .max(100, "الاسم طويل جداً"),
+  email: z.string().email("بريد إلكتروني غير صالح"),
+  password: z
+    .string()
+    .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
+    .regex(/[A-Z]/, "يجب أن تحتوي على حرف كبير واحد على الأقل")
+    .regex(/[0-9]/, "يجب أن تحتوي على رقم واحد على الأقل"),
+  turnstileToken: z.string().optional(),
+  universityId: z.string().optional(),
+  collegeId: z.string().optional(),
+});
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const loginSchema = z.object({
+  email: z.string().email("بريد إلكتروني غير صالح"),
+  password: z.string().min(1, "كلمة المرور مطلوبة"),
+  turnstileToken: z.string().optional(),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+
+
+// ============================================================
+// src/app/auth/login/page.tsx
+// ============================================================
+
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile } from "@marsidev/react-turnstile";
+import { loginSchema, type LoginInput } from "@/lib/validation/auth";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import axios from "axios";
+import api from "@/lib/api";
+import { Mail, Lock, ArrowLeft, RefreshCw } from "lucide-react";
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+
+export default function LoginPage() {
+  const router = useRouter();
+  const { t, isRTL } = useLanguage();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deactivatedEmail, setDeactivatedEmail] = useState<string | null>(null);
+  const [deactivatedPassword, setDeactivatedPassword] = useState<string>("");
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivateError, setReactivateError] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    resetField,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { turnstileToken: "" },
+  });
+
+  function onCaptchaSuccess(token: string) {
+    setValue("turnstileToken", token);
+    setTurnstileError(false);
+  }
+
+  function onCaptchaError() {
+    setTurnstileError(true);
+  }
+
+  async function onSubmit(data: LoginInput) {
+    setServerError(null);
+    setIsSubmitting(true);
+
+    try {
+      const res = await api.post("/api/auth/login", data);
+      const result = res.data;
+
+      if (!result.success) {
+        if (result.error === "DEACTIVATED") {
+          setDeactivatedEmail(data.email);
+          setDeactivatedPassword(data.password);
+          setReactivateError(null);
+          setServerError(null);
+          resetField("turnstileToken");
+          setIsSubmitting(false);
+          return;
+        }
+        setServerError(result.error);
+        resetField("turnstileToken");
+        setIsSubmitting(false);
+        return;
+      }
+
+      localStorage.setItem("accessToken", result.data.accessToken);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        setServerError(err.response.data.error);
+      } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setServerError(err.response.data.message);
+      } else {
+        setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
+      }
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleReactivate() {
+    if (!deactivatedEmail || !deactivatedPassword) return;
+    setReactivating(true);
+    setReactivateError(null);
+    try {
+      await api.post("/api/auth/reactivate", {
+        email: deactivatedEmail,
+        password: deactivatedPassword,
+      });
+      setDeactivatedEmail(null);
+      setDeactivatedPassword("");
+      setServerError("تم إعادة تفعيل الحساب بنجاح. حاول تسجيل الدخول مرة أخرى.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        setReactivateError(err.response.data.error);
+      } else {
+        setReactivateError("فشل إعادة التفعيل. تحقق من كلمة المرور.");
+      }
+    } finally {
+      setReactivating(false);
+    }
+  }
+
+  return (
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-6 relative">
+      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:right-6 sm:max-w-none">
+        <ThemeToggle />
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="w-4 h-4 ml-1" />
+            العودة
+          </Button>
+        </Link>
+      </div>
+
+      <div className="w-full max-w-md relative mt-2 sm:mt-0">
+        <div className="hidden sm:block absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="hidden sm:block absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
+
+        <div className="relative glass rounded-3xl p-5 sm:p-8 border border-border/50 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold text-text-primary">{t('auth.login.title')}</h1>
+            <p className="text-text-secondary text-sm mt-1">{t('auth.login.subtitle')}</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <Input
+              label={t('auth.login.email')}
+              type="email"
+              placeholder="example@email.com"
+              icon={<Mail className="w-5 h-5" />}
+              {...register("email")}
+              error={errors.email?.message}
+            />
+
+            <Input
+              label={t('auth.login.password')}
+              type="password"
+              placeholder="••••••••"
+              icon={<Lock className="w-5 h-5" />}
+              {...register("password")}
+              error={errors.password?.message}
+            />
+            <div className="text-left -mt-2">
+              <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
+                {t('auth.login.forgot')}
+              </Link>
+            </div>
+
+            <div className="flex justify-center py-2 overflow-x-auto">
+              <div className="scale-[0.85] sm:scale-100 origin-center">
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
+                  onSuccess={onCaptchaSuccess}
+                  onError={onCaptchaError}
+                />
+              </div>
+            </div>
+            {errors.turnstileToken && (
+              <p className="text-sm text-danger text-center animate-slide-in-right">
+                {errors.turnstileToken.message}
+              </p>
+            )}
+            {turnstileError && (
+              <p className="text-sm text-warning text-center">
+                تعذر تحميل التحقق الأمني. قد يكون هناك مانع إعلانات أو VPN قيد التشغيل.
+              </p>
+            )}
+
+            {serverError && (
+              <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm animate-slide-in-right">
+                {serverError}
+              </div>
+            )}
+
+            <Button type="submit" isLoading={isSubmitting} className="flex items-center gap-2 mt-2 justify-center">
+              {t('auth.login.button')}
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </form>
+
+          <p className="text-center text-sm text-text-secondary mt-6">
+            {t('auth.login.no_account')}{" "}
+            <Link href="/auth/register" className="text-primary font-medium hover:underline">
+              {t('auth.login.register')}
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {deactivatedEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-surface rounded-2xl border border-border p-6 max-w-md w-full shadow-xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-warning/20 flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-warning" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  {t('settings.reactivate_title')}
+                </h3>
+                <p className="text-sm text-text-secondary">
+                  {t('settings.reactivate_desc')}
+                </p>
+              </div>
+            </div>
+            {reactivateError && (
+              <p className="text-sm text-danger">{reactivateError}</p>
+            )}
+            <div className="flex gap-3">
+              <Button onClick={handleReactivate} isLoading={reactivating} className="flex-1">
+                {t('settings.reactivate_confirm')}
+              </Button>
+              <Button variant="secondary" onClick={() => { setDeactivatedEmail(null); setDeactivatedPassword(""); }} className="flex-1">
+                {t('common.cancel')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ============================================================
+// src/app/auth/register/page.tsx
+// ============================================================
+
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile } from "@marsidev/react-turnstile";
+import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { apiFetch } from "@/lib/api";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
+import axios from "axios";
+import api from "@/lib/api";
+import { UserPlus, ArrowLeft, Building2, ChevronLeft, Check } from "lucide-react";
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
+
+interface University {
+  _id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  icon?: string;
+  color?: string;
+}
+
+interface College {
+  _id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  slug: string;
+  icon: string;
+  color: string;
+  universityId?: string;
+}
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const { t, lang, isRTL } = useLanguage();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [selectedUniversityId, setSelectedUniversityId] = useState("");
+  const [selectedCollegeId, setSelectedCollegeId] = useState("");
+
+  const [universitiesLoading, setUniversitiesLoading] = useState(false);
+  const [collegesLoading, setCollegesLoading] = useState(false);
+  const [universitiesEmpty, setUniversitiesEmpty] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    resetField,
+    trigger,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { turnstileToken: "" },
+  });
+
+  useEffect(() => {
+    if (step === 2) {
+      setUniversitiesLoading(true);
+      setUniversitiesEmpty(false);
+      apiFetch<University[]>("/api/admin/universities")
+        .then((res) => {
+          const data = res.success && res.data ? res.data : [];
+          setUniversities(data);
+          if (data.length === 0) setUniversitiesEmpty(true);
+        })
+        .catch(() => { setUniversitiesEmpty(true); })
+        .finally(() => setUniversitiesLoading(false));
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (!universitiesEmpty) return;
+    if (!selectedUniversityId) {
+      setCollegesLoading(true);
+      apiFetch<College[]>("/api/admin/colleges")
+        .then((res) => {
+          if (res.success && res.data) setColleges(res.data);
+        })
+        .catch(() => {})
+        .finally(() => setCollegesLoading(false));
+    }
+  }, [universitiesEmpty, selectedUniversityId]);
+
+  useEffect(() => {
+    if (!selectedUniversityId) { setColleges([]); return; }
+    setCollegesLoading(true);
+    apiFetch<College[]>(`/api/admin/colleges?universityId=${selectedUniversityId}`)
+      .then((res) => {
+        if (res.success && res.data) setColleges(res.data);
+      })
+      .catch(() => {})
+      .finally(() => setCollegesLoading(false));
+  }, [selectedUniversityId]);
+
+  function onCaptchaSuccess(token: string) {
+    setValue("turnstileToken", token);
+  }
+
+  async function handleNext() {
+    const valid = await trigger(["name", "email", "password"]);
+    if (valid) setStep(2);
+  }
+
+  async function onSubmit(data: RegisterInput) {
+    const body = {
+      ...data,
+      collegeId: selectedCollegeId || undefined,
+    };
+
+    setServerError(null);
+    setIsSubmitting(true);
+
+    try {
+      const res = await api.post("/api/auth/register", body);
+      const result = res.data;
+
+      if (!result.success) {
+        setServerError(result.error);
+        resetField("turnstileToken");
+        setIsSubmitting(false);
+        return;
+      }
+
+      localStorage.setItem("accessToken", result.data.accessToken);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        setServerError(err.response.data.error);
+      } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setServerError(err.response.data.message);
+      } else {
+        setServerError("تعذر الاتصال بالخادم، تحقق من اتصالك بالإنترنت");
+      }
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-6 relative">
+      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:right-6 sm:max-w-none">
+        <ThemeToggle />
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="w-4 h-4 ml-1" />
+            العودة
+          </Button>
+        </Link>
+      </div>
+
+      <div className="w-full max-w-md relative mt-2 sm:mt-0">
+        <div className="hidden sm:block absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="hidden sm:block absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
+
+        <div className="relative glass rounded-3xl p-5 sm:p-8 border border-border/50 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
+              <UserPlus className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold text-text-primary">{t('auth.register.title')}</h1>
+            <p className="text-text-secondary text-sm mt-1">{t('auth.register.subtitle')}</p>
+
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <div className={`w-2.5 h-2.5 rounded-full ${step === 1 ? "bg-primary" : "bg-primary/30"}`} />
+              <div className="w-8 h-px bg-border" />
+              <div className={`w-2.5 h-2.5 rounded-full ${step === 2 ? "bg-primary" : "bg-primary/30"}`} />
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            {/* Step 1: Basic info */}
+            {step === 1 && (
+              <>
+                <Input
+                  label={t('auth.register.name')}
+                  placeholder={lang === "ar" ? "مثال: أحمد محمد" : "e.g. Ahmed Mohammed"}
+                  {...register("name")}
+                  error={errors.name?.message}
+                />
+
+                <Input
+                  label={t('auth.register.email')}
+                  type="email"
+                  placeholder="example@email.com"
+                  {...register("email")}
+                  error={errors.email?.message}
+                />
+
+                <div>
+                  <Input
+                    label={t('auth.register.password')}
+                    type="password"
+                    placeholder={lang === "ar" ? "8 أحرف على الأقل" : "At least 8 characters"}
+                    {...register("password")}
+                    error={errors.password?.message}
+                  />
+                  <PasswordStrength password={watch?.("password") ?? ""} />
+                </div>
+
+                <div className="flex justify-center py-2 overflow-x-auto">
+                  <div className="scale-[0.85] sm:scale-100 origin-center">
+                    <Turnstile
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string}
+                      onSuccess={onCaptchaSuccess}
+                    />
+                  </div>
+                </div>
+                {errors.turnstileToken && (
+                  <p className="text-sm text-danger text-center animate-slide-in-right">
+                    {errors.turnstileToken.message}
+                  </p>
+                )}
+
+                {serverError && (
+                  <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm animate-slide-in-right">
+                    {serverError}
+                  </div>
+                )}
+
+                <Button type="button" onClick={handleNext} className="flex items-center gap-2 mt-2 justify-center">
+                  التالي
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              </>
+            )}
+
+            {/* Step 2: University & College */}
+            {step === 2 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="flex items-center gap-1 text-sm text-text-muted hover:text-text-primary transition-colors mb-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  العودة
+                </button>
+
+                {universitiesLoading ? (
+                  <LoadingSkeleton />
+                ) : universities.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      اختر الجامعة
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                      {universities.map((u) => {
+                        const isSelected = selectedUniversityId === u._id;
+                        return (
+                          <button
+                            key={u._id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUniversityId(u._id);
+                              setSelectedCollegeId("");
+                            }}
+                            className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
+                              isSelected
+                                ? "bg-primary/10 border-primary text-text-primary"
+                                : "bg-surface border-border text-text-secondary hover:bg-surface-hover"
+                            }`}
+                          >
+                            <span className="text-lg">{u.icon || "🎓"}</span>
+                            <span className="text-sm font-medium truncate">{u.name}</span>
+                            {isSelected && <Check className="w-4 h-4 text-primary mr-auto shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {selectedUniversityId && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      اختر الكلية
+                    </label>
+                    {collegesLoading ? (
+                      <LoadingSkeleton />
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                        {colleges.map((c) => {
+                          const isSelected = selectedCollegeId === c._id;
+                          return (
+                            <button
+                              key={c._id}
+                              type="button"
+                              onClick={() => setSelectedCollegeId(c._id)}
+                              className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
+                                isSelected
+                                  ? "bg-primary/10 border-primary text-text-primary"
+                                  : "bg-surface border-border text-text-secondary hover:bg-surface-hover"
+                              }`}
+                            >
+                              <Building2 className={`w-5 h-5 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                              <span className="text-sm font-medium truncate">{c.name}</span>
+                              {isSelected && <Check className="w-4 h-4 text-primary mr-auto shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedUniversityId && colleges.length === 0 && !collegesLoading && (
+                  <p className="text-sm text-text-muted text-center py-2">
+                    لا توجد كليات متاحة لهذه الجامعة
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => { setSelectedUniversityId(""); setSelectedCollegeId(""); }}
+                  className="text-sm text-text-muted hover:text-text-primary transition-colors text-center"
+                >
+                  تخطي هذه الخطوة
+                </button>
+
+                {serverError && (
+                  <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm animate-slide-in-right">
+                    {serverError}
+                  </div>
+                )}
+
+                <Button type="submit" isLoading={isSubmitting} className="flex items-center gap-2 mt-2 justify-center">
+                  {t('auth.register.button')}
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </>
+            )}
+          </form>
+
+          <p className="text-center text-sm text-text-secondary mt-6">
+            {t('auth.register.has_account')}{" "}
+            <Link href="/auth/login" className="text-primary font-medium hover:underline">
+              {t('auth.register.login')}
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================
+// src/app/auth/forgot-password/page.tsx
+// ============================================================
+
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { apiFetch } from "@/lib/api";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+
+export default function ForgotPasswordPage() {
+  const { t, isRTL } = useLanguage();
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await apiFetch("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      setSent(true);
+    } catch {
+      setError(t("common.error"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
+      <div className="w-full max-w-md">
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl">
+          {sent ? (
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal/10 text-teal mx-auto">
+                <CheckCircle className="w-8 h-8" />
+              </div>
+              <h1 className="text-2xl font-bold text-text-primary">{t("auth.forgot.title")}</h1>
+              <p className="text-text-secondary text-sm">{t("auth.forgot.sent")}</p>
+              <Link href="/auth/login" className="inline-flex items-center gap-2 text-primary text-sm hover:underline mt-4">
+                <ArrowLeft className="w-4 h-4" />
+                {t("auth.forgot.back")}
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
+                  <Mail className="w-8 h-8" />
+                </div>
+                <h1 className="text-2xl font-bold text-text-primary">{t("auth.forgot.title")}</h1>
+                <p className="text-text-secondary text-sm mt-1">{t("auth.forgot.subtitle")}</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("auth.forgot.email")}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+
+                {error && (
+                  <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <Button type="submit" isLoading={loading} className="w-full justify-center">
+                  {t("auth.forgot.button")}
+                </Button>
+              </form>
+
+              <p className="text-center text-sm text-text-secondary mt-6">
+                <Link href="/auth/login" className="text-primary font-medium hover:underline">
+                  {t("auth.forgot.back")}
+                </Link>
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================
+// src/app/auth/reset-password/[token]/page.tsx
+// ============================================================
+
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { apiFetch } from "@/lib/api";
+import { PasswordStrength } from "@/components/ui/PasswordStrength";
+import { Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+
+export default function ResetPasswordPage() {
+  const { t, isRTL } = useLanguage();
+  const params = useParams();
+  const router = useRouter();
+  const token = params.token as string;
+
+  const [valid, setValid] = useState<boolean | null>(null);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    apiFetch(`/api/auth/reset-password/${token}`)
+      .then((res) => setValid(res.success))
+      .catch(() => setValid(false));
+  }, [token]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (password !== confirm) {
+      setError("كلمة المرور غير متطابقة");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await apiFetch(`/api/auth/reset-password/${token}`, {
+        method: "POST",
+        body: JSON.stringify({ password }),
+      });
+      setSuccess(true);
+      setTimeout(() => router.push("/auth/login"), 2000);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (valid === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="shimmer w-48 h-6 rounded" />
+      </div>
+    );
+  }
+
+  if (!valid) {
+    return (
+      <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl max-w-md w-full text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-danger/10 text-danger mx-auto mb-4">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.reset.title")}</h1>
+          <p className="text-text-secondary text-sm mb-6">{t("auth.reset.invalid")}</p>
+          <Link href="/auth/forgot-password">
+            <Button variant="secondary">{t("auth.forgot.button")}</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl max-w-md w-full text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal/10 text-teal mx-auto mb-4">
+            <CheckCircle className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.reset.title")}</h1>
+          <p className="text-text-secondary text-sm">{t("auth.reset.success")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
+      <div className="w-full max-w-md">
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-bold text-text-primary">{t("auth.reset.title")}</h1>
+            <p className="text-text-secondary text-sm mt-1">{t("auth.reset.subtitle")}</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("auth.reset.password")}
+                required
+                minLength={8}
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <PasswordStrength password={password} />
+            </div>
+            <input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder={t("auth.reset.confirm")}
+              required
+              minLength={8}
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+
+            {error && (
+              <div className="bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" isLoading={loading} className="w-full justify-center">
+              {t("auth.reset.button")}
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
