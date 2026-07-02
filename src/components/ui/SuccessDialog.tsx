@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, X } from "lucide-react";
+import { CheckCircle, X, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 interface SuccessDialogProps {
@@ -22,7 +22,6 @@ export function SuccessDialog({
   const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open) {
       requestAnimationFrame(() => setVisible(true));
@@ -30,7 +29,6 @@ export function SuccessDialog({
       setVisible(false);
     }
   }, [open]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!open) return;
@@ -63,19 +61,23 @@ export function SuccessDialog({
       >
         <button
           onClick={onClose}
-          className="absolute start-4 top-4 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="absolute left-4 top-4 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-teal/10 flex items-center justify-center">
-            <CheckCircle className="w-8 h-8 text-teal" />
+          <div className="relative w-20 h-20 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full bg-teal/20 animate-pulse" />
+            <div className="relative w-full h-full rounded-full bg-teal/10 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-teal" />
+            </div>
+            <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-yellow-400 animate-pulse" />
           </div>
           <h3 className="text-lg font-bold text-text-primary mb-2">{title}</h3>
           <p className="text-sm text-text-secondary mb-1">{message}</p>
           {details && (
-            <p className="text-xs text-text-muted bg-background rounded-lg px-3 py-2 mt-2 border border-border/50">
+            <p className="text-xs text-text-muted bg-background/50 rounded-xl px-3 py-2 mt-2 border border-border/50">
               {details}
             </p>
           )}
@@ -83,7 +85,7 @@ export function SuccessDialog({
 
         <button
           onClick={onClose}
-          className="w-full mt-6 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-primary to-primary-dark shadow-lg shadow-primary/20 transition-all duration-200 hover:scale-[1.02]"
+          className="w-full mt-6 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-primary to-primary-dark shadow-lg shadow-primary/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {t("common.ok")}
         </button>

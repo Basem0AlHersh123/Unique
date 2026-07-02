@@ -1,13 +1,5 @@
 import { z } from "zod";
 
-/**
- * This is the ONE place that defines what a valid registration looks like.
- * The frontend form uses this (via react-hook-form + @hookform/resolvers)
- * to show inline errors instantly. The API route uses this same schema
- * to reject bad data before it ever touches MongoDB.
- *
- * One rule, two places it's enforced, zero duplication.
- */
 export const registerSchema = z.object({
   name: z
     .string()

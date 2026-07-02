@@ -8,7 +8,9 @@ interface TableProps {
 
 export function Table({ headers, children, className = "" }: TableProps) {
   return (
-    <div className={`bg-surface border border-border rounded-2xl overflow-hidden shadow-sm ${className}`}>
+    <div
+      className={`bg-surface/50 backdrop-blur-sm border border-border rounded-2xl overflow-hidden shadow-sm ${className}`}
+    >
       <div className="overflow-x-auto">
         <table className="w-full text-start">
           <thead>
@@ -37,7 +39,9 @@ interface TableRowProps {
 
 export function TableRow({ children, className = "" }: TableRowProps) {
   return (
-    <tr className={`hover:bg-surface-hover/50 transition-colors duration-200 ${className}`}>
+    <tr
+      className={`hover:bg-surface-hover/50 transition-colors duration-200 ${className}`}
+    >
       {children}
     </tr>
   );
@@ -49,6 +53,14 @@ interface TableCellProps {
   colSpan?: number;
 }
 
-export function TableCell({ children, className = "", colSpan }: TableCellProps) {
-  return <td colSpan={colSpan} className={`px-4 py-3 text-text-primary ${className}`}>{children}</td>;
+export function TableCell({
+  children,
+  className = "",
+  colSpan,
+}: TableCellProps) {
+  return (
+    <td colSpan={colSpan} className={`px-4 py-3 text-text-primary ${className}`}>
+      {children}
+    </td>
+  );
 }

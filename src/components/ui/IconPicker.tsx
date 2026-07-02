@@ -1,21 +1,67 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, Check } from "lucide-react";
+import { Search, Check, ChevronDown } from "lucide-react";
 import * as Icons from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 const ICON_NAMES = [
-  "GraduationCap", "BookOpen", "Book", "Bookmark", "Library",
-  "Brain", "Lightbulb", "Zap", "Award", "Star",
-  "Heart", "Shield", "Target", "TrendingUp", "Activity",
-  "Globe", "MapPin", "Compass", "Flag", "Building2",
-  "Palette", "Camera", "Music", "Microscope", "FlaskConical",
-  "Calculator", "PenTool", "ScrollText", "MessageCircle", "Users",
-  "UserCheck", "Sparkles", "Rocket", "Crown", "Gem",
-  "Trees", "Cloud", "Sun", "Moon", "Smile",
-  "UtensilsCrossed", "Dumbbell", "Pencil", "ClipboardCheck", "Layers",
-  "FolderOpen", "GitBranch", "HelpCircle",
+  "GraduationCap",
+  "BookOpen",
+  "Book",
+  "Bookmark",
+  "Library",
+  "Brain",
+  "Lightbulb",
+  "Zap",
+  "Award",
+  "Star",
+  "Heart",
+  "Shield",
+  "Target",
+  "TrendingUp",
+  "Activity",
+  "Globe",
+  "MapPin",
+  "Compass",
+  "Flag",
+  "Building2",
+  "Palette",
+  "Camera",
+  "Music",
+  "Microscope",
+  "FlaskConical",
+  "Calculator",
+  "PenTool",
+  "ScrollText",
+  "MessageCircle",
+  "Users",
+  "UserCheck",
+  "Sparkles",
+  "Rocket",
+  "Crown",
+  "Gem",
+  "Trees",
+  "Cloud",
+  "Sun",
+  "Moon",
+  "Smile",
+  "UtensilsCrossed",
+  "Dumbbell",
+  "Pencil",
+  "ClipboardCheck",
+  "Layers",
+  "FolderOpen",
+  "GitBranch",
+  "HelpCircle",
+  "Bot",
+  "Brain",
+  "Database",
+  "Server",
+  "Cpu",
+  "Code",
+  "Wrench",
+  "Settings",
 ];
 
 interface IconPickerProps {
@@ -46,7 +92,10 @@ export function IconPicker({ value, onChange, label }: IconPickerProps) {
       )
     : ICON_NAMES;
 
-  const SelectedIcon = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[value] || Icons.BookOpen;
+  const SelectedIcon =
+    (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
+      value
+    ] || Icons.BookOpen;
 
   return (
     <div ref={dropdownRef} className="relative flex flex-col gap-1.5">
@@ -56,15 +105,19 @@ export function IconPicker({ value, onChange, label }: IconPickerProps) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10 hover:border-primary/50"
       >
-        <SelectedIcon className="w-5 h-5" />
-        <span className="flex-1 text-start">{value || (lang === "ar" ? "اختر أيقونة" : "Choose icon")}</span>
-        <Icons.ChevronDown className={`w-4 h-4 text-text-muted transition-transform ${open ? "rotate-180" : ""}`} />
+        <SelectedIcon className="w-5 h-5 text-primary" />
+        <span className="flex-1 text-start text-sm">{value || (lang === "ar" ? "اختر أيقونة" : "Choose icon")}</span>
+        <ChevronDown
+          className={`w-4 h-4 text-text-muted transition-transform duration-300 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 left-0 right-0 z-50 bg-surface border border-border rounded-xl shadow-xl p-3 max-h-80 overflow-hidden flex flex-col">
+        <div className="absolute top-full mt-1 left-0 right-0 z-50 bg-surface border border-border rounded-xl shadow-2xl p-3 max-h-80 overflow-hidden flex flex-col animate-scale-in">
           <div className="relative mb-2">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <input
@@ -78,7 +131,10 @@ export function IconPicker({ value, onChange, label }: IconPickerProps) {
           </div>
           <div className="grid grid-cols-4 gap-1 overflow-y-auto flex-1">
             {filtered.map((name) => {
-              const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name] || Icons.BookOpen;
+              const IconComponent =
+                (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
+                  name
+                ] || Icons.BookOpen;
               const isSelected = value === name;
               return (
                 <button
@@ -89,15 +145,19 @@ export function IconPicker({ value, onChange, label }: IconPickerProps) {
                     setOpen(false);
                     setSearch("");
                   }}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-all duration-200 ${
+                  className={`relative flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-all duration-200 ${
                     isSelected
-                      ? "bg-primary/10 text-primary border border-primary/30"
+                      ? "bg-primary/10 text-primary border border-primary/30 shadow-sm"
                       : "text-text-secondary hover:bg-surface-hover border border-transparent"
                   }`}
                 >
                   <IconComponent className="w-5 h-5" />
-                  <span className="truncate w-full text-center leading-tight">{name}</span>
-                  {isSelected && <Check className="w-3 h-3 absolute top-1 right-1 text-primary" />}
+                  <span className="truncate w-full text-center leading-tight">
+                    {name}
+                  </span>
+                  {isSelected && (
+                    <Check className="w-3 h-3 absolute top-1 right-1 text-primary" />
+                  )}
                 </button>
               );
             })}

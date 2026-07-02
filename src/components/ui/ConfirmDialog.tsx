@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, Info } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 interface ConfirmDialogProps {
@@ -10,7 +10,7 @@ interface ConfirmDialogProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: "danger" | "primary";
+  variant?: "danger" | "primary" | "warning";
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -30,7 +30,6 @@ export function ConfirmDialog({
   const resolvedCancelLabel = cancelLabel ?? t("common.cancel");
   const [visible, setVisible] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open) {
       requestAnimationFrame(() => setVisible(true));
@@ -38,7 +37,6 @@ export function ConfirmDialog({
       setVisible(false);
     }
   }, [open]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!open) return;
@@ -50,6 +48,26 @@ export function ConfirmDialog({
   }, [open, onCancel]);
 
   if (!open) return null;
+
+  const variantStyles = {
+    danger: {
+      iconBg: "bg-danger/10",
+      iconColor: "text-danger",
+      buttonBg: "bg-danger hover:bg-danger/90 shadow-lg shadow-danger/20",
+    },
+    warning: {
+      iconBg: "bg-warning/10",
+      iconColor: "text-warning",
+      buttonBg: "bg-warning hover:bg-warning/90 shadow-lg shadow-warning/20",
+    },
+    primary: {
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
+      buttonBg: "bg-primary hover:bg-primary-dark shadow-lg shadow-primary/20",
+    },
+  };
+
+  const styles = variantStyles[variant];
 
   return (
     <div
@@ -71,20 +89,20 @@ export function ConfirmDialog({
       >
         <button
           onClick={onCancel}
-          className="absolute start-4 top-4 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
+          className="absolute left-4 top-4 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-start gap-4">
           <div
-            className={`p-2.5 rounded-xl shrink-0 ${
-              variant === "danger"
-                ? "bg-danger/10 text-danger"
-                : "bg-primary/10 text-primary"
-            }`}
+            className={`p-2.5 rounded-xl shrink-0 ${styles.iconBg} ${styles.iconColor}`}
           >
-            <AlertTriangle className="w-5 h-5" />
+            {variant === "danger" ? (
+              <AlertTriangle className="w-5 h-5" />
+            ) : (
+              <Info className="w-5 h-5" />
+            )}
           </div>
           <div>
             <h3 className="text-lg font-bold text-text-primary mb-1">{title}</h3>
@@ -92,14 +110,10 @@ export function ConfirmDialog({
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6 me-14">
+        <div className="flex gap-3 mt-6 mr-14">
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] ${
-              variant === "danger"
-                ? "bg-danger hover:bg-danger/90 shadow-lg shadow-danger/20"
-                : "bg-gradient-to-r from-primary to-primary-dark shadow-lg shadow-primary/20"
-            }`}
+            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${styles.buttonBg}`}
           >
             {resolvedConfirmLabel}
           </button>

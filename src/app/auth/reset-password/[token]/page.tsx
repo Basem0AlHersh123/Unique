@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { apiFetch } from "@/lib/api";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
-import { Lock, CheckCircle, AlertCircle } from "lucide-react";
+import { Lock, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export default function ResetPasswordPage() {
@@ -62,12 +62,22 @@ export default function ResetPasswordPage() {
 
   if (!valid) {
     return (
-      <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
-        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl max-w-md w-full text-center">
+      <div
+        dir={isRTL ? "rtl" : "ltr"}
+        className="min-h-screen flex items-center justify-center px-4 py-6 relative"
+      >
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl max-w-md w-full text-center scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-danger/10 text-danger mx-auto mb-4">
             <AlertCircle className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.reset.title")}</h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">
+            {t("auth.reset.title")}
+          </h1>
           <p className="text-text-secondary text-sm mb-6">{t("auth.reset.invalid")}</p>
           <Link href="/auth/forgot-password">
             <Button variant="secondary">{t("auth.forgot.button")}</Button>
@@ -79,12 +89,22 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
-        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl max-w-md w-full text-center">
+      <div
+        dir={isRTL ? "rtl" : "ltr"}
+        className="min-h-screen flex items-center justify-center px-4 py-6 relative"
+      >
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl max-w-md w-full text-center scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal/10 text-teal mx-auto mb-4">
             <CheckCircle className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold text-text-primary mb-2">{t("auth.reset.title")}</h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">
+            {t("auth.reset.title")}
+          </h1>
           <p className="text-text-secondary text-sm">{t("auth.reset.success")}</p>
         </div>
       </div>
@@ -92,15 +112,27 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div dir={isRTL ? "rtl" : "ltr"} className="min-h-screen flex items-center justify-center px-4 py-6">
-      <div className="w-full max-w-md">
-        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl">
+    <div
+      dir={isRTL ? "rtl" : "ltr"}
+      className="min-h-screen flex items-center justify-center px-4 py-6 relative"
+    >
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="glass rounded-3xl p-8 border border-border/50 shadow-2xl scale-in">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
               <Lock className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-bold text-text-primary">{t("auth.reset.title")}</h1>
-            <p className="text-text-secondary text-sm mt-1">{t("auth.reset.subtitle")}</p>
+            <h1 className="text-2xl font-bold text-text-primary">
+              {t("auth.reset.title")}
+            </h1>
+            <p className="text-text-secondary text-sm mt-1">
+              {t("auth.reset.subtitle")}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -112,7 +144,7 @@ export default function ResetPasswordPage() {
                 placeholder={t("auth.reset.password")}
                 required
                 minLength={8}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="w-full px-4 py-3 rounded-xl border-2 border-border bg-surface text-text-primary text-sm focus:outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
               />
               <PasswordStrength password={password} />
             </div>
@@ -123,7 +155,7 @@ export default function ResetPasswordPage() {
               placeholder={t("auth.reset.confirm")}
               required
               minLength={8}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="w-full px-4 py-3 rounded-xl border-2 border-border bg-surface text-text-primary text-sm focus:outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
             />
 
             {error && (
@@ -132,7 +164,11 @@ export default function ResetPasswordPage() {
               </div>
             )}
 
-            <Button type="submit" isLoading={loading} className="w-full justify-center">
+            <Button
+              type="submit"
+              isLoading={loading}
+              className="w-full justify-center hover:scale-[1.02] transition-all duration-300"
+            >
               {t("auth.reset.button")}
             </Button>
           </form>

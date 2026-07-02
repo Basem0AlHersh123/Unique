@@ -7,11 +7,17 @@ import { apiFetch } from "@/lib/api";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
-import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getAuthOrRefresh } from "@/lib/auth-client";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import {
-  CheckCircle, XCircle, HelpCircle, Award,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  Award,
+  ArrowLeft,
+  Sparkles,
+  Clock,
 } from "lucide-react";
 
 interface QuizQuestion {
@@ -46,7 +52,7 @@ interface QuizResult {
 export default function QuizPage() {
   const params = useParams();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, lang, isRTL } = useLanguage();
   const slug = params.slug as string;
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -63,7 +69,10 @@ export default function QuizPage() {
   useEffect(() => {
     (async () => {
       const u = await getAuthOrRefresh();
-      if (!u) { router.push("/auth/login"); return; }
+      if (!u) {
+        router.push("/auth/login");
+        return;
+      }
     })();
   }, [router]);
 
@@ -72,15 +81,15 @@ export default function QuizPage() {
       try {
         const res = await apiFetch<QuizQuestion[]>(`/api/questions/${slug}`);
         if (!res.success || !res.data) {
-          setError(res.error || t('quiz.loading_error'));
+          setError(res.error || t("quiz.loading_error"));
         } else if (res.data.length === 0) {
-          setError(t('quiz.loading_error'));
+          setError(t("quiz.loading_error"));
         } else {
           setQuestions(res.data);
           setTopicTitle((res as { meta?: { topic?: string } }).meta?.topic ?? "");
         }
       } catch {
-        setError(t('quiz.loading_error'));
+        setError(t("quiz.loading_error"));
       } finally {
         setLoading(false);
       }
@@ -115,10 +124,10 @@ export default function QuizPage() {
       if (res.success && res.data) {
         setResult(res.data);
       } else {
-        setError(res.error || t('common.error'));
+        setError(res.error || t("common.error"));
       }
     } catch {
-      setError(t('common.error'));
+      setError(t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -147,17 +156,16 @@ export default function QuizPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-6">
-          <HelpCircle className="w-16 h-16 text-text-muted mx-auto mb-4" />
+          <HelpCircle className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-30" />
           <p className="text-text-muted text-lg mb-2">{error}</p>
           <p className="text-text-secondary text-sm mb-6">
-            {t('quiz.loading_error')}
+            {lang === "ar"
+              ? "لا توجد أسئلة منشورة لهذا الدرس"
+              : "No published questions for this lesson"}
           </p>
           <div className="flex gap-3 justify-center">
-            <Button variant="secondary" onClick={() => router.back()}>
-              {t('quiz.back_to_topic')}
-            </Button>
             <Link href={`/dashboard/topic/${slug}`}>
-              <Button>{t('quiz.back_to_topic')}</Button>
+              <Button variant="secondary">{t("quiz.back_to_topic")}</Button>
             </Link>
           </div>
         </div>
@@ -166,34 +174,67 @@ export default function QuizPage() {
   }
 
   if (result) {
+    const passed = result.percentage >= 70;
     return (
       <div className="min-h-screen bg-background">
         <Navbar variant="full" />
 
         <main className="max-w-2xl mx-auto px-6 py-8">
-          <div className="text-center mb-8">
-            <Award className="w-16 h-16 text-primary mx-auto mb-3" />
-            <h1 className="text-3xl font-extrabold text-text-primary mb-1">{t('quiz.result')}</h1>
+          <div className="text-center mb-8 slide-up">
+            <div
+              className={`w-20 h-20 mx-auto mb-4 rounded-full ${
+                passed ? "bg-teal/10" : "bg-danger/10"
+              } flex items-center justify-center`}
+            >
+              {passed ? (
+                <Award className="w-10 h-10 text-teal" />
+              ) : (
+                <XCircle className="w-10 h-10 text-danger" />
+              )}
+            </div>
+            <h1 className="text-3xl font-extrabold text-text-primary mb-1">
+              {lang === "ar" ? "النتيجة" : "Results"}
+            </h1>
             <p className="text-text-secondary mb-1">{topicTitle}</p>
-            <div className="text-5xl font-bold gradient-text my-4">{result.percentage}%</div>
+            <div
+              className={`text-5xl font-bold ${
+                passed ? "text-teal" : "text-danger"
+              } my-4 tabular-nums`}
+            >
+              {result.percentage}%
+            </div>
             <div className="flex justify-center gap-8">
               <div className="text-center">
-                <p className="text-2xl font-bold text-teal">{result.score}</p>
-                <p className="text-xs text-text-muted">{t('quiz.correct')}</p>
+                <p className="text-2xl font-bold text-teal tabular-nums">
+                  {result.score}
+                </p>
+                <p className="text-xs text-text-muted">
+                  {lang === "ar" ? "صحيح" : "Correct"}
+                </p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-danger">{result.total - result.score}</p>
-                <p className="text-xs text-text-muted">{t('quiz.wrong')}</p>
+                <p className="text-2xl font-bold text-danger tabular-nums">
+                  {result.total - result.score}
+                </p>
+                <p className="text-xs text-text-muted">
+                  {lang === "ar" ? "خاطئ" : "Wrong"}
+                </p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-text-primary">{result.total}</p>
-                <p className="text-xs text-text-muted">{t('quiz.total')}</p>
+                <p className="text-2xl font-bold text-text-primary tabular-nums">
+                  {result.total}
+                </p>
+                <p className="text-xs text-text-muted">
+                  {lang === "ar" ? "الإجمالي" : "Total"}
+                </p>
               </div>
             </div>
             <div className="flex gap-3 justify-center mt-6">
-              <Button onClick={restart}>{t('quiz.retry')}</Button>
+              <Button onClick={restart} className="hover:scale-105 transition-all">
+                {lang === "ar" ? "إعادة المحاولة" : "Retry"}
+              </Button>
               <Link href={`/dashboard/topic/${slug}`}>
-                <Button variant="secondary">{t('quiz.back_to_topic')}</Button>
+                <Button variant="secondary">{t("quiz.back_to_topic")}</Button>
               </Link>
             </div>
           </div>
@@ -202,11 +243,12 @@ export default function QuizPage() {
             {result.answers.map((a, i) => (
               <div
                 key={a.questionId}
-                className={`rounded-2xl border-2 p-5 transition-all ${
+                className={`rounded-2xl border-2 p-5 transition-all slide-up ${
                   a.isCorrect
                     ? "border-teal/30 bg-teal/5"
                     : "border-danger/30 bg-danger/5"
                 }`}
+                style={{ animationDelay: `${i * 0.05}s` }}
               >
                 <div className="flex items-start gap-3 mb-3">
                   {a.isCorrect ? (
@@ -214,9 +256,9 @@ export default function QuizPage() {
                   ) : (
                     <XCircle className="w-5 h-5 text-danger shrink-0 mt-0.5" />
                   )}
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-text-primary mb-1">
-                      {t('quiz.question')} {i + 1}:
+                      {lang === "ar" ? "سؤال" : "Question"} {i + 1}:
                     </p>
                     <MarkdownRenderer content={a.question} className="mb-2" />
                     <div className="space-y-1 text-sm">
@@ -225,14 +267,16 @@ export default function QuizPage() {
                           key={j}
                           className={`px-3 py-1.5 rounded-lg ${
                             j === a.correct
-                              ? "bg-teal/10 text-teal font-medium"
+                              ? "bg-teal/10 text-teal font-medium border border-teal/20"
                               : j === a.selected && !a.isCorrect
-                                ? "bg-danger/10 text-danger"
-                                : "text-text-muted"
+                              ? "bg-danger/10 text-danger border border-danger/20"
+                              : "text-text-muted"
                           }`}
                         >
-                          {String.fromCharCode(65 + j)}. <MarkdownRenderer content={opt} className="inline" />
+                          {String.fromCharCode(65 + j)}.{" "}
+                          <MarkdownRenderer content={opt} className="inline" />
                           {j === a.correct && " ✓"}
+                          {j === a.selected && a.isCorrect && " ✓"}
                         </div>
                       ))}
                     </div>
@@ -240,6 +284,9 @@ export default function QuizPage() {
                 </div>
                 {a.explanation && (
                   <div className="mr-8 mt-3 pt-3 border-t border-border/50">
+                    <p className="text-xs font-medium text-text-muted mb-1">
+                      {lang === "ar" ? "شرح" : "Explanation"}:
+                    </p>
                     <MarkdownRenderer content={a.explanation} />
                   </div>
                 )}
@@ -262,7 +309,9 @@ export default function QuizPage() {
         <div className="mb-8">
           <div className="flex justify-between text-sm text-text-muted mb-2">
             <span>{topicTitle}</span>
-            <span>{currentIndex + 1} / {questions.length}</span>
+            <span className="tabular-nums">
+              {currentIndex + 1} / {questions.length}
+            </span>
           </div>
           <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
             <div
@@ -274,7 +323,9 @@ export default function QuizPage() {
 
         <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 mb-6 animate-slide-in-right">
           <div className="flex items-start gap-3 mb-6">
-            <HelpCircle className="w-6 h-6 text-primary shrink-0 mt-0.5" />
+            <div className="p-2 rounded-xl bg-primary/10 shrink-0">
+              <HelpCircle className="w-5 h-5 text-primary" />
+            </div>
             <h2 className="text-xl font-bold text-text-primary leading-relaxed">
               <MarkdownRenderer content={question.question} />
             </h2>
@@ -296,13 +347,15 @@ export default function QuizPage() {
                   <span
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${
                       isSelected
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-white shadow-lg shadow-primary/20"
                         : "bg-surface-hover text-text-muted group-hover:bg-primary/10"
                     }`}
                   >
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className="text-text-primary font-medium"><MarkdownRenderer content={opt} className="inline" /></span>
+                  <span className="text-text-primary font-medium">
+                    <MarkdownRenderer content={opt} className="inline" />
+                  </span>
                 </button>
               );
             })}
@@ -310,18 +363,20 @@ export default function QuizPage() {
         </div>
 
         <div className="flex justify-between">
-          <Button
-            variant="secondary"
-            onClick={() => router.back()}
-          >
-            {t('quiz.cancel')}
+          <Button variant="secondary" onClick={() => router.back()}>
+            {t("quiz.cancel")}
           </Button>
           <Button
             onClick={answerQuestion}
             disabled={selectedOption === null}
             isLoading={submitting}
+            className="hover:scale-105 transition-all duration-300"
           >
-            {currentIndex < questions.length - 1 ? `${t('quiz.next')} →` : t('quiz.finish')}
+            {currentIndex < questions.length - 1
+              ? `${lang === "ar" ? "التالي" : "Next"} →`
+              : lang === "ar"
+              ? "إنهاء"
+              : "Finish"}
           </Button>
         </div>
       </main>

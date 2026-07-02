@@ -17,7 +17,12 @@ function processQueue(error: unknown, token: string | null) {
   failedQueue = [];
 }
 
-const api = axios.create();
+const api = axios.create({
+  timeout: 30000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
@@ -56,9 +61,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res = await axios.post("/api/auth/refresh", {}, {
-          withCredentials: true,
-        });
+        const res = await axios.post(
+          "/api/auth/refresh",
+          {},
+          { withCredentials: true }
+        );
         const { accessToken } = res.data.data;
         localStorage.setItem("accessToken", accessToken);
         processQueue(null, accessToken);
@@ -82,13 +89,22 @@ api.interceptors.response.use(
 
 export async function apiFetch<T>(
   url: string,
-  options?: { method?: string; body?: unknown; headers?: Record<string, string> }
+  options?: {
+    method?: string;
+    body?: unknown;
+    headers?: Record<string, string>;
+  }
 ): Promise<{ success: boolean; data?: T; error?: string }> {
   try {
     const res = await api({
       url,
       method: options?.method ?? "GET",
-      data: options?.body instanceof FormData ? options.body : (typeof options?.body === "string" ? JSON.parse(options.body) : options?.body),
+      data:
+        options?.body instanceof FormData
+          ? options.body
+          : typeof options?.body === "string"
+          ? JSON.parse(options.body)
+          : options?.body,
       headers: options?.headers,
     });
     return res.data;

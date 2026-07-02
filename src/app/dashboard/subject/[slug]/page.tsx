@@ -8,11 +8,22 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
-import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getAuthOrRefresh } from "@/lib/auth-client";
 import {
-  BookOpen, ArrowLeft, Layers, Play, ChevronDown, ChevronLeft,
-  CheckCircle, GraduationCap, FileQuestion, Award, Lock,
+  BookOpen,
+  ArrowLeft,
+  Layers,
+  Play,
+  ChevronDown,
+  ChevronLeft,
+  CheckCircle,
+  GraduationCap,
+  FileQuestion,
+  Award,
+  Lock,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 
 interface College {
@@ -88,10 +99,22 @@ interface UnitExamAttemptData {
   takenAt: string;
 }
 
-const difficultyMeta: Record<string, { label: string; color: "success" | "warning" | "danger" }> = {
+const difficultyMeta: Record<
+  string,
+  { label: string; color: "success" | "warning" | "danger" }
+> = {
   beginner: { label: "مبتدئ", color: "success" },
   intermediate: { label: "متوسط", color: "warning" },
   advanced: { label: "متقدم", color: "danger" },
+};
+
+const difficultyMetaEn: Record<
+  string,
+  { label: string; color: "success" | "warning" | "danger" }
+> = {
+  beginner: { label: "Beginner", color: "success" },
+  intermediate: { label: "Intermediate", color: "warning" },
+  advanced: { label: "Advanced", color: "danger" },
 };
 
 export default function SubjectDetailPage() {
@@ -103,7 +126,10 @@ export default function SubjectDetailPage() {
   useEffect(() => {
     (async () => {
       const u = await getAuthOrRefresh();
-      if (!u) { router.push("/auth/login"); return; }
+      if (!u) {
+        router.push("/auth/login");
+        return;
+      }
     })();
   }, [router]);
 
@@ -138,22 +164,41 @@ export default function SubjectDetailPage() {
       );
       if (collegeMatch) setCollege(collegeMatch);
 
-      const [levelsRes, unitsRes, topicsRes, progressRes, examRes] = await Promise.all([
-        apiFetch<Level[]>(`/api/admin/levels?subjectId=${found._id}`),
-        apiFetch<Unit[]>(`/api/admin/units?subjectId=${found._id}`),
-        apiFetch<Topic[]>(`/api/admin/topics?subjectId=${found._id}`),
-        apiFetch<LessonProgressData[]>(`/api/progress/lesson?subjectId=${found._id}`),
-        apiFetch<UnitExamAttemptData[]>(`/api/progress/unit-exam?subjectId=${found._id}`),
-      ]);
+      const [levelsRes, unitsRes, topicsRes, progressRes, examRes] =
+        await Promise.all([
+          apiFetch<Level[]>(`/api/admin/levels?subjectId=${found._id}`),
+          apiFetch<Unit[]>(`/api/admin/units?subjectId=${found._id}`),
+          apiFetch<Topic[]>(`/api/admin/topics?subjectId=${found._id}`),
+          apiFetch<LessonProgressData[]>(
+            `/api/progress/lesson?subjectId=${found._id}`
+          ),
+          apiFetch<UnitExamAttemptData[]>(
+            `/api/progress/unit-exam?subjectId=${found._id}`
+          ),
+        ]);
 
-      setLevels((levelsRes.data ?? []).filter((l) => l.isPublished).sort((a, b) => a.order - b.order));
-      setUnits((unitsRes.data ?? []).filter((u) => u.isPublished).sort((a, b) => a.order - b.order));
-      setTopics((topicsRes.data ?? []).filter((t) => t.isPublished).sort((a, b) => a.order - b.order));
+      setLevels(
+        (levelsRes.data ?? [])
+          .filter((l) => l.isPublished)
+          .sort((a, b) => a.order - b.order)
+      );
+      setUnits(
+        (unitsRes.data ?? [])
+          .filter((u) => u.isPublished)
+          .sort((a, b) => a.order - b.order)
+      );
+      setTopics(
+        (topicsRes.data ?? [])
+          .filter((t) => t.isPublished)
+          .sort((a, b) => a.order - b.order)
+      );
       setProgress(progressRes.data ?? []);
       setExamAttempts(examRes.data ?? []);
 
       const initialLevels = new Set<string>();
-      (levelsRes.data ?? []).filter((l) => l.isPublished).forEach((l) => initialLevels.add(l._id));
+      (levelsRes.data ?? [])
+        .filter((l) => l.isPublished)
+        .forEach((l) => initialLevels.add(l._id));
       setExpandedLevels(initialLevels);
     } catch {
       setError("حدث خطأ في تحميل البيانات");
@@ -169,7 +214,8 @@ export default function SubjectDetailPage() {
   function toggleLevel(id: string) {
     setExpandedLevels((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
@@ -177,7 +223,8 @@ export default function SubjectDetailPage() {
   function toggleUnit(id: string) {
     setExpandedUnits((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
@@ -216,7 +263,7 @@ export default function SubjectDetailPage() {
           <div className="mb-4">
             <Button variant="ghost" size="sm" onClick={() => router.back()}>
               <ArrowLeft className="w-4 h-4 ml-1" />
-              {t('topic.back')}
+              {t("topic.back")}
             </Button>
           </div>
           <LoadingSkeleton />
@@ -229,10 +276,12 @@ export default function SubjectDetailPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4" />
-          <p className="text-text-muted text-lg mb-4">{error || "لم يتم العثور على المادة"}</p>
+          <BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-30" />
+          <p className="text-text-muted text-lg mb-4">
+            {error || "لم يتم العثور على المادة"}
+          </p>
           <Button variant="secondary" onClick={() => router.push("/dashboard")}>
-            {t('nav.dashboard')}
+            {t("nav.dashboard")}
           </Button>
         </div>
       </div>
@@ -243,16 +292,24 @@ export default function SubjectDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar variant="minimal" />
 
-      <section className="border-b border-border/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
-        <div className="max-w-4xl mx-auto px-6 py-10">
+      {/* Subject Header - Enhanced */}
+      <section className="border-b border-border/20 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-4xl mx-auto px-6 py-10 relative">
           <div className="mb-4">
             <Button variant="ghost" size="sm" onClick={() => router.push("/colleges")}>
-              <ArrowLeft className="w-4 h-4 ml-1" />
-              {t('nav.colleges')}
+              <ArrowLeft className={`w-4 h-4 ml-1 ${isRTL ? "" : "rotate-180"}`} />
+              {t("nav.colleges")}
             </Button>
           </div>
           <p className="text-sm text-text-muted mb-2">
-            {lang === 'ar' ? (college?.nameAr || college?.name || "") : (college?.nameEn || college?.name || "")}
+            {lang === "ar"
+              ? college?.nameAr || college?.name || ""
+              : college?.nameEn || college?.name || ""}
           </p>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white shadow-xl shrink-0">
@@ -260,11 +317,16 @@ export default function SubjectDetailPage() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-text-primary">
-                {lang === 'ar' ? (subject.nameAr || subject.name) : (subject.nameEn || subject.name)}
+                {lang === "ar"
+                  ? subject.nameAr || subject.name
+                  : subject.nameEn || subject.name}
               </h1>
               <p className="text-text-secondary mt-1">
-                {levels.length} مستوى · {units.length} وحدة · {topics.length} درس
-                {subject.isShared && " · مادة مشتركة"}
+                {levels.length} {lang === "ar" ? "مستوى" : "levels"} ·{" "}
+                {units.length} {lang === "ar" ? "وحدة" : "units"} ·{" "}
+                {topics.length} {lang === "ar" ? "درس" : "lessons"}
+                {subject.isShared &&
+                  ` · ${lang === "ar" ? "مادة مشتركة" : "Shared"}`}
               </p>
             </div>
           </div>
@@ -274,19 +336,31 @@ export default function SubjectDetailPage() {
       <main className="max-w-4xl mx-auto px-6 py-8">
         {levels.length === 0 ? (
           <div className="text-center py-16">
-            <BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4" />
-            <p className="text-text-muted text-lg">لا توجد مستويات متاحة بعد</p>
+            <BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-30" />
+            <p className="text-text-muted text-lg">
+              {lang === "ar" ? "لا توجد مستويات متاحة بعد" : "No levels available yet"}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {levels.map((level) => {
+            {levels.map((level, levelIdx) => {
               const levelUnits = getUnitsForLevel(level._id);
               const isExpanded = expandedLevels.has(level._id);
-              const levelTopics = levelUnits.reduce((sum, u) => sum + getTopicsForUnit(u._id).length, 0);
-              const levelCompleted = levelUnits.reduce((sum, u) => sum + unitProgressCount(u._id).completed, 0);
+              const levelTopics = levelUnits.reduce(
+                (sum, u) => sum + getTopicsForUnit(u._id).length,
+                0
+              );
+              const levelCompleted = levelUnits.reduce(
+                (sum, u) => sum + unitProgressCount(u._id).completed,
+                0
+              );
 
               return (
-                <div key={level._id} className="glass rounded-2xl border border-border/50 overflow-hidden">
+                <div
+                  key={level._id}
+                  className="glass rounded-2xl border border-border/50 overflow-hidden hover:border-primary/20 transition-all duration-300 slide-up"
+                  style={{ animationDelay: `${levelIdx * 0.05}s` }}
+                >
                   <button
                     onClick={() => toggleLevel(level._id)}
                     className="w-full flex items-center gap-4 p-5 hover:bg-surface-hover/50 transition-colors text-right"
@@ -296,43 +370,63 @@ export default function SubjectDetailPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-text-primary text-base">
-                        {lang === 'ar' ? level.title : (level.titleEn || level.title)}
+                        {lang === "ar" ? level.title : level.titleEn || level.title}
                       </h3>
                       <p className="text-xs text-text-muted mt-0.5">
-                        {levelUnits.length} وحدات · {levelTopics} دروس
-                        {levelCompleted > 0 && ` · تم ${levelCompleted}`}
+                        {levelUnits.length} {lang === "ar" ? "وحدات" : "units"} ·{" "}
+                        {levelTopics} {lang === "ar" ? "دروس" : "lessons"}
+                        {levelCompleted > 0 &&
+                          ` · ${lang === "ar" ? "تم" : "completed"} ${levelCompleted}`}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-3 shrink-0">
                       {levelTopics > 0 && (
                         <div className="w-20 h-1.5 bg-border rounded-full overflow-hidden hidden sm:block">
                           <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${levelTopics > 0 ? (levelCompleted / levelTopics) * 100 : 0}%` }}
+                            className="h-full bg-primary rounded-full transition-all duration-700"
+                            style={{
+                              width: `${levelTopics > 0 ? (levelCompleted / levelTopics) * 100 : 0}%`,
+                            }}
                           />
                         </div>
                       )}
-                      {isExpanded ? (
-                        <ChevronDown className="w-5 h-5 text-text-muted" />
-                      ) : (
-                        <ChevronLeft className="w-5 h-5 text-text-muted" />
-                      )}
+                      <div className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors">
+                        {isExpanded ? (
+                          <ChevronDown className="w-5 h-5 text-text-muted" />
+                        ) : (
+                          <ChevronLeft
+                            className={`w-5 h-5 text-text-muted ${
+                              isRTL ? "" : "rotate-180"
+                            }`}
+                          />
+                        )}
+                      </div>
                     </div>
                   </button>
 
                   {isExpanded && (
-                    <div className="border-t border-border/30 px-5 pb-4 space-y-3">
+                    <div className="border-t border-border/30 px-5 pb-4 space-y-3 animate-slide-in-right">
                       {levelUnits.length === 0 ? (
-                        <p className="text-sm text-text-muted text-center py-4">لا توجد وحدات متاحة</p>
+                        <p className="text-sm text-text-muted text-center py-4">
+                          {lang === "ar"
+                            ? "لا توجد وحدات متاحة"
+                            : "No units available"}
+                        </p>
                       ) : (
-                        levelUnits.map((unit) => {
+                        levelUnits.map((unit, unitIdx) => {
                           const unitTopics = getTopicsForUnit(unit._id);
                           const unitExpanded = expandedUnits.has(unit._id);
-                          const { completed, total } = unitProgressCount(unit._id);
+                          const { completed, total } = unitProgressCount(
+                            unit._id
+                          );
                           const examAttempt = getLatestExamAttempt(unit._id);
 
                           return (
-                            <div key={unit._id} className="mt-3">
+                            <div
+                              key={unit._id}
+                              className="mt-3 slide-up"
+                              style={{ animationDelay: `${unitIdx * 0.05}s` }}
+                            >
                               <button
                                 onClick={() => toggleUnit(unit._id)}
                                 className="w-full flex items-center gap-3 p-3 rounded-xl bg-surface/50 hover:bg-surface-hover/50 transition-colors text-right border border-border/20"
@@ -342,42 +436,66 @@ export default function SubjectDetailPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h4 className="font-semibold text-text-primary text-sm">
-                                    {lang === 'ar' ? unit.title : (unit.titleEn || unit.title)}
+                                    {lang === "ar"
+                                      ? unit.title
+                                      : unit.titleEn || unit.title}
                                   </h4>
                                   <p className="text-xs text-text-muted mt-0.5">
-                                    {unitTopics.length} دروس
-                                    {completed > 0 && ` · تم ${completed}/${total}`}
+                                    {unitTopics.length}{" "}
+                                    {lang === "ar" ? "دروس" : "lessons"}
+                                    {completed > 0 &&
+                                      ` · ${lang === "ar" ? "تم" : "completed"} ${completed}/${total}`}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   {total > 0 && (
                                     <div className="w-16 h-1 bg-border rounded-full overflow-hidden hidden sm:block">
                                       <div
-                                        className="h-full bg-teal rounded-full transition-all"
-                                        style={{ width: `${(completed / total) * 100}%` }}
+                                        className="h-full bg-teal rounded-full transition-all duration-700"
+                                        style={{
+                                          width: `${(completed / total) * 100}%`,
+                                        }}
                                       />
                                     </div>
                                   )}
                                   {examAttempt?.passed && (
-                                    <Badge variant="success">ناجح</Badge>
+                                    <Badge variant="success" withPulse>
+                                      {lang === "ar" ? "ناجح" : "Passed"}
+                                    </Badge>
                                   )}
-                                  {unitExpanded ? (
-                                    <ChevronDown className="w-4 h-4 text-text-muted" />
-                                  ) : (
-                                    <ChevronLeft className="w-4 h-4 text-text-muted" />
-                                  )}
+                                  <div className="p-1 rounded-lg hover:bg-surface-hover transition-colors">
+                                    {unitExpanded ? (
+                                      <ChevronDown className="w-4 h-4 text-text-muted" />
+                                    ) : (
+                                      <ChevronLeft
+                                        className={`w-4 h-4 text-text-muted ${
+                                          isRTL ? "" : "rotate-180"
+                                        }`}
+                                      />
+                                    )}
+                                  </div>
                                 </div>
                               </button>
 
                               {unitExpanded && (
-                                <div className="mr-10 mt-2 space-y-1.5">
+                                <div className="mr-10 mt-2 space-y-1.5 animate-slide-in-right">
                                   {unitTopics.length === 0 ? (
-                                    <p className="text-sm text-text-muted py-2">لا توجد دروس متاحة</p>
+                                    <p className="text-sm text-text-muted py-2">
+                                      {lang === "ar"
+                                        ? "لا توجد دروس متاحة"
+                                        : "No lessons available"}
+                                    </p>
                                   ) : (
                                     unitTopics.map((topic, idx) => {
                                       const p = getProgress(topic._id);
-                                      const completedBoth = p?.watchedVideo && p?.passedQuiz;
-                                      const diff = difficultyMeta[topic.difficulty] || difficultyMeta.beginner;
+                                      const completedBoth =
+                                        p?.watchedVideo && p?.passedQuiz;
+                                      const diff =
+                                        difficultyMeta[topic.difficulty] ||
+                                        difficultyMeta.beginner;
+                                      const diffEn =
+                                        difficultyMetaEn[topic.difficulty] ||
+                                        difficultyMetaEn.beginner;
 
                                       return (
                                         <Link
@@ -389,11 +507,13 @@ export default function SubjectDetailPage() {
                                               : "bg-surface border-border/30 hover:border-primary/20 hover:bg-surface-hover/50"
                                           }`}
                                         >
-                                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                                            completedBoth
-                                              ? "bg-teal/20 text-teal"
-                                              : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors"
-                                          }`}>
+                                          <div
+                                            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
+                                              completedBoth
+                                                ? "bg-teal/20 text-teal"
+                                                : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+                                            }`}
+                                          >
                                             {completedBoth ? (
                                               <CheckCircle className="w-4 h-4" />
                                             ) : (
@@ -401,31 +521,66 @@ export default function SubjectDetailPage() {
                                             )}
                                           </div>
                                           <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                              <span className={`text-sm font-medium truncate ${
-                                                completedBoth ? "text-teal" : "text-text-primary"
-                                              }`}>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span
+                                                className={`text-sm font-medium truncate ${
+                                                  completedBoth
+                                                    ? "text-teal"
+                                                    : "text-text-primary"
+                                                }`}
+                                              >
                                                 {topic.title}
                                               </span>
-                                              {topic.isFree && <Badge variant="success">مجاني</Badge>}
+                                              {topic.isFree && (
+                                                <Badge variant="success">
+                                                  {lang === "ar"
+                                                    ? "مجاني"
+                                                    : "Free"}
+                                                </Badge>
+                                              )}
                                             </div>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                              <Badge variant={diff.color}>{diff.label}</Badge>
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                              <Badge
+                                                variant={
+                                                  lang === "ar"
+                                                    ? diff.color
+                                                    : diffEn.color
+                                                }
+                                              >
+                                                {lang === "ar"
+                                                  ? diff.label
+                                                  : diffEn.label}
+                                              </Badge>
                                               {topic.videoUrl && (
                                                 <span className="flex items-center gap-0.5 text-[10px] text-text-muted">
                                                   <Play className="w-2.5 h-2.5" />
-                                                  فيديو
+                                                  {lang === "ar"
+                                                    ? "فيديو"
+                                                    : "Video"}
                                                 </span>
                                               )}
-                                              {p?.watchedVideo && !p?.passedQuiz && (
-                                                <span className="text-[10px] text-warning">مشاهَد</span>
-                                              )}
+                                              {p?.watchedVideo &&
+                                                !p?.passedQuiz && (
+                                                  <span className="text-[10px] text-warning">
+                                                    {lang === "ar"
+                                                      ? "مشاهَد"
+                                                      : "Watched"}
+                                                  </span>
+                                                )}
                                               {completedBoth && (
-                                                <span className="text-[10px] text-teal">مكتمل</span>
+                                                <span className="text-[10px] text-teal">
+                                                  {lang === "ar"
+                                                    ? "مكتمل"
+                                                    : "Completed"}
+                                                </span>
                                               )}
                                             </div>
                                           </div>
-                                          <ArrowLeft className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0" />
+                                          <ArrowLeft
+                                            className={`w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0 ${
+                                              isRTL ? "" : "rotate-180"
+                                            }`}
+                                          />
                                         </Link>
                                       );
                                     })
@@ -440,11 +595,13 @@ export default function SubjectDetailPage() {
                                           : "bg-gradient-to-r from-warning/5 to-accent/5 border-warning/20 hover:border-warning/40"
                                       }`}
                                     >
-                                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                                        examAttempt?.passed
-                                          ? "bg-teal/20 text-teal"
-                                          : "bg-warning/20 text-warning"
-                                      }`}>
+                                      <div
+                                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                                          examAttempt?.passed
+                                            ? "bg-teal/20 text-teal"
+                                            : "bg-warning/20 text-warning"
+                                        }`}
+                                      >
                                         {examAttempt?.passed ? (
                                           <Award className="w-4 h-4" />
                                         ) : (
@@ -452,20 +609,34 @@ export default function SubjectDetailPage() {
                                         )}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <span className={`text-sm font-medium ${
-                                          examAttempt?.passed ? "text-teal" : "text-text-primary"
-                                        }`}>
-                                          {examAttempt?.passed ? "اختبار الوحدة - تم بنجاح" : "اختبار الوحدة"}
+                                        <span
+                                          className={`text-sm font-medium ${
+                                            examAttempt?.passed
+                                              ? "text-teal"
+                                              : "text-text-primary"
+                                          }`}
+                                        >
+                                          {examAttempt?.passed
+                                            ? lang === "ar"
+                                              ? "اختبار الوحدة - تم بنجاح"
+                                              : "Unit Exam - Passed"
+                                            : lang === "ar"
+                                            ? "اختبار الوحدة"
+                                            : "Unit Exam"}
                                         </span>
                                         {examAttempt && (
                                           <p className="text-xs text-text-muted mt-0.5">
                                             {examAttempt.passed
-                                              ? `النتيجة: ${examAttempt.score}%`
-                                              : `آخر محاولة: ${examAttempt.score}% (المحاولة ${examAttempt.attemptNumber})`}
+                                              ? `${lang === "ar" ? "النتيجة" : "Score"}: ${examAttempt.score}%`
+                                              : `${lang === "ar" ? "آخر محاولة" : "Last attempt"}: ${examAttempt.score}% (${lang === "ar" ? "المحاولة" : "attempt"} ${examAttempt.attemptNumber})`}
                                           </p>
                                         )}
                                       </div>
-                                      <ArrowLeft className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0" />
+                                      <ArrowLeft
+                                        className={`w-4 h-4 text-text-muted group-hover:text-primary transition-colors shrink-0 ${
+                                          isRTL ? "" : "rotate-180"
+                                        }`}
+                                      />
                                     </Link>
                                   )}
                                 </div>

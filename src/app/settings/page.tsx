@@ -12,7 +12,7 @@ import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import {
   Camera, Save, Lock, Trash2, Building2, CheckCircle,
   AlertCircle, User, Eye, EyeOff, Mail, Calendar, Shield,
-  ChevronLeft,
+  Settings as SettingsIcon, Sparkles,
 } from "lucide-react";
 
 interface College { _id: string; nameAr?: string; nameEn?: string; name?: string; universityId?: string; }
@@ -21,7 +21,11 @@ interface University { _id: string; nameAr?: string; nameEn?: string; name?: str
 function StatusMsg({ msg, type }: { msg: string; type: "success" | "error" }) {
   if (!msg) return null;
   return (
-    <div className={`flex items-center gap-2 text-sm mt-3 p-3 rounded-xl ${type === "success" ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+    <div className={`flex items-center gap-2 text-sm mt-3 p-3 rounded-xl ${
+      type === "success"
+        ? "bg-green-500/10 text-green-400 border border-green-500/20"
+        : "bg-red-500/10 text-red-400 border border-red-500/20"
+    }`}>
       {type === "success" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
       {msg}
     </div>
@@ -187,13 +191,18 @@ export default function SettingsPage() {
       <Navbar />
       <div className="relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/3 rounded-full blur-3xl" />
         </div>
 
         <main className="relative max-w-2xl mx-auto px-4 py-8 space-y-6">
-          <div className={`text-center sm:text-right transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            <h1 className="text-3xl font-bold text-text-primary">
+          <div className={`text-center sm:text-right slide-up ${mounted ? "" : "opacity-0"}`}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4 border border-primary/20">
+              <SettingsIcon className="w-4 h-4" />
+              {lang === "ar" ? "إعدادات الحساب" : "Account Settings"}
+            </div>
+            <h1 className="text-3xl font-bold gradient-text">
               {lang === "ar" ? "إعدادات الحساب" : "Account Settings"}
             </h1>
             <p className="text-text-muted text-sm mt-1">
@@ -201,10 +210,10 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          <div className={`glass rounded-3xl p-8 border border-border/50 shadow-2xl hover:shadow-3xl hover:-translate-y-0.5 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "0.05s" }}>
+          <div className={`glass rounded-3xl p-8 border border-border/50 shadow-2xl hover:shadow-3xl hover:-translate-y-0.5 transition-all duration-500 slide-up ${mounted ? "" : "opacity-0"}`} style={{ animationDelay: "0.05s" }}>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-br from-primary to-secondary rounded-full blur-lg opacity-60 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute -inset-1 bg-gradient-to-br from-primary to-secondary rounded-full blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative">
                   {profileImage ? (
                     <Image src={profileImage} alt="Profile" width={112} height={112}
@@ -216,7 +225,7 @@ export default function SettingsPage() {
                   )}
                   <button onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImage}
-                    className="absolute bottom-1 right-1 w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center border-2 border-background shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-50">
+                    className="absolute bottom-1 right-1 w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center border-2 border-background shadow-lg hover:scale-110 hover:shadow-xl active:scale-95 transition-all disabled:opacity-50">
                     {uploadingImage
                       ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       : <Camera className="w-4 h-4 text-white" />}
@@ -246,7 +255,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className={`glass rounded-3xl border border-border/50 shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "0.1s" }}>
+          <div className={`glass rounded-3xl border border-border/50 shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 slide-up ${mounted ? "" : "opacity-0"}`} style={{ animationDelay: "0.1s" }}>
             <div className="flex items-center gap-3 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
               <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
                 <User className="w-5 h-5 text-primary" />
@@ -257,16 +266,19 @@ export default function SettingsPage() {
             </div>
             <div className="p-6">
               <form onSubmit={handleSaveName} className="space-y-4">
-                <input
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  dir="auto"
-                />
+                <div className="relative">
+                  <User className={`absolute ${lang === "ar" ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted`} />
+                  <input
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className={`w-full bg-background/60 backdrop-blur-sm border-2 border-border/50 rounded-xl px-4 py-3 ${lang === "ar" ? "pr-12" : "pl-12"} text-text-primary text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all hover:border-primary/30`}
+                    dir="auto"
+                  />
+                </div>
                 {nameMsg && <StatusMsg msg={nameMsg.text} type={nameMsg.type} />}
                 <div className="flex justify-end">
                   <button type="submit" disabled={savingName || !name.trim()}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-primary/20 active:scale-[0.97] transition-all disabled:opacity-50">
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.97] transition-all disabled:opacity-50">
                     <Save className="w-4 h-4" />
                     {savingName ? (lang === "ar" ? "جاري الحفظ..." : "Saving...") : (lang === "ar" ? "حفظ الاسم" : "Save Name")}
                   </button>
@@ -275,7 +287,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className={`glass rounded-3xl border border-border/50 shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "0.15s" }}>
+          <div className={`glass rounded-3xl border border-border/50 shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 slide-up ${mounted ? "" : "opacity-0"}`} style={{ animationDelay: "0.15s" }}>
             <div className="flex items-center gap-3 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-yellow-500/5 to-transparent">
               <div className="p-2.5 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-500/10">
                 <Lock className="w-5 h-5 text-yellow-400" />
@@ -298,7 +310,7 @@ export default function SettingsPage() {
                         type={field.show ? "text" : "password"}
                         value={field.val}
                         onChange={e => field.set(e.target.value)}
-                        className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all pr-11"
+                        className="w-full bg-background/60 backdrop-blur-sm border-2 border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all hover:border-yellow-400/30 pr-11"
                         dir="ltr"
                       />
                       {i < 2 && (
@@ -314,7 +326,7 @@ export default function SettingsPage() {
                 {passwordMsg && <StatusMsg msg={passwordMsg.text} type={passwordMsg.type} />}
                 <div className="flex justify-end">
                   <button type="submit" disabled={savingPassword}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-yellow-500/20 active:scale-[0.97] transition-all disabled:opacity-50">
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-yellow-500/20 hover:scale-[1.02] active:scale-[0.97] transition-all disabled:opacity-50">
                     <Lock className="w-4 h-4" />
                     {savingPassword ? (lang === "ar" ? "جاري التغيير..." : "Changing...") : (lang === "ar" ? "تغيير كلمة المرور" : "Change Password")}
                   </button>
@@ -323,7 +335,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className={`glass rounded-3xl border border-border/50 shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "0.2s" }}>
+          <div className={`glass rounded-3xl border border-border/50 shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500 slide-up ${mounted ? "" : "opacity-0"}`} style={{ animationDelay: "0.2s" }}>
             <div className="flex items-center gap-3 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-emerald-500/5 to-transparent">
               <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/10">
                 <Building2 className="w-5 h-5 text-emerald-400" />
@@ -339,7 +351,7 @@ export default function SettingsPage() {
                     {lang === "ar" ? "الجامعة" : "University"}
                   </label>
                   <select value={selectedUniversityId} onChange={e => { setSelectedUniversityId(e.target.value); setSelectedCollegeId(""); }}
-                    className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all appearance-none"
+                    className="w-full bg-background/60 backdrop-blur-sm border-2 border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all appearance-none hover:border-emerald-400/30"
                     dir="auto">
                     <option value="">{lang === "ar" ? "— اختر الجامعة —" : "— Select University —"}</option>
                     {universities.map(u => <option key={u._id} value={u._id}>{lang === "ar" ? u.nameAr : u.nameEn || u.name}</option>)}
@@ -350,7 +362,7 @@ export default function SettingsPage() {
                     {lang === "ar" ? "الكلية" : "College"}
                   </label>
                   <select value={selectedCollegeId} onChange={e => setSelectedCollegeId(e.target.value)}
-                    className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all appearance-none"
+                    className="w-full bg-background/60 backdrop-blur-sm border-2 border-border/50 rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all appearance-none hover:border-emerald-400/30"
                     dir="auto">
                     <option value="">{lang === "ar" ? "— اختر الكلية —" : "— Select College —"}</option>
                     {filteredColleges.map(c => <option key={c._id} value={c._id}>{lang === "ar" ? c.nameAr : c.nameEn || c.name}</option>)}
@@ -359,7 +371,7 @@ export default function SettingsPage() {
                 {collegeMsg && <StatusMsg msg={collegeMsg.text} type={collegeMsg.type} />}
                 <div className="flex justify-end">
                   <button type="submit" disabled={savingCollege || !selectedCollegeId}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.97] transition-all disabled:opacity-50">
+                    className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.97] transition-all disabled:opacity-50">
                     <Save className="w-4 h-4" />
                     {savingCollege ? (lang === "ar" ? "جاري الحفظ..." : "Saving...") : (lang === "ar" ? "حفظ" : "Save")}
                   </button>
@@ -368,7 +380,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className={`rounded-3xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-red-500/[0.02] p-6 sm:p-8 hover:shadow-xl hover:shadow-red-500/5 hover:-translate-y-0.5 transition-all duration-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ transitionDelay: "0.25s" }}>
+          <div className={`rounded-3xl border-2 border-red-500/20 bg-gradient-to-br from-red-500/5 to-red-500/[0.02] p-6 sm:p-8 hover:shadow-xl hover:shadow-red-500/5 hover:-translate-y-0.5 transition-all duration-500 slide-up ${mounted ? "" : "opacity-0"}`} style={{ animationDelay: "0.25s" }}>
             <div className="flex items-start gap-4">
               <div className="p-2.5 rounded-xl bg-red-500/10 shrink-0">
                 <AlertCircle className="w-5 h-5 text-red-400" />
@@ -383,7 +395,7 @@ export default function SettingsPage() {
                     : "Deleting your account will permanently remove all your data. This action cannot be undone."}
                 </p>
                 <button onClick={() => setShowDeleteConfirm(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-bold rounded-xl border border-red-500/20 hover:border-red-500/40 active:scale-[0.97] transition-all">
+                  className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-bold rounded-xl border border-red-500/20 hover:border-red-500/40 hover:scale-[1.02] active:scale-[0.97] transition-all">
                   <Trash2 className="w-4 h-4" />
                   {lang === "ar" ? "حذف الحساب نهائياً" : "Delete Account Permanently"}
                 </button>

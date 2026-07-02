@@ -18,8 +18,12 @@ export function Card({
   onClick,
 }: CardProps) {
   const base = "rounded-2xl p-6 transition-all duration-300";
-  const glass = withGlass ? "glass" : "bg-surface border border-border";
-  const hover = withHover ? "hover:shadow-lg hover:-translate-y-1" : "";
+  const glass = withGlass
+    ? "glass border border-border/50"
+    : "bg-surface border border-border";
+  const hover = withHover
+    ? "hover:shadow-xl hover:-translate-y-1 hover:border-primary/20"
+    : "";
   const tilt = withTilt ? "card-tilt" : "";
   const clickable = onClick ? "cursor-pointer" : "";
 
@@ -29,7 +33,16 @@ export function Card({
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
     >
       {children}
     </div>

@@ -15,8 +15,15 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import axios from "axios";
 import api from "@/lib/api";
-import { UserPlus, ArrowLeft, Building2, ChevronLeft, Check } from "lucide-react";
-import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import {
+  UserPlus,
+  ArrowLeft,
+  Building2,
+  ChevronLeft,
+  Check,
+  Sparkles,
+} from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface University {
   _id: string;
@@ -78,7 +85,9 @@ export default function RegisterPage() {
           setUniversities(data);
           if (data.length === 0) setUniversitiesEmpty(true);
         })
-        .catch(() => { setUniversitiesEmpty(true); })
+        .catch(() => {
+          setUniversitiesEmpty(true);
+        })
         .finally(() => setUniversitiesLoading(false));
     }
   }, [step]);
@@ -97,7 +106,10 @@ export default function RegisterPage() {
   }, [universitiesEmpty, selectedUniversityId]);
 
   useEffect(() => {
-    if (!selectedUniversityId) { setColleges([]); return; }
+    if (!selectedUniversityId) {
+      setColleges([]);
+      return;
+    }
     setCollegesLoading(true);
     apiFetch<College[]>(`/api/admin/colleges?universityId=${selectedUniversityId}`)
       .then((res) => {
@@ -151,50 +163,65 @@ export default function RegisterPage() {
   }
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-6 relative">
-      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:right-6 sm:max-w-none">
+    <div
+      dir={isRTL ? "rtl" : "ltr"}
+      className="min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-6 relative"
+    >
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md flex items-center justify-between mb-4 sm:mb-0 sm:absolute sm:top-6 sm:left-6 sm:right-6 sm:max-w-none z-10">
         <ThemeToggle />
         <Link href="/">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 ml-1" />
-            العودة
+          <Button variant="ghost" size="sm" className="gap-1">
+            <ArrowLeft className={`w-4 h-4 ${isRTL ? "" : "rotate-180"}`} />
+            {isRTL ? "العودة" : "Back"}
           </Button>
         </Link>
       </div>
 
-      <div className="w-full max-w-md relative mt-2 sm:mt-0">
-        <div className="hidden sm:block absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-        <div className="hidden sm:block absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
-
-        <div className="relative glass rounded-3xl p-5 sm:p-8 border border-border/50 shadow-2xl">
+      <div className="w-full max-w-md relative z-10 mt-2 sm:mt-0">
+        <div className="relative glass rounded-3xl p-5 sm:p-8 border border-border/50 shadow-2xl scale-in">
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white text-2xl mb-4 shadow-lg shadow-primary/20">
               <UserPlus className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-bold text-text-primary">{t('auth.register.title')}</h1>
-            <p className="text-text-secondary text-sm mt-1">{t('auth.register.subtitle')}</p>
+            <h1 className="text-2xl font-bold text-text-primary">
+              {t("auth.register.title")}
+            </h1>
+            <p className="text-text-secondary text-sm mt-1">
+              {t("auth.register.subtitle")}
+            </p>
 
-            {/* Step Indicator */}
             <div className="flex items-center justify-center gap-2 mt-4">
-              <div className={`w-2.5 h-2.5 rounded-full ${step === 1 ? "bg-primary" : "bg-primary/30"}`} />
+              <div
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  step === 1 ? "bg-primary" : "bg-primary/30"
+                }`}
+              />
               <div className="w-8 h-px bg-border" />
-              <div className={`w-2.5 h-2.5 rounded-full ${step === 2 ? "bg-primary" : "bg-primary/30"}`} />
+              <div
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  step === 2 ? "bg-primary" : "bg-primary/30"
+                }`}
+              />
             </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            {/* Step 1: Basic info */}
             {step === 1 && (
               <>
                 <Input
-                  label={t('auth.register.name')}
+                  label={t("auth.register.name")}
                   placeholder={lang === "ar" ? "مثال: أحمد محمد" : "e.g. Ahmed Mohammed"}
                   {...register("name")}
                   error={errors.name?.message}
                 />
 
                 <Input
-                  label={t('auth.register.email')}
+                  label={t("auth.register.email")}
                   type="email"
                   placeholder="example@email.com"
                   {...register("email")}
@@ -203,7 +230,7 @@ export default function RegisterPage() {
 
                 <div>
                   <Input
-                    label={t('auth.register.password')}
+                    label={t("auth.register.password")}
                     type="password"
                     placeholder={lang === "ar" ? "8 أحرف على الأقل" : "At least 8 characters"}
                     {...register("password")}
@@ -232,14 +259,17 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                <Button type="button" onClick={handleNext} className="flex items-center gap-2 mt-2 justify-center">
-                  التالي
-                  <ChevronLeft className="w-5 h-5" />
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="flex items-center gap-2 mt-2 justify-center hover:scale-105 transition-all duration-300"
+                >
+                  {isRTL ? "التالي" : "Next"}
+                  <ChevronLeft className={`w-5 h-5 ${isRTL ? "" : "rotate-180"}`} />
                 </Button>
               </>
             )}
 
-            {/* Step 2: University & College */}
             {step === 2 && (
               <>
                 <button
@@ -247,16 +277,16 @@ export default function RegisterPage() {
                   onClick={() => setStep(1)}
                   className="flex items-center gap-1 text-sm text-text-muted hover:text-text-primary transition-colors mb-2"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  العودة
+                  <ArrowLeft className={`w-4 h-4 ${isRTL ? "" : "rotate-180"}`} />
+                  {isRTL ? "العودة" : "Back"}
                 </button>
 
                 {universitiesLoading ? (
                   <LoadingSkeleton />
-                ) : universities.length > 0 && (
+                ) : universities.length > 0 ? (
                   <div>
                     <label className="block text-sm font-medium text-text-secondary mb-2">
-                      اختر الجامعة
+                      {isRTL ? "اختر الجامعة" : "Select University"}
                     </label>
                     <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                       {universities.map((u) => {
@@ -271,24 +301,28 @@ export default function RegisterPage() {
                             }}
                             className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
                               isSelected
-                                ? "bg-primary/10 border-primary text-text-primary"
+                                ? "bg-primary/10 border-primary text-text-primary shadow-sm"
                                 : "bg-surface border-border text-text-secondary hover:bg-surface-hover"
                             }`}
                           >
                             <span className="text-lg">{u.icon || "🎓"}</span>
-                            <span className="text-sm font-medium truncate">{u.name}</span>
-                            {isSelected && <Check className="w-4 h-4 text-primary mr-auto shrink-0" />}
+                            <span className="text-sm font-medium truncate">
+                              {u.name}
+                            </span>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-primary mr-auto shrink-0" />
+                            )}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                )}
+                ) : null}
 
                 {selectedUniversityId && (
                   <div>
                     <label className="block text-sm font-medium text-text-secondary mb-2">
-                      اختر الكلية
+                      {isRTL ? "اختر الكلية" : "Select College"}
                     </label>
                     {collegesLoading ? (
                       <LoadingSkeleton />
@@ -303,13 +337,21 @@ export default function RegisterPage() {
                               onClick={() => setSelectedCollegeId(c._id)}
                               className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
                                 isSelected
-                                  ? "bg-primary/10 border-primary text-text-primary"
+                                  ? "bg-primary/10 border-primary text-text-primary shadow-sm"
                                   : "bg-surface border-border text-text-secondary hover:bg-surface-hover"
                               }`}
                             >
-                              <Building2 className={`w-5 h-5 ${isSelected ? "text-primary" : "text-text-muted"}`} />
-                              <span className="text-sm font-medium truncate">{c.name}</span>
-                              {isSelected && <Check className="w-4 h-4 text-primary mr-auto shrink-0" />}
+                              <Building2
+                                className={`w-5 h-5 ${
+                                  isSelected ? "text-primary" : "text-text-muted"
+                                }`}
+                              />
+                              <span className="text-sm font-medium truncate">
+                                {c.name}
+                              </span>
+                              {isSelected && (
+                                <Check className="w-4 h-4 text-primary mr-auto shrink-0" />
+                              )}
                             </button>
                           );
                         })}
@@ -320,16 +362,21 @@ export default function RegisterPage() {
 
                 {selectedUniversityId && colleges.length === 0 && !collegesLoading && (
                   <p className="text-sm text-text-muted text-center py-2">
-                    لا توجد كليات متاحة لهذه الجامعة
+                    {isRTL
+                      ? "لا توجد كليات متاحة لهذه الجامعة"
+                      : "No colleges available for this university"}
                   </p>
                 )}
 
                 <button
                   type="button"
-                  onClick={() => { setSelectedUniversityId(""); setSelectedCollegeId(""); }}
+                  onClick={() => {
+                    setSelectedUniversityId("");
+                    setSelectedCollegeId("");
+                  }}
                   className="text-sm text-text-muted hover:text-text-primary transition-colors text-center"
                 >
-                  تخطي هذه الخطوة
+                  {isRTL ? "تخطي هذه الخطوة" : "Skip this step"}
                 </button>
 
                 {serverError && (
@@ -338,18 +385,25 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                <Button type="submit" isLoading={isSubmitting} className="flex items-center gap-2 mt-2 justify-center">
-                  {t('auth.register.button')}
-                  <ArrowLeft className="w-5 h-5" />
+                <Button
+                  type="submit"
+                  isLoading={isSubmitting}
+                  className="flex items-center gap-2 mt-2 justify-center hover:scale-105 transition-all duration-300"
+                >
+                  {t("auth.register.button")}
+                  <ArrowLeft className={`w-5 h-5 ${isRTL ? "" : "rotate-180"}`} />
                 </Button>
               </>
             )}
           </form>
 
           <p className="text-center text-sm text-text-secondary mt-6">
-            {t('auth.register.has_account')}{" "}
-            <Link href="/auth/login" className="text-primary font-medium hover:underline">
-              {t('auth.register.login')}
+            {t("auth.register.has_account")}{" "}
+            <Link
+              href="/auth/login"
+              className="text-primary font-medium hover:underline"
+            >
+              {t("auth.register.login")}
             </Link>
           </p>
         </div>

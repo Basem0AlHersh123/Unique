@@ -4,17 +4,25 @@ import { createContext, useContext, useState, ReactNode } from "react";
 import { Toast } from "./Toast";
 
 interface ToastContextType {
-  showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void;
+  showToast: (
+    message: string,
+    type?: "success" | "error" | "info" | "warning"
+  ) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 let toastId = 0;
 
-export function  ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<{ id: number; message: string; type: "success" | "error" | "info" | "warning" }[]>([]);
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<
+    { id: number; message: string; type: "success" | "error" | "info" | "warning" }[]
+  >([]);
 
-  const showToast = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "info" | "warning" = "info"
+  ) => {
     const id = ++toastId;
     setToasts((prev) => [...prev, { id, message, type }]);
   };
@@ -22,13 +30,15 @@ export function  ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed top-6 start-6 z-50 space-y-3">
+      <div className="fixed top-6 left-6 z-50 space-y-3 max-w-sm w-full">
         {toasts.map((toast) => (
           <Toast
             key={toast.id}
             message={toast.message}
             type={toast.type}
-            onClose={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+            onClose={() =>
+              setToasts((prev) => prev.filter((t) => t.id !== toast.id))
+            }
           />
         ))}
       </div>

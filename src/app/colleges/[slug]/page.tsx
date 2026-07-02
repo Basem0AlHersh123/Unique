@@ -8,8 +8,9 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import * as Icons from "lucide-react";
-import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getAuthOrRefresh } from "@/lib/auth-client";
+import { Check, ArrowLeft, Layers, BookOpen } from "lucide-react";
 
 interface College {
   _id: string;
@@ -35,7 +36,10 @@ interface Subject {
   topics: string[];
 }
 
-const iconMap: Record<string, React.ElementType> = Icons as unknown as Record<string, React.ElementType>;
+const iconMap: Record<string, React.ElementType> = Icons as unknown as Record<
+  string,
+  React.ElementType
+>;
 
 export default function CollegeDetailPage() {
   const params = useParams();
@@ -58,7 +62,7 @@ export default function CollegeDetailPage() {
           (c: College) => c.slug === slug && c.isActive
         );
         if (!found) {
-          setError(t('college.not_found'));
+          setError(t("college.not_found"));
           setLoading(false);
           return;
         }
@@ -69,13 +73,13 @@ export default function CollegeDetailPage() {
         );
         setSubjects(subjectsRes.data ?? []);
       } catch {
-        setError(t('college.load_error'));
+        setError(t("college.load_error"));
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, [slug]);
+  }, [slug, t]);
 
   async function handleChooseCollege() {
     if (!college) return;
@@ -110,9 +114,13 @@ export default function CollegeDetailPage() {
         <Navbar />
         <main className="max-w-7xl mx-auto px-6 py-8">
           <div className="mb-4">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/colleges")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/colleges")}
+            >
               <Icons.ArrowLeft className="w-4 h-4 ml-1" />
-              {t('college.back')}
+              {t("college.back")}
             </Button>
           </div>
           <LoadingSkeleton />
@@ -125,10 +133,12 @@ export default function CollegeDetailPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Icons.GraduationCap className="w-16 h-16 text-text-muted mx-auto mb-4" />
-          <p className="text-text-muted text-lg mb-4">{error || t('college.not_found')}</p>
+          <Icons.GraduationCap className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-30" />
+          <p className="text-text-muted text-lg mb-4">
+            {error || t("college.not_found")}
+          </p>
           <Link href="/colleges">
-            <Button variant="secondary">{t('college.view_colleges')}</Button>
+            <Button variant="secondary">{t("college.view_colleges")}</Button>
           </Link>
         </div>
       </div>
@@ -141,19 +151,33 @@ export default function CollegeDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* College Header */}
+      {/* College Header - Enhanced */}
       <section
-        className="border-b border-border/20"
-        style={{ background: `linear-gradient(135deg, ${college.color}15, transparent)` }}
+        className="border-b border-border/20 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${college.color}15, transparent)`,
+        }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-30"
+            style={{ background: college.color }}
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 py-10 relative">
           <div className="mb-4">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/colleges")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/colleges")}
+            >
               <Icons.ArrowLeft className="w-4 h-4 ml-1" />
-              {t('college.back')}
+              {t("college.back")}
             </Button>
           </div>
-          <div className="flex items-center gap-6">
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div
               className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl shadow-xl shrink-0"
               style={{ backgroundColor: college.color || "var(--color-primary)" }}
@@ -162,25 +186,31 @@ export default function CollegeDetailPage() {
             </div>
             <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-extrabold text-text-primary">
-                {lang === 'ar'
-                  ? (college.nameAr || college.name)
-                  : (college.nameEn || college.name)}
+                {lang === "ar"
+                  ? college.nameAr || college.name
+                  : college.nameEn || college.name}
               </h1>
               <p className="text-text-secondary mt-1">
-                {t('college.subjects_desc')}
+                {college.subjects.length} {t("college.subjects_desc")}
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
               <Button
                 onClick={handleChooseCollege}
                 isLoading={choosing}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:scale-105 transition-all duration-300"
               >
-                <Icons.Check className="w-4 h-4" />
-                اختر هذه الكلية
+                <Check className="w-4 h-4" />
+                {lang === "ar" ? "اختر هذه الكلية" : "Choose This College"}
               </Button>
               {chooseMsg && (
-                <span className={`text-sm ${chooseMsg.includes("بنجاح") ? "text-teal" : "text-danger"}`}>
+                <span
+                  className={`text-sm ${
+                    chooseMsg.includes("بنجاح")
+                      ? "text-teal"
+                      : "text-danger"
+                  }`}
+                >
                   {chooseMsg}
                 </span>
               )}
@@ -189,39 +219,41 @@ export default function CollegeDetailPage() {
         </div>
       </section>
 
-      {/* Subjects Grid */}
+      {/* Subjects Grid - Enhanced */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {subjects.length === 0 ? (
           <div className="text-center py-16">
-            <Icons.BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4" />
-            <p className="text-text-muted text-lg">{t('college.subjects')}</p>
+            <BookOpen className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-30" />
+            <p className="text-text-muted text-lg">{t("college.subjects")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {subjects.map((subject) => (
+            {subjects.map((subject, i) => (
               <Link
                 key={subject._id}
                 href={`/dashboard/subject/${subject.slug}`}
-                className="group block bg-surface rounded-2xl border border-border p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                className="group block bg-surface rounded-2xl border border-border p-6 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-300 slide-up"
+                style={{ animationDelay: `${i * 0.05}s` }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Icons.Layers className="w-7 h-7" />
+                    <Layers className="w-7 h-7" />
                   </div>
                   {subject.isShared && (
-                    <span className="px-3 py-1 rounded-full bg-teal/10 text-teal text-xs font-medium">
-                      {t('college.shared')}
+                    <span className="px-3 py-1 rounded-full bg-teal/10 text-teal text-xs font-medium border border-teal/20">
+                      {t("college.shared")}
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg font-bold text-text-primary mb-1">
-                  {lang === 'ar'
-                    ? (subject.nameAr || subject.name)
-                    : (subject.nameEn || subject.name)}
+                <h3 className="text-lg font-bold text-text-primary mb-1 group-hover:text-primary transition-colors">
+                  {lang === "ar"
+                    ? subject.nameAr || subject.name
+                    : subject.nameEn || subject.name}
                 </h3>
                 <p className="text-sm text-text-muted">
-                  {subject.topics.length} {t('college.topics')}
+                  {subject.topics.length} {t("college.topics")}
                 </p>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             ))}
           </div>
