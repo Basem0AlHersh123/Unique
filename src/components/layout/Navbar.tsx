@@ -22,7 +22,6 @@ import {
   Phone,
   Menu,
   X,
-  Home,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -46,14 +45,14 @@ function NavLink({
     <Link
       href={href}
       title={label}
-      className={`group flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
+      className={`group flex items-center p-2 rounded-xl transition-all duration-200 ${
         active
           ? "bg-primary/10 text-primary"
           : "text-text-muted hover:text-text-primary hover:bg-surface-hover"
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
-      <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
+      <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
         {label}
       </span>
     </Link>
@@ -75,14 +74,14 @@ function NavLinkPrimary({
     <Link
       href={href}
       title={label}
-      className={`group flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
+      className={`group flex items-center p-2 rounded-xl transition-all duration-200 ${
         active
           ? "bg-primary text-white shadow-lg shadow-primary/20"
           : "bg-primary/10 text-primary hover:bg-primary hover:text-white"
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
-      <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
+      <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
         {label}
       </span>
     </Link>
@@ -235,10 +234,12 @@ export function Navbar({ variant = "full", showBack }: NavbarProps) {
               <button
                 onClick={handleLogout}
                 title={t("nav.logout")}
-                className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200"
+                className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200 group"
               >
                 <LogOut className="w-5 h-5 shrink-0" />
-                <span className="text-sm font-medium">{t("nav.logout")}</span>
+                <span className="max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
+                  {t("nav.logout")}
+                </span>
               </button>
             ) : (
               <div className="hidden lg:flex items-center gap-1">
