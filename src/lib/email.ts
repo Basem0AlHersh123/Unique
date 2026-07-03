@@ -90,9 +90,6 @@ async function sendViaSmtp(
 ): Promise<void> {
   const transporter = createSmtpTransporter();
 
-  // Verify connection before sending — fails fast if credentials are wrong
-  await transporter.verify();
-
   await transporter.sendMail({
     from: `"UNIQUE" <${process.env.SMTP_USER}>`,
     to: email,
@@ -107,9 +104,11 @@ export async function sendResetEmail(
   token: string,
   baseUrl?: string,
 ): Promise<void> {
+  // Prefer explicit env var over header-inferred URL (headers can be preview deploys)
   const url =
-    baseUrl ||
     process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    baseUrl ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
     "http://localhost:3000";
 

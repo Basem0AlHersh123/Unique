@@ -44,8 +44,7 @@ export async function POST(req: NextRequest) {
 
     // Send email before persisting token — if email fails, no orphaned token.
     try {
-      const baseUrl = req.headers.get("origin") || req.headers.get("x-forwarded-host") || req.nextUrl.origin;
-      await sendResetEmail(email, resetToken, baseUrl);
+      await sendResetEmail(email, resetToken, req.nextUrl.origin);
     } catch (emailErr) {
       console.error("Failed to send reset email:", emailErr);
       const message =
