@@ -33,6 +33,7 @@ interface VocabularyWord {
   definition: string;
   example: string;
   arabicMeaning: string;
+  imageUrl: string;
   collegeId: string;
   subjectId?: string;
   difficulty: string;
@@ -44,6 +45,7 @@ interface FormData {
   definition: string;
   example: string;
   arabicMeaning: string;
+  imageUrl: string;
   collegeId: string;
   subjectId: string;
   difficulty: string;
@@ -55,6 +57,7 @@ const emptyForm: FormData = {
   definition: "",
   example: "",
   arabicMeaning: "",
+  imageUrl: "",
   collegeId: "",
   subjectId: "",
   difficulty: "medium",
@@ -123,6 +126,7 @@ export default function VocabularyPage() {
       definition: w.definition,
       example: w.example,
       arabicMeaning: w.arabicMeaning,
+      imageUrl: w.imageUrl || "",
       collegeId: w.collegeId,
       subjectId: w.subjectId || "",
       difficulty: w.difficulty,
@@ -141,6 +145,7 @@ export default function VocabularyPage() {
         definition: form.definition,
         example: form.example,
         arabicMeaning: form.arabicMeaning,
+        imageUrl: form.imageUrl || undefined,
         collegeId: form.collegeId,
         subjectId: form.subjectId || undefined,
         difficulty: form.difficulty,
@@ -285,6 +290,16 @@ export default function VocabularyPage() {
                 placeholder={lang === "ar" ? "مثال / Example Sentence" : "Example sentence"}
                 rows={2}
                 className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10 resize-none"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-secondary">{lang === "ar" ? "رابط الصورة (اختياري)" : "Image URL (Optional)"}</label>
+              <input
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                placeholder={lang === "ar" ? "https://example.com/image.jpg" : "https://example.com/image.jpg"}
+                className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
               />
             </div>
 

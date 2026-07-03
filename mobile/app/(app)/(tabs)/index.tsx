@@ -539,17 +539,17 @@ export default function LearnScreen() {
       )}
 
       {/* ── Flashcard entry ── */}
-      <Pressable
-        style={styles.flashcardEntry}
-        onPress={() => router.push("/(app)/flashcards" as any)}
-      >
-        <Feather name="layers" size={20} color="#ffffff" />
-        <Text style={styles.flashcardEntryText}>
-          {lang === "ar" ? "📇 مفردات اليوم" : "📇 Today's Vocabulary"}
-        </Text>
-        <Feather name="chevron-left" size={18} color="rgba(255,255,255,0.6)" />
-      </Pressable>
-
+<Pressable
+  style={styles.flashcardEntry}
+  onPress={() => router.push("/(app)/flashcards" as any)}
+>
+  <Feather name="layers" size={20} color="#ffffff" />
+  <Text style={styles.flashcardEntryText}>
+    {lang === "ar" ? "📇 مفردات اليوم" : "📇 Today's Vocabulary"}
+  </Text>
+  <Feather name="chevron-left" size={18} color="rgba(255,255,255,0.6)" />
+</Pressable>
+      
       {/* ── Units path ── */}
       {loadingUnits ? (
         <View style={styles.center}>
@@ -783,20 +783,20 @@ const styles = StyleSheet.create({
   },
   examPillText: { fontSize: 14, fontFamily: "Cairo_700Bold" },
   flashcardEntry: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "#6C63FF",
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  flashcardEntryText: {
-    flex: 1,
-    color: "#ffffff",
-    fontSize: 15,
-    fontFamily: "Cairo_700Bold",
-  },
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 10,
+  backgroundColor: "#6C63FF",
+  borderRadius: 14,
+  paddingHorizontal: 18,
+  paddingVertical: 14,
+  marginHorizontal: 20,
+  marginBottom: 20,
+},
+flashcardEntryText: {
+  flex: 1,
+  color: "#ffffff",
+  fontSize: 15,
+  fontFamily: "Cairo_700Bold",
+},
 });

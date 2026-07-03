@@ -5,6 +5,7 @@ export interface IVocabulary extends Document {
   definition: string;
   example: string;
   arabicMeaning: string;
+  imageUrl?: string;
   collegeId: Schema.Types.ObjectId;
   subjectId?: Schema.Types.ObjectId;
   difficulty: "easy" | "medium" | "hard";
@@ -19,6 +20,7 @@ const VocabularySchema = new Schema<IVocabulary>(
     definition: { type: String, required: [true, "التعريف مطلوب"], trim: true },
     example: { type: String, required: [true, "المثال مطلوب"], trim: true },
     arabicMeaning: { type: String, required: [true, "المعنى بالعربي مطلوب"], trim: true },
+    imageUrl: { type: String, default: "" },
     collegeId: { type: Schema.Types.ObjectId, ref: "College", required: true },
     subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
     difficulty: { type: String, enum: ["easy", "medium", "hard"], default: "medium" },

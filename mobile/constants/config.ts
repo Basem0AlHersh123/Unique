@@ -37,6 +37,7 @@ export const ENDPOINTS = {
   // Vocabulary / Flashcards
   VOCABULARY:           "/api/vocabulary",
   VOCABULARY_BY_LESSON: (lessonId: string) => `/api/vocabulary/${lessonId}`,
+  TOPIC:                (id: string) => `/api/topics/${id}`, // for fallback
 
   // AI
   AI_LESSON:          "/api/ai/lesson",
@@ -65,7 +66,9 @@ export const STORAGE_KEYS = {
   COLLEGE_ID:      "unique_college_id",
   SUBJECT_ID:      "unique_subject_id",
   LEVEL_ID:        "unique_level_id",
+  LESSON_ID:       "unique_lesson_id",       // ← added
   DAILY_GOAL:      "unique_daily_goal",
   REMINDER_TIME:   "unique_reminder_time",
   REMINDER_ON:     "unique_reminder_on",
+  FLASHCARD_PROGRESS: "flashcard_progress",
 } as const;

@@ -73,7 +73,7 @@ export default function AboutScreen() {
 
         {/* Links */}
         <View style={[s.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Pressable style={s.linkRow} onPress={() => Linking.openURL("https://unique-4uck.vercel.app")}>
+          <Pressable style={s.linkRow} onPress={() => Linking.openURL("https://unique-tech-blond.vercel.app")}>
             <Feather name="globe" size={18} color="#6C63FF" />
             <Text style={[s.linkText, { color: "#6C63FF" }]}>
               {lang === "ar" ? "الموقع الرسمي" : "Official Website"}

@@ -9,6 +9,7 @@ const createVocabularySchema = z.object({
   definition: z.string().min(1, "التعريف مطلوب"),
   example: z.string().min(1, "المثال مطلوب"),
   arabicMeaning: z.string().min(1, "المعنى بالعربي مطلوب"),
+  imageUrl: z.string().optional(),
   collegeId: z.string().min(1, "الكلية مطلوبة"),
   subjectId: z.string().optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
