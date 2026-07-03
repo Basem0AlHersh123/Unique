@@ -6,10 +6,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import axios from "axios";
+import { apiFetch } from "@/lib/api";
 import Button from "@/components/ui/Button";
 import AppTextInput from "@/components/ui/TextInput";
-import { API_BASE_URL, ENDPOINTS } from "@/constants/config";
+import { ENDPOINTS } from "@/constants/config";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -27,14 +27,13 @@ export default function ForgotPasswordScreen() {
     }
     setLoading(true);
     try {
-      await axios.post(
-        `${API_BASE_URL}${ENDPOINTS.FORGOT_PASSWORD}`,
-        { email: trimmed },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      await apiFetch(ENDPOINTS.FORGOT_PASSWORD, {
+        method: "POST",
+        body: { email: trimmed },
+      });
       setSent(true);
-    } catch {
-      setSent(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "حدث خطأ في الاتصال بالخادم");
     } finally {
       setLoading(false);
     }
