@@ -26,6 +26,7 @@ import {
   Megaphone,
   Settings,
   Shield,
+  BookMarked,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getAuthOrRefresh } from "@/lib/auth-client";
@@ -46,6 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/units", label: t("admin.units"), icon: FolderOpen },
     { href: "/admin/topics", label: t("admin.topics"), icon: Layers },
     { href: "/admin/questions", label: t("admin.questions"), icon: HelpCircle },
+    { href: "/admin/vocabulary", label: lang === "ar" ? "المفردات" : "Vocabulary", icon: BookMarked },
     { href: "/admin/students", label: t("admin.students"), icon: Users },
     { href: "/admin/teachers", label: t("admin.teachers"), icon: UserCheck },
     { href: "/admin/groups", label: t("nav.groups"), icon: MessageCircle },

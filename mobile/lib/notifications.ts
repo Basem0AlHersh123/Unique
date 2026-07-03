@@ -1,13 +1,18 @@
+import Constants from "expo-constants";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { STORAGE_KEYS } from "@/constants/config";
 
+/** Whether we're running inside Expo Go — notifications don't work there (SDK 53+). */
+const isExpoGo = Constants.executionEnvironment === "storeClient";
+
 /**
  * Request permission and return the Expo push token.
- * Returns null if permission denied or running on a simulator.
+ * Returns null if in Expo Go, simulator, or permission denied.
  */
 export async function registerForPushNotifications(): Promise<string | null> {
+  if (isExpoGo) return null;
   if (!Device.isDevice) {
     console.warn("Push notifications require a real device");
     return null;
@@ -57,6 +62,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
  * Cancels any existing daily reminder first.
  */
 export async function scheduleDailyReminder(timeStr: string, goalCount: number): Promise<void> {
+  if (isExpoGo) return;
   try {
     const { cancelAllScheduledNotificationsAsync, scheduleNotificationAsync } = await import("expo-notifications");
 
@@ -82,6 +88,7 @@ export async function scheduleDailyReminder(timeStr: string, goalCount: number):
 }
 
 export async function cancelDailyReminder(): Promise<void> {
+  if (isExpoGo) return;
   try {
     const { cancelAllScheduledNotificationsAsync } = await import("expo-notifications");
     await cancelAllScheduledNotificationsAsync();

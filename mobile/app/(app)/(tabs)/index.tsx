@@ -1,18 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
   ActivityIndicator, Animated, Modal, FlatList, Alert,
-  Linking, Image,
+  Linking, Image, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { getStoredUser, type AuthUser } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS, STORAGE_KEYS } from "@/constants/config";
 import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "@/lib/theme/context";
+import { cacheGet, cacheSet } from "@/lib/cache";
+import { isOnline } from "@/lib/offline";
 import type { Subject, Level, Unit, Announcement } from "@/lib/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -313,42 +315,74 @@ export default function LearnScreen() {
   const [loadingUnits, setLoadingUnits] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [offline, setOffline] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    let cancelled = false;
-    async function init() {
+  // Mount only: load from cache, no API calls
+  useEffect(() => {
+    (async () => {
       setLoading(true);
-      try {
-        const u = await getStoredUser();
-        if (!u || cancelled) return;
-        setUser(u);
+      const online = await isOnline();
+      setOffline(!online);
 
-        const collegeId = await SecureStore.getItemAsync(STORAGE_KEYS.COLLEGE_ID);
-        if (!collegeId) return;
+      const [cachedUser, cachedSubjects, cachedUnits, cachedAnnouncements] = await Promise.all([
+        cacheGet<typeof user>("home_user"),
+        cacheGet<Subject[]>("home_subjects"),
+        cacheGet<UnitWithLessons[]>("home_units"),
+        cacheGet<Announcement[]>("home_announcements"),
+      ]);
 
-        const subRes = await apiFetch<Subject[]>(`${ENDPOINTS.SUBJECTS}?collegeId=${collegeId}`);
-        if (!subRes.success || !subRes.data || cancelled) return;
+      if (cachedUser) setUser(cachedUser);
+      if (cachedSubjects && cachedSubjects.length > 0) setSubjects(cachedSubjects);
+      if (cachedUnits && cachedUnits.length > 0) setUnitsWithLessons(cachedUnits);
+      if (cachedAnnouncements) setAnnouncements(cachedAnnouncements);
 
-        const subs = subRes.data;
-        setSubjects(subs);
-
-        await loadAnnouncements();
-
-        const savedSubjectId = await SecureStore.getItemAsync("unique_subject_id");
-        const subject = subs.find((s) => s._id === savedSubjectId) ?? subs[0] ?? null;
-        if (subject) {
-          setSelectedSubject(subject);
-          await loadLevels(subject._id, cancelled);
-        }
-      } catch {
-        // silent
-      } finally {
-        if (!cancelled) setLoading(false);
+      // If no cache at all, try a silent fetch
+      if (!cachedUser && !cachedSubjects && !cachedUnits) {
+        await fetchFreshData();
       }
+      setLoading(false);
+    })();
+  }, []);
+
+  async function fetchFreshData() {
+    setOffline(false);
+    try {
+      const u = await getStoredUser();
+      if (!u) return;
+      setUser(u);
+      await cacheSet("home_user", u);
+
+      const collegeId = await SecureStore.getItemAsync(STORAGE_KEYS.COLLEGE_ID);
+      if (!collegeId) return;
+
+      const subRes = await apiFetch<Subject[]>(`${ENDPOINTS.SUBJECTS}?collegeId=${collegeId}`);
+      if (!subRes.success || !subRes.data) return;
+
+      const subs = subRes.data;
+      setSubjects(subs);
+      await cacheSet("home_subjects", subs);
+
+      await loadAnnouncements();
+
+      const savedSubjectId = await SecureStore.getItemAsync("unique_subject_id");
+      const subject = subs.find((s) => s._id === savedSubjectId) ?? subs[0] ?? null;
+      if (subject) {
+        setSelectedSubject(subject);
+        await loadLevels(subject._id);
+      }
+    } catch {
+      // silent
     }
-    init();
-    return () => { cancelled = true; };
-  }, []));
+  }
+
+  async function onRefresh() {
+    setRefreshing(true);
+    const online = await isOnline();
+    setOffline(!online);
+    if (online) await fetchFreshData();
+    setRefreshing(false);
+  }
 
   async function loadLevels(subjectId: string, cancelled = false) {
     const lvlRes = await apiFetch<Level[]>(`${ENDPOINTS.LEVELS}?subjectId=${subjectId}`);
@@ -371,7 +405,9 @@ export default function LearnScreen() {
       setDismissedIds(new Set(dismissed));
       const res = await apiFetch<Announcement[]>(ENDPOINTS.ANNOUNCEMENTS);
       if (res.success && res.data) {
-        setAnnouncements(res.data.filter((a) => !dismissed.includes(a._id)));
+        const filtered = res.data.filter((a) => !dismissed.includes(a._id));
+        setAnnouncements(filtered);
+        await cacheSet("home_announcements", filtered);
       }
     } catch {}
   }
@@ -408,6 +444,7 @@ export default function LearnScreen() {
         })
       );
       setUnitsWithLessons(enriched);
+      await cacheSet("home_units", enriched);
     } finally {
       setLoadingUnits(false);
     }
@@ -452,6 +489,16 @@ export default function LearnScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      {offline && (
+        <View style={styles.offlineBanner}>
+          <Feather name="wifi-off" size={13} color="#F59E0B" />
+          <Text style={styles.offlineBannerText}>
+            {lang === "ar"
+              ? "أنت غير متصل — تعرض بيانات محفوظة"
+              : "Offline — showing cached data"}
+          </Text>
+        </View>
+      )}
       {/* ── Top Bar ── */}
       <View style={[styles.topBar, { borderBottomColor: colors.border }]}>
         <Pressable style={styles.subjectPicker} onPress={() => setShowSubjectModal(true)}>
@@ -491,6 +538,18 @@ export default function LearnScreen() {
         </View>
       )}
 
+      {/* ── Flashcard entry ── */}
+      <Pressable
+        style={styles.flashcardEntry}
+        onPress={() => router.push("/(app)/flashcards" as any)}
+      >
+        <Feather name="layers" size={20} color="#ffffff" />
+        <Text style={styles.flashcardEntryText}>
+          {lang === "ar" ? "📇 مفردات اليوم" : "📇 Today's Vocabulary"}
+        </Text>
+        <Feather name="chevron-left" size={18} color="rgba(255,255,255,0.6)" />
+      </Pressable>
+
       {/* ── Units path ── */}
       {loadingUnits ? (
         <View style={styles.center}>
@@ -504,7 +563,8 @@ export default function LearnScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.pathScroll} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.pathScroll} showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6C63FF" colors={["#6C63FF"]} />}>
           {unitsWithLessons.map((unit, idx) => (
             <UnitMountain
               key={unit._id}
@@ -623,6 +683,21 @@ export default function LearnScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(245,158,11,0.10)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(245,158,11,0.20)",
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+  },
+  offlineBannerText: {
+    fontSize: 12,
+    color: "#F59E0B",
+    fontFamily: "Cairo_400Regular",
+  },
   center: { flex: 1, justifyContent: "center", alignItems: "center", gap: 16 },
   emptyText: { fontSize: 15, textAlign: "center", fontFamily: "Cairo_400Regular", marginTop: 12 },
 
@@ -707,4 +782,21 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, marginTop: 16, alignSelf: "center",
   },
   examPillText: { fontSize: 14, fontFamily: "Cairo_700Bold" },
+  flashcardEntry: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "#6C63FF",
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  flashcardEntryText: {
+    flex: 1,
+    color: "#ffffff",
+    fontSize: 15,
+    fontFamily: "Cairo_700Bold",
+  },
 });

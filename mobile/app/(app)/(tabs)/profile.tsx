@@ -26,6 +26,8 @@ import { useLanguage } from "@/lib/i18n/context";
 import { useTheme, type ThemeMode } from "@/lib/theme/context";
 import { STORAGE_KEYS as STORAGE } from "@/constants/config";
 import { showAlert } from "@/lib/ui/AlertModal";
+import { cacheGet, cacheSet } from "@/lib/cache";
+import { isOnline } from "@/lib/offline";
 
 function Badge({ label, color }: { label: string; color: string }) {
   return (
@@ -96,20 +98,43 @@ export default function ProfileScreen() {
   const [progressPct, setProgressPct] = useState(0);
   const [totalXP, setTotalXP] = useState(0);
   const [noteCount, setNoteCount] = useState(0);
+  const [isOnlineState, setIsOnlineState] = useState(true);
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
 
   useEffect(() => {
+    isOnline().then(setIsOnlineState);
+  }, []);
+
+  useEffect(() => {
     async function loadUser() {
-      const u = await getStoredUser();
-      setUser(u);
-      if (u) {
+      // Step 1: Show SecureStore data instantly (always works offline)
+      const stored = await getStoredUser();
+      if (stored) setUser(stored);
+
+      // Step 2: Try to show cached profile (richer data — includes profileImage etc)
+      const cachedProfile = await cacheGet<AuthUser>("profile");
+      if (cachedProfile) {
+        setUser((prev) => prev ? { ...prev, ...cachedProfile } : cachedProfile);
+        if (cachedProfile.profileImage) setProfileImage(cachedProfile.profileImage);
+      }
+
+      // Step 3: If online, fetch fresh data and update cache
+      const online = await isOnline();
+      if (online) {
         try {
-          const profileRes = await apiFetch<{ profileImage?: string }>(ENDPOINTS.PROFILE);
-          if (profileRes.success && profileRes.data?.profileImage) {
-            setProfileImage(profileRes.data.profileImage);
+          const res = await apiFetch<AuthUser>(ENDPOINTS.PROFILE);
+          if (res.success && res.data) {
+            const fresh = res.data;
+            await cacheSet("profile", fresh);
+            setUser((prev) => prev ? { ...prev, ...fresh } : fresh);
+            if (fresh.profileImage) setProfileImage(fresh.profileImage);
+            // Keep SecureStore in sync
+            await saveUser(fresh as unknown as Record<string, unknown>);
           }
-        } catch { /* silent */ }
+        } catch {
+          // Online but request failed — cached data is still showing, no action needed
+        }
       }
     }
     loadUser();
@@ -131,18 +156,36 @@ export default function ProfileScreen() {
       const em = await SecureStore.getItemAsync("unique_essential_mode");
       setEssentialMode(em === "true");
 
-      try {
-        const prog = await apiFetch<{ stats: { totalScore: number; averagePercentage: number } }>(ENDPOINTS.PROGRESS_DASHBOARD);
-        if (prog.success && prog.data?.stats) {
-          setProgressPct(Math.round(prog.data.stats.averagePercentage));
-          setTotalXP(prog.data.stats.totalScore);
-        }
-      } catch { /* silent */ }
+      // Try cache first
+      const cachedProg = await cacheGet<{ stats: { totalScore: number; averagePercentage: number } }>("progress");
+      if (cachedProg?.stats) {
+        setProgressPct(Math.round(cachedProg.stats.averagePercentage));
+        setTotalXP(cachedProg.stats.totalScore);
+      }
 
-      try {
-        const notesRes = await apiFetch<unknown[]>(ENDPOINTS.NOTES);
-        if (notesRes.success && notesRes.data) setNoteCount(notesRes.data.length);
-      } catch { /* silent */ }
+      const cachedNotes = await cacheGet<unknown[]>("notes_count");
+      if (cachedNotes) setNoteCount(cachedNotes.length);
+
+      // If online, fetch fresh and update cache
+      const online = await isOnline();
+      if (online) {
+        try {
+          const prog = await apiFetch<{ stats: { totalScore: number; averagePercentage: number } }>(ENDPOINTS.PROGRESS_DASHBOARD);
+          if (prog.success && prog.data?.stats) {
+            await cacheSet("progress", prog.data);
+            setProgressPct(Math.round(prog.data.stats.averagePercentage));
+            setTotalXP(prog.data.stats.totalScore);
+          }
+        } catch { /* silent */ }
+
+        try {
+          const notesRes = await apiFetch<unknown[]>(ENDPOINTS.NOTES);
+          if (notesRes.success && notesRes.data) {
+            await cacheSet("notes_count", notesRes.data);
+            setNoteCount(notesRes.data.length);
+          }
+        } catch { /* silent */ }
+      }
     }
     loadPrefs();
   }, []);
@@ -256,6 +299,14 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      {!isOnlineState && (
+        <View style={styles.offlineBanner}>
+          <Feather name="wifi-off" size={13} color="#F59E0B" />
+          <Text style={styles.offlineText}>
+            {lang === "ar" ? "أنت غير متصل — بيانات محفوظة" : "Offline — showing saved data"}
+          </Text>
+        </View>
+      )}
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -793,6 +844,21 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+  },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#F59E0B18",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F59E0B30",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  offlineText: {
+    fontSize: 12,
+    color: "#F59E0B",
+    fontFamily: "Cairo_400Regular",
   },
   header: {
     flexDirection: "row",

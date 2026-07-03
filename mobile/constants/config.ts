@@ -35,7 +35,8 @@ export const ENDPOINTS = {
   UNIVERSITY: (slug: string) => `/api/universities/${slug}`,
 
   // Vocabulary / Flashcards
-  VOCABULARY: (lessonId: string) => `/api/vocabulary/${lessonId}`,
+  VOCABULARY:           "/api/vocabulary",
+  VOCABULARY_BY_LESSON: (lessonId: string) => `/api/vocabulary/${lessonId}`,
 
   // AI
   AI_LESSON:          "/api/ai/lesson",

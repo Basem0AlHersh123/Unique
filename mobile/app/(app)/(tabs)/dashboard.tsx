@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
-  ActivityIndicator, Animated, Dimensions,
+  ActivityIndicator, Animated, Dimensions, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import Svg, { Circle, Polyline, Polygon, Line, Text as SvgText } from "react-native-svg";
 import { getStoredUser, type AuthUser } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
@@ -559,16 +559,20 @@ export default function DashboardScreen() {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
     getStoredUser().then(setUser);
   }, []);
 
-  useFocusEffect(useCallback(() => {
-    if (!user) return;
-    loadData();
-  }, [user]));
+  useEffect(() => {
+    if (user && !initialLoadDone.current) {
+      initialLoadDone.current = true;
+      loadData();
+    }
+  }, [user]);
 
   async function loadData() {
     setLoading(true);
@@ -591,6 +595,29 @@ export default function DashboardScreen() {
       }
     } catch { /* silent */ }
     finally { setLoading(false); }
+  }
+
+  async function onRefresh() {
+    setRefreshing(true);
+    try {
+      if (user?.role === "admin") {
+        const res = await apiFetch(ENDPOINTS.ADMIN_STATS);
+        if (res.success) setStats(res.data);
+      } else if (user?.role === "teacher") {
+        const res = await apiFetch(ENDPOINTS.TEACHER_STATS);
+        if (res.success) setStats(res.data);
+      } else {
+        const [progRes, notesRes] = await Promise.all([
+          apiFetch(ENDPOINTS.PROGRESS_DASHBOARD),
+          apiFetch(ENDPOINTS.NOTES),
+        ]);
+        setStats({
+          progress: progRes.success ? progRes.data : null,
+          notesCount: notesRes.success && Array.isArray(notesRes.data) ? notesRes.data.length : 0,
+        });
+      }
+    } catch { /* silent */ }
+    finally { setRefreshing(false); }
   }
 
   return (
@@ -616,6 +643,7 @@ export default function DashboardScreen() {
         <ScrollView
           contentContainerStyle={sh.scroll}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6C63FF" colors={["#6C63FF"]} />}
         >
           {user?.role === "admin" && (
             <AdminView stats={stats} lang={lang} colors={colors} router={router} />

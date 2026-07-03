@@ -1,12 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View, Text, StyleSheet, Pressable, TextInput,
   FlatList, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Modal,
+  ActivityIndicator, Modal, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
 import type { AiConversation, AiMessage } from "@/lib/types";
@@ -30,10 +29,9 @@ export default function AiChatTab() {
   const [aiTyping, setAiTyping] = useState(false);
 
   const flatRef = useRef<FlatList<AiMessage>>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    loadConversations();
-  }, []));
+  useEffect(() => { loadConversations(); }, []);
 
   async function loadConversations() {
     setLoadingList(true);
@@ -42,6 +40,15 @@ export default function AiChatTab() {
       if (res.success && res.data) setConversations(res.data);
     } catch {}
     finally { setLoadingList(false); }
+  }
+
+  async function onRefresh() {
+    setRefreshing(true);
+    try {
+      const res = await apiFetch<AiConversation[]>(ENDPOINTS.AI_CHAT);
+      if (res.success && res.data) setConversations(res.data);
+    } catch {}
+    finally { setRefreshing(false); }
   }
 
   async function openConversation(conv: AiConversation) {
@@ -265,6 +272,7 @@ export default function AiChatTab() {
           data={conversations}
           keyExtractor={c => c._id}
           contentContainerStyle={{ padding: 16, gap: 10 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6C63FF" colors={["#6C63FF"]} />}
           renderItem={({ item }) => (
             <Pressable
               style={[s.convCard, { backgroundColor: colors.card, borderColor: colors.border }]}

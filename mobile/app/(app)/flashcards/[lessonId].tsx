@@ -41,7 +41,7 @@ export default function FlashcardsScreen() {
     async function load() {
       try {
         // First try dedicated vocabulary API
-        const res = await apiFetch<VocabularyItem[]>(ENDPOINTS.VOCABULARY(lessonId));
+        const res = await apiFetch<VocabularyItem[]>(ENDPOINTS.VOCABULARY_BY_LESSON(lessonId));
         if (res.success && res.data && res.data.length > 0) {
           setVocab(res.data);
         } else {

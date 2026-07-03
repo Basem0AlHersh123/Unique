@@ -1,13 +1,15 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
-  ActivityIndicator, TouchableOpacity, TextInput,
+  ActivityIndicator, TouchableOpacity, TextInput, RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
+import { cacheGet, cacheSet } from "@/lib/cache";
+import { isOnline } from "@/lib/offline";
 import type { StudentNote } from "@/lib/types";
 import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "@/lib/theme/context";
@@ -74,26 +76,67 @@ export default function NotesScreen() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    // Always show cached notes immediately — instant, works offline
+    const cached = await cacheGet<StudentNote[]>("notes_list");
+    if (cached && cached.length > 0) {
+      setAllNotes(cached.sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ));
+      setLoading(false); // Stop showing spinner once we have cache
+    }
+
+    // If online, fetch fresh from server and update cache
+    const online = await isOnline();
+    if (online) {
+      try {
+        const res = await apiFetch<StudentNote[]>(ENDPOINTS.NOTES);
+        if (res.success && res.data) {
+          const sorted = res.data.sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setAllNotes(sorted);
+          await cacheSet("notes_list", sorted);
+        } else if (!cached) {
+          setError(res.error ?? "حدث خطأ في تحميل الملاحظات");
+        }
+      } catch {
+        if (!cached) {
+          setError("لا يوجد اتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.");
+        }
+        // If we have cache, silently use it — no error shown
+      }
+    } else if (!cached) {
+      setError("لا يوجد اتصال بالإنترنت. ملاحظاتك ستظهر عند الاتصال.");
+    }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { loadNotes(); }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setError(null);
     try {
       const res = await apiFetch<StudentNote[]>(ENDPOINTS.NOTES);
       if (res.success && res.data) {
-        setAllNotes(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      } else if (!res.success) {
-        setError(res.error ?? "حدث خطأ في تحميل الملاحظات");
+        const sorted = res.data.sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setAllNotes(sorted);
+        await cacheSet("notes_list", sorted);
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "حدث خطأ في تحميل الملاحظات");
-    } finally {
-      setLoading(false);
+    } catch {} finally {
+      setRefreshing(false);
     }
   }, []);
-
-  useFocusEffect(useCallback(() => { loadNotes(); }, [loadNotes]));
 
   const filteredNotes = useMemo(() => {
     let result = allNotes;
@@ -115,32 +158,64 @@ export default function NotesScreen() {
 
   async function toggleStar(note: StudentNote) {
     const newStarred = !note.isStarred;
-    setAllNotes((prev) => prev.map((n) => n._id === note._id ? { ...n, isStarred: newStarred } : n));
-    try {
-      await apiFetch(ENDPOINTS.NOTE(note._id), { method: "PATCH", body: { isStarred: newStarred } });
-    } catch {
-      setAllNotes((prev) => prev.map((n) => n._id === note._id ? { ...n, isStarred: note.isStarred } : n));
-    }
-  }
+    const oldStarred = note.isStarred;
+    // Optimistic update in state
+    setAllNotes((prev) => {
+      const updated = prev.map((n) =>
+        n._id === note._id ? { ...n, isStarred: newStarred } : n
+      );
+      cacheSet("notes_list", updated); // Update cache immediately
+      return updated;
+    });
 
-  async function handleDelete(id: string) {
-    try {
-      await apiFetch(ENDPOINTS.NOTE(id), { method: "DELETE" });
-      setAllNotes((prev) => prev.filter((n) => n._id !== id));
-    } catch {
-      showAlert({ type: "error", title: "خطأ", message: "تعذر حذف الملاحظة" });
+    const online = await isOnline();
+    if (online) {
+      try {
+        await apiFetch(ENDPOINTS.NOTE(note._id), {
+          method: "PATCH",
+          body: { isStarred: newStarred },
+        });
+        await loadNotes(); // Refresh from server
+      } catch {
+        // Revert on failure
+        setAllNotes((prev) => {
+          const reverted = prev.map((n) =>
+            n._id === note._id ? { ...n, isStarred: oldStarred } : n
+          );
+          cacheSet("notes_list", reverted);
+          return reverted;
+        });
+      }
     }
   }
 
   function confirmDelete(id: string) {
     showAlert({
-      type: "confirm",
-      title: "حذف الملاحظة",
-      message: "هل أنت متأكد من حذف هذه الملاحظة؟",
-      buttons: [
-        { text: "إلغاء", style: "cancel" },
-        { text: "حذف", style: "destructive", onPress: () => handleDelete(id) },
-      ],
+      type: "warning",
+      title: lang === "ar" ? "حذف الملاحظة" : "Delete Note",
+      message: lang === "ar" ? "هل تريد حذف هذه الملاحظة؟" : "Delete this note?",
+      confirmLabel: lang === "ar" ? "حذف" : "Delete",
+      onConfirm: async () => {
+        const online = await isOnline();
+        if (!online) {
+          showAlert({
+            type: "info",
+            title: lang === "ar" ? "غير متصل" : "Offline",
+            message: lang === "ar"
+              ? "لا يمكن الحذف بدون إنترنت"
+              : "Cannot delete while offline",
+          });
+          return;
+        }
+        try {
+          await apiFetch(ENDPOINTS.NOTE(id), { method: "DELETE" });
+          const updated = allNotes.filter((n) => n._id !== id);
+          setAllNotes(updated);
+          await cacheSet("notes_list", updated);
+        } catch {
+          showAlert({ type: "error", title: "خطأ", message: "فشل الحذف" });
+        }
+      },
     });
   }
 
@@ -245,7 +320,8 @@ export default function NotesScreen() {
       )}
 
       {!error && filteredNotes.length > 0 && (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6C63FF" colors={["#6C63FF"]} />}>
           {grouped.map(([date, group]) => (
             <View key={date} style={styles.dateGroup}>
               <Text style={[styles.dateHeader, { color: colors.textTertiary }]}>{date}</Text>
@@ -298,9 +374,15 @@ export default function NotesScreen() {
               })}
             </View>
           ))}
-          <View style={{ height: 80 }} />
         </ScrollView>
       )}
+
+      <Pressable
+        style={[styles.fab, styles.fabSecondary, { backgroundColor: "#1a1040", borderColor: "#6C63FF", borderWidth: 1.5 }]}
+        onPress={() => router.push("/(app)/flashcards" as any)}
+      >
+        <Feather name="layers" size={22} color="#6C63FF" />
+      </Pressable>
 
       <Pressable
         style={[styles.fab, { backgroundColor: "#6C63FF" }]}
@@ -331,7 +413,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, borderWidth: 1.5,
   },
   filterPillText: { fontSize: 13, fontFamily: "Cairo_400Regular" },
-  scroll: { paddingHorizontal: 16, paddingTop: 8 },
+  scroll: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160 },
   dateGroup: { marginBottom: 20 },
   dateHeader: { fontSize: 13, fontFamily: "Cairo_400Regular", textAlign: "right", marginBottom: 8 },
   noteCard: {
@@ -354,5 +436,8 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     elevation: 8, shadowColor: "#6C63FF",
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8,
+  },
+  fabSecondary: {
+    bottom: 96,
   },
 });

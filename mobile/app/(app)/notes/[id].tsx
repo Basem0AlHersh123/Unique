@@ -16,6 +16,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
+import { cacheGet, cacheSet, addPendingNoteOp, getPendingNoteOps } from "@/lib/cache";
+import { isOnline } from "@/lib/offline";
 import type { StudentNote, NoteType } from "@/lib/types";
 import type { TranslationKey } from "@/lib/i18n/translations";
 import { useLanguage } from "@/lib/i18n/context";
@@ -57,23 +59,38 @@ export default function NoteEditorScreen() {
   useEffect(() => {
     if (isNew) return;
     async function load() {
-      try {
-        const res = await apiFetch<StudentNote>(ENDPOINTS.NOTE(id));
-        if (res.success && res.data) {
-          setTitle(res.data.title || "");
-          setContent(res.data.content);
-          setColor(res.data.color || "#6C63FF");
-          setType(res.data.type || "general");
-          setTags(res.data.tags || []);
-          setIsStarred(res.data.isStarred || false);
-          if (res.data.reminderAt) setReminderAt(new Date(res.data.reminderAt));
-        }
-      } catch {
-        showAlert({ type: "error", title: t("common.error"), message: t("notes.save_error") });
-        router.back();
-      } finally {
+      // Try cache first
+      const cached = await cacheGet<StudentNote>(`note_${id}`);
+      if (cached) {
+        setTitle(cached.title || "");
+        setContent(cached.content);
+        setColor(cached.color || "#6C63FF");
+        setType(cached.type || "general");
+        setTags(cached.tags || []);
+        setIsStarred(cached.isStarred || false);
+        if (cached.reminderAt) setReminderAt(new Date(cached.reminderAt));
         setLoading(false);
       }
+
+      // Fetch fresh if online
+      const online = await isOnline();
+      if (online) {
+        try {
+          const res = await apiFetch<StudentNote>(ENDPOINTS.NOTE(id));
+          if (res.success && res.data) {
+            const d = res.data;
+            await cacheSet(`note_${id}`, d);
+            setTitle(d.title || "");
+            setContent(d.content);
+            setColor(d.color || "#6C63FF");
+            setType(d.type || "general");
+            setTags(d.tags || []);
+            setIsStarred(d.isStarred || false);
+            if (d.reminderAt) setReminderAt(new Date(d.reminderAt));
+          }
+        } catch {}
+      }
+      setLoading(false);
     }
     load();
   }, [id]);
@@ -92,33 +109,97 @@ export default function NoteEditorScreen() {
 
   async function handleSave() {
     if (!content.trim()) {
-      showAlert({ type: "warning", title: lang === "ar" ? "تنبيه" : "Warning", message: lang === "ar" ? "يرجى كتابة محتوى الملاحظة" : "Please write note content" });
+      showAlert({ type: "error", title: t("common.error"), message: t("notes.save_error") });
       return;
     }
     setSaving(true);
-    try {
-      const body: Record<string, unknown> = {
-        content: content.trim(),
-        color,
-        type,
-        tags,
-        isStarred,
-      };
-      if (title.trim()) body.title = title.trim();
-      if (lessonId) body.lessonId = lessonId;
-      if (reminderAt) body.reminderAt = reminderAt.toISOString();
 
-      if (isNew) {
-        await apiFetch(ENDPOINTS.NOTES, { method: "POST", body });
-      } else {
-        await apiFetch(ENDPOINTS.NOTE(id), { method: "PATCH", body });
+    const body = {
+      content: content.trim(),
+      title: title.trim() || undefined,
+      color,
+      type,
+      tags,
+      isStarred,
+      reminderAt: reminderAt ? reminderAt.toISOString() : null,
+      ...(lessonId ? { lessonId } : {}),
+    };
+
+    const online = await isOnline();
+
+    if (online) {
+      // Normal online save
+      try {
+        if (isNew) {
+          const res = await apiFetch<StudentNote>(ENDPOINTS.NOTES, { method: "POST", body });
+          if (res.success && res.data) {
+            await cacheSet(`note_${res.data._id}`, res.data);
+            // Invalidate the list cache so it refetches
+            await cacheSet("notes_list", null as any);
+          }
+        } else {
+          const res = await apiFetch<StudentNote>(ENDPOINTS.NOTE(id), { method: "PATCH", body });
+          if (res.success && res.data) {
+            await cacheSet(`note_${id}`, res.data);
+            await cacheSet("notes_list", null as any);
+          }
+        }
+        router.back();
+      } catch {
+        showAlert({ type: "error", title: t("common.error"), message: t("notes.save_error") });
       }
+    } else {
+      // OFFLINE SAVE — queue the operation and save locally
+      const localId = isNew
+        ? `offline_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+        : id;
+
+      const localNote: StudentNote = {
+        _id: localId,
+        userId: "",
+        content: body.content,
+        title: body.title || "",
+        color: body.color,
+        type: body.type,
+        tags: body.tags,
+        isStarred: body.isStarred,
+        reminderAt: body.reminderAt ?? undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as StudentNote;
+
+      // Save to cache immediately so it shows in the list
+      await cacheSet(`note_${localId}`, localNote);
+
+      // Add to current notes list cache
+      const existing = (await cacheGet<StudentNote[]>("notes_list")) ?? [];
+      if (isNew) {
+        await cacheSet("notes_list", [localNote, ...existing]);
+      } else {
+        const updated = existing.map((n) => n._id === id ? { ...n, ...localNote } : n);
+        await cacheSet("notes_list", updated);
+      }
+
+      // Queue for server sync when online
+      await addPendingNoteOp({
+        id: localId,
+        method: isNew ? "POST" : "PATCH",
+        endpoint: isNew ? ENDPOINTS.NOTES : ENDPOINTS.NOTE(id),
+        body,
+        createdAt: Date.now(),
+      });
+
+      showAlert({
+        type: "info",
+        title: lang === "ar" ? "تم الحفظ محلياً" : "Saved Locally",
+        message: lang === "ar"
+          ? "الملاحظة محفوظة على جهازك وستُزامن مع الخادم تلقائياً عند الاتصال"
+          : "Note saved on your device and will sync to the server automatically when online",
+      });
       router.back();
-    } catch {
-      showAlert({ type: "error", title: t("common.error"), message: t("notes.save_error") });
-    } finally {
-      setSaving(false);
     }
+
+    setSaving(false);
   }
 
   if (loading) {

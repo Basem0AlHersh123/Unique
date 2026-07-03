@@ -10,6 +10,7 @@ import AlertModal from "@/lib/ui/AlertModal";
 import { isVersionOutdated } from "@/lib/version";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
+import { subscribeToNetwork, flushPendingNotes } from "@/lib/offline";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,6 +40,16 @@ export default function RootLayout() {
       }
     }
     load();
+  }, []);
+
+  useEffect(() => {
+    // Flush any notes created while offline as soon as we come back online
+    const unsubscribe = subscribeToNetwork(async (online) => {
+      if (online) {
+        await flushPendingNotes();
+      }
+    });
+    return unsubscribe;
   }, []);
 
   const [updateRequired, setUpdateRequired] = useState(false);

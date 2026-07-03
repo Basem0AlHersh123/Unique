@@ -1,74 +1,85 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
+// ─── Generic cache ─────────────────────────────────────────────────────────────
+// Keys are stored as "cache__{key}". Data never expires automatically because
+// offline users should always see their last-known data.
 
-const DEFAULT_TTL = 1000 * 60 * 60; // 1 hour
-
-export async function cacheSet<T>(key: string, data: T, ttl = DEFAULT_TTL): Promise<void> {
-  const entry: CacheEntry<T> = { data, timestamp: Date.now(), ttl };
-  await AsyncStorage.setItem(`cache_${key}`, JSON.stringify(entry));
+export async function cacheSet<T>(key: string, data: T): Promise<void> {
+  try {
+    const value = JSON.stringify({ data, savedAt: Date.now() });
+    // SecureStore has a 2048 byte key limit but values can be larger
+    // Use a prefix to identify cache entries
+    await SecureStore.setItemAsync(`cache__${key}`, value);
+  } catch {
+    // Cache write failure is non-fatal — silently ignore
+  }
 }
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
-    const raw = await AsyncStorage.getItem(`cache_${key}`);
+    const raw = await SecureStore.getItemAsync(`cache__${key}`);
     if (!raw) return null;
-    const entry: CacheEntry<T> = JSON.parse(raw);
-    if (Date.now() - entry.timestamp > entry.ttl) {
-      await AsyncStorage.removeItem(`cache_${key}`);
-      return null;
-    }
-    return entry.data;
+    const parsed = JSON.parse(raw);
+    return parsed.data as T;
   } catch {
     return null;
   }
 }
 
 export async function cacheRemove(key: string): Promise<void> {
-  await AsyncStorage.removeItem(`cache_${key}`);
-}
-
-export async function cacheClear(): Promise<void> {
-  const keys = await AsyncStorage.getAllKeys();
-  const cacheKeys = keys.filter((k) => k.startsWith("cache_"));
-  if (cacheKeys.length > 0) {
-    await AsyncStorage.multiRemove(cacheKeys);
-  }
-}
-
-// Offline lesson storage
-export async function saveLessonOffline(lessonId: string, data: unknown): Promise<void> {
-  await AsyncStorage.setItem(`offline_lesson_${lessonId}`, JSON.stringify(data));
-}
-
-export async function getOfflineLesson(lessonId: string): Promise<unknown | null> {
   try {
-    const raw = await AsyncStorage.getItem(`offline_lesson_${lessonId}`);
-    return raw ? JSON.parse(raw) : null;
+    await SecureStore.deleteItemAsync(`cache__${key}`);
+  } catch {}
+}
+
+// ─── Offline note sync queue ───────────────────────────────────────────────────
+// When the user creates or edits a note while offline, we store it in a pending
+// queue. When the app comes back online, the queue is flushed automatically.
+
+export interface PendingNoteOp {
+  id: string;                  // UUID generated client-side
+  serverId?: string;           // set after first successful sync
+  method: "POST" | "PATCH" | "DELETE";
+  endpoint: string;
+  body: Record<string, unknown>;
+  createdAt: number;
+}
+
+const PENDING_NOTES_KEY = "offline__pending_notes";
+
+export async function getPendingNoteOps(): Promise<PendingNoteOp[]> {
+  try {
+    const raw = await SecureStore.getItemAsync(PENDING_NOTES_KEY);
+    return raw ? (JSON.parse(raw) as PendingNoteOp[]) : [];
   } catch {
-    return null;
+    return [];
   }
 }
 
-export async function removeOfflineLesson(lessonId: string): Promise<void> {
-  await AsyncStorage.removeItem(`offline_lesson_${lessonId}`);
+export async function addPendingNoteOp(op: PendingNoteOp): Promise<void> {
+  try {
+    const existing = await getPendingNoteOps();
+    // If editing the same note again while still offline, replace the pending edit
+    const filtered = existing.filter(
+      (e) => !(e.id === op.id && e.method === "PATCH")
+    );
+    await SecureStore.setItemAsync(
+      PENDING_NOTES_KEY,
+      JSON.stringify([...filtered, op])
+    );
+  } catch {}
 }
 
-export async function getOfflineLessonIds(): Promise<string[]> {
-  const keys = await AsyncStorage.getAllKeys();
-  return keys
-    .filter((k) => k.startsWith("offline_lesson_"))
-    .map((k) => k.replace("offline_lesson_", ""));
+export async function clearPendingNoteOp(id: string): Promise<void> {
+  try {
+    const existing = await getPendingNoteOps();
+    const filtered = existing.filter((e) => e.id !== id);
+    await SecureStore.setItemAsync(PENDING_NOTES_KEY, JSON.stringify(filtered));
+  } catch {}
 }
 
-export async function clearOfflineLessons(): Promise<void> {
-  const keys = await AsyncStorage.getAllKeys();
-  const offlineKeys = keys.filter((k) => k.startsWith("offline_lesson_"));
-  if (offlineKeys.length > 0) {
-    await AsyncStorage.multiRemove(offlineKeys);
-  }
+export async function clearAllPendingNoteOps(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(PENDING_NOTES_KEY);
+  } catch {}
 }
