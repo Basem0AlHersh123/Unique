@@ -1,15 +1,14 @@
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Generic cache ─────────────────────────────────────────────────────────────
 // Keys are stored as "cache__{key}". Data never expires automatically because
 // offline users should always see their last-known data.
+// Uses AsyncStorage instead of SecureStore to avoid the 2048 byte value limit.
 
 export async function cacheSet<T>(key: string, data: T): Promise<void> {
   try {
     const value = JSON.stringify({ data, savedAt: Date.now() });
-    // SecureStore has a 2048 byte key limit but values can be larger
-    // Use a prefix to identify cache entries
-    await SecureStore.setItemAsync(`cache__${key}`, value);
+    await AsyncStorage.setItem(`cache__${key}`, value);
   } catch {
     // Cache write failure is non-fatal — silently ignore
   }
@@ -17,7 +16,7 @@ export async function cacheSet<T>(key: string, data: T): Promise<void> {
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
-    const raw = await SecureStore.getItemAsync(`cache__${key}`);
+    const raw = await AsyncStorage.getItem(`cache__${key}`);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return parsed.data as T;
@@ -28,7 +27,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 
 export async function cacheRemove(key: string): Promise<void> {
   try {
-    await SecureStore.deleteItemAsync(`cache__${key}`);
+    await AsyncStorage.removeItem(`cache__${key}`);
   } catch {}
 }
 
@@ -49,7 +48,7 @@ const PENDING_NOTES_KEY = "offline__pending_notes";
 
 export async function getPendingNoteOps(): Promise<PendingNoteOp[]> {
   try {
-    const raw = await SecureStore.getItemAsync(PENDING_NOTES_KEY);
+    const raw = await AsyncStorage.getItem(PENDING_NOTES_KEY);
     return raw ? (JSON.parse(raw) as PendingNoteOp[]) : [];
   } catch {
     return [];
@@ -63,7 +62,7 @@ export async function addPendingNoteOp(op: PendingNoteOp): Promise<void> {
     const filtered = existing.filter(
       (e) => !(e.id === op.id && e.method === "PATCH")
     );
-    await SecureStore.setItemAsync(
+    await AsyncStorage.setItem(
       PENDING_NOTES_KEY,
       JSON.stringify([...filtered, op])
     );
@@ -74,12 +73,12 @@ export async function clearPendingNoteOp(id: string): Promise<void> {
   try {
     const existing = await getPendingNoteOps();
     const filtered = existing.filter((e) => e.id !== id);
-    await SecureStore.setItemAsync(PENDING_NOTES_KEY, JSON.stringify(filtered));
+    await AsyncStorage.setItem(PENDING_NOTES_KEY, JSON.stringify(filtered));
   } catch {}
 }
 
 export async function clearAllPendingNoteOps(): Promise<void> {
   try {
-    await SecureStore.deleteItemAsync(PENDING_NOTES_KEY);
+    await AsyncStorage.removeItem(PENDING_NOTES_KEY);
   } catch {}
 }
