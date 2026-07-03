@@ -29,11 +29,12 @@ function createTransporter() {
 
 export async function sendResetEmail(
   email: string,
-  token: string
+  token: string,
+  baseUrl?: string
 ): Promise<void> {
   const transporter = createTransporter();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const resetUrl = `${baseUrl}/auth/reset-password/${token}`;
+  const url = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}` || "http://localhost:3000";
+  const resetUrl = `${url}/auth/reset-password/${token}`;
 
   await transporter.sendMail({
     from: `"UNIQUE" <${process.env.SMTP_USER}>`,
