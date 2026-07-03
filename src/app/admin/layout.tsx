@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const sidebar = (
     <aside
-      className={`flex flex-col bg-surface/60 backdrop-blur-xl border-l border-border shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`flex flex-col bg-[#0B1228]/80 backdrop-blur-xl border-l border-[#22D3EE]/08 shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "w-16" : "w-64"
       }`}
     >
@@ -191,8 +191,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               title={sidebarCollapsed ? tooltip : undefined}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/20"
-                  : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                  ? "bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/20 shadow-sm shadow-[#22D3EE]/10"
+                  : "text-text-muted hover:text-[#22D3EE] hover:bg-[#22D3EE]/05"
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />

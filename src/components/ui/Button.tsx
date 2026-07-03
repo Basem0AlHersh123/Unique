@@ -28,7 +28,7 @@ export function Button({
 
   const variants: Record<string, string> = {
     primary:
-      "bg-gradient-to-r from-[#7C5CFF] to-[#9A82FF] text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:brightness-105 active:brightness-95 transition-all duration-200",
+      "bg-gradient-to-r from-[#19D3C5] via-[#39C4FF] to-[#6A63FF] text-white shadow-lg shadow-[#22D3EE]/20 hover:shadow-xl hover:shadow-[#22D3EE]/30 hover:brightness-108 active:brightness-95 transition-all duration-200",
     secondary:
       "bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-primary/30 hover:bg-surface-hover transition-all duration-200",
     danger:

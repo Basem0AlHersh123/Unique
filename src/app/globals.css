@@ -10,17 +10,17 @@
 
 :root {
   /* ── Primary Accents (desaturated — 5% of the UI) ── */
-  --color-primary: #6B7BBF;
-  --color-primary-dark: #8899D4;
-  --color-primary-light: rgba(107, 123, 191, 0.12);
+  --color-primary: #22D3EE;
+  --color-primary-dark: #4F7CFF;
+  --color-primary-light: rgba(34, 211, 238, 0.10);
 
-  --color-secondary: #6B96C8;
-  --color-accent: #D4B550;
+  --color-secondary: #4F7CFF;
+  --color-accent: #D4A017;
 
-  --color-teal: #45B8A8;
-  --color-success: #4CAF8C;
-  --color-warning: #C9A84C;
-  --color-danger: #D46A6A;
+  --color-teal: #22D3EE;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
 
   /* ── Light Mode (less used — dark is primary) ── */
   --color-background: #E8ECF5;
@@ -49,23 +49,23 @@
    ============================================================ */
 .dark {
   /* ── Primary Accents (desaturated indigo-blue) ── */
-  --color-primary: #6B7BBF;
-  --color-primary-dark: #8899D4;
-  --color-primary-light: rgba(107, 123, 191, 0.15);
+  --color-primary: #22D3EE;
+  --color-primary-dark: #4F7CFF;
+  --color-primary-light: rgba(34, 211, 238, 0.10);
 
-  --color-secondary: #6B96C8;
-  --color-accent: #D4B550;
+  --color-secondary: #4F7CFF;
+  --color-accent: #D4A017;
 
-  --color-teal: #45B8A8;
-  --color-success: #4CAF8C;
-  --color-warning: #C9A84C;
-  --color-danger: #D46A6A;
+  --color-teal: #22D3EE;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
 
   /* ── Background: Deep midnight navy ── */
   --color-background: #070A16;
   --color-surface: #0C101E;
   --color-surface-hover: #121828;
-  --color-border: rgba(100, 120, 180, 0.05);
+  --color-border: rgba(34, 211, 238, 0.08);
 
   /* ── Text: Three clear brightness levels ── */
   --color-text-primary: #E8EDF5;
@@ -114,21 +114,17 @@
    so they never appear as circles — only atmosphere.
    ============================================================ */
 body {
-  /* The background is an environment: a midnight room with hidden light sources.
-     Each layer uses huge blur radii and extremely low opacity so they feel
-     like atmospheric fill-light, not gradient circles or decorative effects. */
   background:
-    /* Layer 6: Edge vignette — deepens toward the corners */
-    radial-gradient(ellipse 90% 85% at 50% 50%, transparent 25%, rgba(4, 6, 16, 0.35) 100%),
-    /* Layer 5: Teal ambient from bottom edge — barely perceptible warmth */
-    radial-gradient(ellipse 160% 35% at 50% 100%, rgba(69, 184, 168, 0.010), transparent 65%),
-    /* Layer 4: Indigo ambient from upper-right */
-    radial-gradient(ellipse 140% 90% at 100% 0%, rgba(107, 123, 191, 0.020), transparent 70%),
-    /* Layer 3: Blue ambient from upper-left — primary light source */
-    radial-gradient(ellipse 150% 90% at 0% 0%, rgba(100, 150, 230, 0.025), transparent 72%),
-    /* Layer 2: Deep ambient fill from the center */
-    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(107, 123, 191, 0.015), transparent 55%),
-    /* Layer 1: Deep midnight navy base */
+    /* Edge vignette — deepens toward the corners */
+    radial-gradient(ellipse 90% 85% at 50% 50%, transparent 25%, rgba(2, 4, 12, 0.45) 100%),
+    /* Teal ambient from bottom edge — barely perceptible warmth */
+    radial-gradient(ellipse 160% 35% at 50% 100%, rgba(34, 211, 238, 0.012) 0%, transparent 65%),
+    /* Indigo ambient from upper-right */
+    radial-gradient(ellipse 140% 90% at 100% 0%, rgba(109, 94, 248, 0.025) 0%, transparent 70%),
+    /* Cyan ambient from upper-left — primary light source */
+    radial-gradient(ellipse 150% 90% at 0% 0%, rgba(34, 211, 238, 0.030) 0%, transparent 72%),
+    /* Deep indigo fill from center */
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(79, 124, 255, 0.018) 0%, transparent 55%),
     var(--color-background);
 
   color: var(--color-text-primary);
@@ -167,19 +163,19 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 120, 180, 0.25);
+  background: rgba(34, 211, 238, 0.20);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 120, 180, 0.4);
+  background: rgba(34, 211, 238, 0.35);
 }
 
 /* ============================================================
    SELECTION — Subtle glow
    ============================================================ */
 ::selection {
-  background: rgba(107, 123, 191, 0.2);
+  background: rgba(34, 211, 238, 0.18);
   color: var(--color-text-primary);
 }
 
@@ -192,7 +188,7 @@ html {
   background: rgba(12, 16, 30, 0.75);
   backdrop-filter: blur(16px) saturate(130%);
   -webkit-backdrop-filter: blur(16px) saturate(130%);
-  border: 1px solid rgba(100, 120, 180, 0.04);
+  border: 1px solid rgba(34, 211, 238, 0.06);
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.25),
     inset 0 1px rgba(255, 255, 255, 0.015);
@@ -202,7 +198,7 @@ html {
   background: rgba(12, 16, 30, 0.45);
   backdrop-filter: blur(12px) saturate(120%);
   -webkit-backdrop-filter: blur(12px) saturate(120%);
-  border: 1px solid rgba(100, 120, 180, 0.03);
+  border: 1px solid rgba(34, 211, 238, 0.04);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
@@ -231,7 +227,7 @@ html {
 
 .surface-hover:hover {
   background: var(--color-surface-hover);
-  border-color: rgba(100, 120, 180, 0.08);
+  border-color: rgba(34, 211, 238, 0.12);
   transform: translateY(-1px);
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.025),
@@ -286,11 +282,11 @@ html {
 
   0%,
   100% {
-    box-shadow: 0 0 30px rgba(107, 123, 191, 0.08);
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.08);
   }
 
   50% {
-    box-shadow: 0 0 50px rgba(107, 123, 191, 0.15);
+    box-shadow: 0 0 50px rgba(34, 211, 238, 0.18);
   }
 }
 
@@ -304,8 +300,9 @@ html {
    ============================================================ */
 .gradient-text {
   background: linear-gradient(135deg,
-      var(--color-primary),
-      var(--color-primary-dark));
+      #22D3EE,
+      #4F7CFF,
+      #6D5EF8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
