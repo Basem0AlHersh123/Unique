@@ -31,16 +31,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             dir="auto"
             type={isPassword ? (showPassword ? "text" : "password") : type}
-            className={`w-full px-4 py-3 rounded-xl bg-surface border-2 text-text-primary
-              placeholder:text-text-muted outline-none transition-all duration-300
+            className={`w-full px-4 py-3 rounded-xl bg-surface border text-text-primary
+              placeholder:text-text-muted outline-none transition-all duration-200
               ${icon ? "pr-10" : ""}
               ${isPassword ? "pl-12" : ""}
-              ${
-                error
-                  ? "border-danger focus:border-danger shadow-danger/10"
-                  : "border-border focus:border-primary focus:shadow-lg focus:shadow-primary/10"
+              ${error
+                ? "border-danger focus:border-danger shadow-danger/10"
+                : "border-border focus:border-primary/50 focus:shadow-lg focus:shadow-primary/5"
               }
-              hover:border-primary/50 focus:scale-[1.01]
+              hover:border-primary/30
               ${className}`}
             {...rest}
           />

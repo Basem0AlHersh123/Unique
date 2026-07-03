@@ -24,8 +24,8 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
       setSent(true);
-    } catch {
-      setError(t("common.error"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
     }

@@ -32,7 +32,7 @@ export function Badge({
       className={`inline-flex items-center gap-1.5 rounded-full border font-medium transition-all duration-200 ${variants[variant]} ${sizes[size]}`}
     >
       {withPulse && (
-        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+        <span className="w-1.5 h-1.5 rounded-full bg-current pulse-dot" />
       )}
       {children}
     </span>

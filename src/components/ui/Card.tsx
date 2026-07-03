@@ -5,7 +5,6 @@ interface CardProps {
   className?: string;
   style?: CSSProperties;
   withGlass?: boolean;
-  withTilt?: boolean;
   withHover?: boolean;
   onClick?: () => void;
 }
@@ -15,23 +14,19 @@ export function Card({
   className = "",
   style,
   withGlass = false,
-  withTilt = false,
   withHover = true,
   onClick,
 }: CardProps) {
-  const base = "rounded-2xl p-6 transition-all duration-300";
-  const glass = withGlass
-    ? "glass border border-border/50"
-    : "bg-surface border border-border";
+  const base = "rounded-2xl p-6 transition-all duration-300 bg-surface border border-border";
+  const glass = withGlass ? "glass border-border/50" : "";
   const hover = withHover
-    ? "hover:shadow-xl hover:-translate-y-1 hover:border-primary/20"
+    ? "hover:bg-surface-hover hover:border-primary/10 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10"
     : "";
-  const tilt = withTilt ? "card-tilt" : "";
   const clickable = onClick ? "cursor-pointer" : "";
 
   return (
     <div
-      className={`${base} ${glass} ${hover} ${tilt} ${clickable} ${className}`}
+      className={`${base} ${glass} ${hover} ${clickable} ${className}`}
       style={style}
       onClick={onClick}
       role={onClick ? "button" : undefined}
