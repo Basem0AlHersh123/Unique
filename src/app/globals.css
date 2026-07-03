@@ -1,35 +1,36 @@
 @import "tailwindcss";
 
 /* ============================================================
-   THEME: Modern Neo-Noir Productivity Dashboard
-   Philosophy: Premium, calm, intelligent, OLED-friendly
-   Depth through layered lighting, not heavy shadows
-   Accents are restrained and purposeful
+   THEME: Premium Navy Atmosphere
+   Philosophy: Calm, intelligent, expensive — like a midnight room
+   lit by hidden blue and indigo lights.
+   Depth through environmental lighting, not shadows.
+   Accents are restrained and purposeful (5% of the UI).
    ============================================================ */
 
 :root {
-  /* ── Primary Accents ── */
-  --color-primary: #7C5CFF;
-  --color-primary-dark: #9A82FF;
-  --color-primary-light: rgba(124, 92, 255, 0.15);
+  /* ── Primary Accents (desaturated — 5% of the UI) ── */
+  --color-primary: #6B7BBF;
+  --color-primary-dark: #8899D4;
+  --color-primary-light: rgba(107, 123, 191, 0.12);
 
-  --color-secondary: #FF7AA2;
-  --color-accent: #FFD166;
+  --color-secondary: #6B96C8;
+  --color-accent: #D4B550;
 
-  --color-teal: #2DD4BF;
-  --color-success: #34D399;
-  --color-warning: #FBBF24;
-  --color-danger: #F87171;
+  --color-teal: #45B8A8;
+  --color-success: #4CAF8C;
+  --color-warning: #C9A84C;
+  --color-danger: #D46A6A;
 
-  /* ── Light Mode (kept for completeness, but dark is primary) ── */
-  --color-background: #F8F7FF;
+  /* ── Light Mode (less used — dark is primary) ── */
+  --color-background: #E8ECF5;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #E8E6FF;
-  --color-border: #E5E7EB;
+  --color-surface-hover: #DDE3F0;
+  --color-border: #C8D0E0;
 
-  --color-text-primary: #1A1A2E;
-  --color-text-secondary: #6B7280;
-  --color-text-muted: #9CA3AF;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
 
   /* ── Radius Tokens ── */
   --radius-sm: 0.5rem;
@@ -42,33 +43,34 @@
 
 /* ============================================================
    DARK MODE — The Primary Experience
-   Deep navy base with subtle indigo/purple hints
-   Soft ambient lighting from edges
+   A midnight room lit by hidden blue and indigo lights.
+   Every layer is only subtly brighter than the one beneath.
+   Depth comes from tonal contrast, not shadows or opacity.
    ============================================================ */
 .dark {
-  /* ── Primary Accents (slightly brighter for dark) ── */
-  --color-primary: #8B7DFF;
-  --color-primary-dark: #A79BFF;
-  --color-primary-light: rgba(139, 125, 255, 0.12);
+  /* ── Primary Accents (desaturated indigo-blue) ── */
+  --color-primary: #6B7BBF;
+  --color-primary-dark: #8899D4;
+  --color-primary-light: rgba(107, 123, 191, 0.15);
 
-  --color-secondary: #FF7AA2;
-  --color-accent: #FFD166;
+  --color-secondary: #6B96C8;
+  --color-accent: #D4B550;
 
-  --color-teal: #2DD4BF;
-  --color-success: #34D399;
-  --color-warning: #FBBF24;
-  --color-danger: #F87171;
+  --color-teal: #45B8A8;
+  --color-success: #4CAF8C;
+  --color-warning: #C9A84C;
+  --color-danger: #D46A6A;
 
-  /* ── Background: Deep navy with subtle gradient ── */
-  --color-background: #0B1120;
-  --color-surface: #111827;
-  --color-surface-hover: #1A2438;
-  --color-border: rgba(255, 255, 255, 0.06);
+  /* ── Background: Deep midnight navy ── */
+  --color-background: #070A16;
+  --color-surface: #0C101E;
+  --color-surface-hover: #121828;
+  --color-border: rgba(100, 120, 180, 0.05);
 
-  /* ── Text: High contrast, multiple brightness levels ── */
-  --color-text-primary: #F1F5F9;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
+  /* ── Text: Three clear brightness levels ── */
+  --color-text-primary: #E8EDF5;
+  --color-text-secondary: #8899B8;
+  --color-text-muted: #556688;
 }
 
 /* ── Tailwind Theme Mapping ── */
@@ -104,26 +106,34 @@
 }
 
 /* ============================================================
-   BODY — Ambient Lighting Foundation
-   Soft radial glow from center, slight edge darkening
-   Creates depth without being noticeable
+   BODY — Environmental Ambient Lighting
+   The background is NOT a flat color with gradients.
+   It is an environment: a midnight room illuminated by
+   hidden blue, indigo, and teal lights.
+   Each layer uses very low opacity and huge blur radii
+   so they never appear as circles — only atmosphere.
    ============================================================ */
 body {
+  /* The background is an environment: a midnight room with hidden light sources.
+     Each layer uses huge blur radii and extremely low opacity so they feel
+     like atmospheric fill-light, not gradient circles or decorative effects. */
   background:
-    radial-gradient(ellipse at 50% 30%,
-      rgba(124, 92, 255, 0.06),
-      transparent 60%),
-    radial-gradient(ellipse at 80% 80%,
-      rgba(255, 122, 162, 0.04),
-      transparent 50%),
-    radial-gradient(ellipse at 20% 70%,
-      rgba(45, 212, 191, 0.03),
-      transparent 40%),
+    /* Layer 6: Edge vignette — deepens toward the corners */
+    radial-gradient(ellipse 90% 85% at 50% 50%, transparent 25%, rgba(4, 6, 16, 0.35) 100%),
+    /* Layer 5: Teal ambient from bottom edge — barely perceptible warmth */
+    radial-gradient(ellipse 160% 35% at 50% 100%, rgba(69, 184, 168, 0.010), transparent 65%),
+    /* Layer 4: Indigo ambient from upper-right */
+    radial-gradient(ellipse 140% 90% at 100% 0%, rgba(107, 123, 191, 0.020), transparent 70%),
+    /* Layer 3: Blue ambient from upper-left — primary light source */
+    radial-gradient(ellipse 150% 90% at 0% 0%, rgba(100, 150, 230, 0.025), transparent 72%),
+    /* Layer 2: Deep ambient fill from the center */
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(107, 123, 191, 0.015), transparent 55%),
+    /* Layer 1: Deep midnight navy base */
     var(--color-background);
 
   color: var(--color-text-primary);
   font-family: var(--font-cairo), var(--font-inter), Arial, sans-serif;
-  transition: background 400ms ease, color 300ms ease;
+  transition: background 500ms ease, color 300ms ease;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -157,69 +167,75 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
+  background: rgba(100, 120, 180, 0.25);
   border-radius: 10px;
-  opacity: 0.6;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-dark);
-  opacity: 1;
+  background: rgba(100, 120, 180, 0.4);
 }
 
 /* ============================================================
    SELECTION — Subtle glow
    ============================================================ */
 ::selection {
-  background: var(--color-primary-light);
+  background: rgba(107, 123, 191, 0.2);
   color: var(--color-text-primary);
 }
 
 /* ============================================================
-   GLASSMORPHISM — Refined for Neo-Noir
-   Subtle backdrop blur, minimal border, soft shadow
+   GLASS — Polished, premium, restrained
+   Think polished glass illuminated from within, not frosted.
+   The blur is subtle — just enough to hint at translucency.
    ============================================================ */
 .glass {
-  background: rgba(17, 24, 39, 0.55);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 16, 30, 0.75);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid rgba(100, 120, 180, 0.04);
   box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.3),
-    inset 0 1px rgba(255, 255, 255, 0.03);
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    inset 0 1px rgba(255, 255, 255, 0.015);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  background: rgba(12, 16, 30, 0.45);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(100, 120, 180, 0.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* ============================================================
    SURFACE CARDS — Carved into the environment
-   Slightly lighter than background, subtle border
+   Polished stone, not floating rectangles.
+   Each layer is only ~5-8% brighter than the one behind it.
+   Depth comes from tonal contrast, not shadows.
+   Inner top highlight creates illumination from ambient light.
    ============================================================ */
 .surface {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.015);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .surface-hover {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.015);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .surface-hover:hover {
   background: var(--color-surface-hover);
-  border-color: rgba(139, 125, 255, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border-color: rgba(100, 120, 180, 0.08);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.025),
+    0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* ============================================================
@@ -270,11 +286,11 @@ html {
 
   0%,
   100% {
-    box-shadow: 0 0 30px rgba(139, 125, 255, 0.15);
+    box-shadow: 0 0 30px rgba(107, 123, 191, 0.08);
   }
 
   50% {
-    box-shadow: 0 0 60px rgba(139, 125, 255, 0.25);
+    box-shadow: 0 0 50px rgba(107, 123, 191, 0.15);
   }
 }
 
@@ -283,44 +299,31 @@ html {
 }
 
 /* ============================================================
-   GRADIENT TEXT — Soft, not harsh
+   GRADIENT TEXT — Premium monochromatic shift
+   Static gradient — motion draws attention away from content.
    ============================================================ */
 .gradient-text {
   background: linear-gradient(135deg,
       var(--color-primary),
-      var(--color-secondary),
-      var(--color-accent));
+      var(--color-primary-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-size: 300% 300%;
-  animation: gradient-shift 6s ease-in-out infinite;
-}
-
-@keyframes gradient-shift {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
 }
 
 /* ============================================================
-   SCALE ON HOVER — Micro-interaction
+   SCALE ON HOVER — Premium micro-interaction
+   Glides smoothly — the motion should be felt, not noticed.
    ============================================================ */
 .hover-scale {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-scale:hover {
-  transform: scale(1.02);
+  transform: scale(1.012);
 }
 
 /* ============================================================
-   STAGGERED ENTRY ANIMATIONS
+   STAGGERED ENTRY ANIMATIONS — Gliding, not snapping
    ============================================================ */
 .stagger-children>* {
   opacity: 0;
@@ -418,7 +421,7 @@ html {
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.97);
   }
 
   to {
@@ -428,7 +431,7 @@ html {
 }
 
 .scale-in {
-  animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: scale-in 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* ============================================================
@@ -470,15 +473,11 @@ html {
    THEME TOGGLE ANIMATION
    ============================================================ */
 .theme-toggle {
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .theme-toggle:hover {
-  transform: rotate(90deg) scale(1.08);
-}
-
-.theme-toggle:active {
-  transform: rotate(180deg) scale(0.92);
+  transform: rotate(90deg) scale(1.03);
 }
 
 /* ============================================================
@@ -497,7 +496,7 @@ html {
   bottom: -10px;
   background: var(--color-primary);
   border-radius: 50%;
-  opacity: 0.06;
+  opacity: 0.02;
   animation: particle-rise linear infinite;
 }
 
@@ -508,12 +507,12 @@ html {
   }
 
   15% {
-    opacity: 0.06;
+    opacity: 0.02;
     transform: scale(1);
   }
 
   85% {
-    opacity: 0.06;
+    opacity: 0.02;
   }
 
   100% {
@@ -532,7 +531,7 @@ html {
 }
 
 .card-tilt:hover {
-  transform: rotateX(1.5deg) rotateY(1.5deg) scale(1.01);
+  transform: rotateX(1deg) rotateY(1deg) scale(1.003);
 }
 
 /* ============================================================
@@ -680,7 +679,7 @@ pre code {
    TRANSITION HELPERS
    ============================================================ */
 .transition-all-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .transition-colors-smooth {
