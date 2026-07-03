@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #6C63FF;
-  --color-primary-dark: #5A52D5;
+  /* --color-primary: #6C63FF;
+  --color-primary-dark: #5A52D5; */
+  --color-primary: #7C5CFF;
+  --color-primary-dark: #9A82FF;
   --color-secondary: #FF6584;
   --color-accent: #FFD166;
   --color-teal: #14B8A6;
@@ -26,17 +28,39 @@
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
 }
-
+ 
 .dark {
-  --color-primary-dark: #7C73FF;
-  --color-background: #0D0D1A;
-  --color-surface: #1A1A2E;
-  --color-surface-hover: #2A2A45;
-  --color-border: #2A2A45;
 
-  --color-text-primary: #F1F5F9;
-  --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
+  --color-primary: #8B7DFF;
+  --color-primary-dark: #A79BFF;
+
+  --color-secondary: #FF7AA2;
+
+  --color-accent: #FFD166;
+
+  --color-teal: #2DD4BF;
+
+  --color-success: #34D399;
+
+  --color-warning: #FBBF24;
+
+  --color-danger: #F87171;
+
+  /* Backgrounds */
+  --color-background: #111827;
+
+  --color-surface: #1B2433;
+
+  --color-surface-hover: #243145;
+
+  --color-border: rgba(255, 255, 255, .08);
+
+  /* Text */
+  --color-text-primary: #F8FAFC;
+
+  --color-text-secondary: #CBD5E1;
+
+  --color-text-muted: #94A3B8;
 }
 
 @theme inline {
@@ -70,10 +94,25 @@
 }
 
 body {
-  background: var(--color-background);
+  background:
+    radial-gradient(circle at top,
+      rgba(124, 115, 255, 0.08),
+      transparent 40%),
+    linear-gradient(180deg,
+      var(--color-background),
+      #0F172A);
+
   color: var(--color-text-primary);
-  font-family: var(--font-cairo), var(--font-inter), Arial, sans-serif;
-  transition: background-color 300ms ease, color 300ms ease;
+
+  transition:
+    background 300ms ease,
+    color 300ms ease;
+
+  font-family:
+    var(--font-cairo),
+    var(--font-inter),
+    Arial,
+    sans-serif;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -119,11 +158,15 @@ html {
 
 /* Glassmorphism - Enhanced */
 .glass {
-  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border: 1px solid color-mix(in srgb, var(--color-border) 30%, transparent);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  background: rgba(30, 41, 59, .45);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+
+  border: 1px solid rgba(255, 255, 255, .08);
+
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, .28),
+    inset 0 1px rgba(255, 255, 255, .03);
 }
 
 .glass-dark {
@@ -131,7 +174,7 @@ html {
   backdrop-filter: blur(20px) saturate(1.2);
   -webkit-backdrop-filter: blur(20px) saturate(1.2);
   border: 1px solid color-mix(in srgb, var(--color-border) 20%, transparent);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, .35);
 }
 
 /* Shimmer animation */
