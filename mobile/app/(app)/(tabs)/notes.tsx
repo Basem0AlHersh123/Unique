@@ -197,17 +197,17 @@ export default function NotesScreen() {
             const updated = allNotes.filter((n) => n._id !== id);
             setAllNotes(updated);
             await cacheSet("notes_list", updated);
-            await addPendingNoteOp({
-              id: Date.now().toString(),
-              method: "DELETE",
-              endpoint: ENDPOINTS.NOTE(id),
-              body: {},
-              createdAt: Date.now(),
-            });
             try {
               await apiFetch(ENDPOINTS.NOTE(id), { method: "DELETE" });
             } catch {
-              // Will sync when online via flushPendingNotes
+              // Offline or server error — queue for later sync
+              await addPendingNoteOp({
+                id: `delete_${id}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                method: "DELETE",
+                endpoint: ENDPOINTS.NOTE(id),
+                body: {},
+                createdAt: Date.now(),
+              });
             }
           },
         },

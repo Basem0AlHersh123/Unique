@@ -134,14 +134,18 @@ export default function NoteEditorScreen() {
           const res = await apiFetch<StudentNote>(ENDPOINTS.NOTES, { method: "POST", body });
           if (res.success && res.data) {
             await cacheSet(`note_${res.data._id}`, res.data);
-            // Invalidate the list cache so it refetches
-            await cacheSet("notes_list", null as any);
+            // Prepend to list cache instead of wiping it
+            const list = (await cacheGet<StudentNote[]>("notes_list")) ?? [];
+            await cacheSet("notes_list", [res.data, ...list]);
           }
         } else {
           const res = await apiFetch<StudentNote>(ENDPOINTS.NOTE(id), { method: "PATCH", body });
           if (res.success && res.data) {
-            await cacheSet(`note_${id}`, res.data);
-            await cacheSet("notes_list", null as any);
+            const saved = res.data;
+            await cacheSet(`note_${id}`, saved);
+            // Update in-place in list cache
+            const list = (await cacheGet<StudentNote[]>("notes_list")) ?? [];
+            await cacheSet("notes_list", list.map((n) => (n._id === id ? saved : n)));
           }
         }
         router.back();

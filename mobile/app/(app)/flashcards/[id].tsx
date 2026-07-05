@@ -20,7 +20,7 @@ import { useTheme } from "@/lib/theme/context";
 import { ENDPOINTS, STORAGE_KEYS } from "@/constants/config";
 import { cacheGet, cacheSet } from "@/lib/cache";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 interface FlashcardDetail {
   _id: string;
@@ -513,26 +513,27 @@ export default function FlashcardDetailScreen() {
           </Text>
         </View>
 
-        <Pressable
-          style={[
-            styles.navBtn,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              opacity: currentIndex === allCards.length - 1 ? 0.3 : 1,
-            },
-          ]}
-          disabled={currentIndex === allCards.length - 1}
-          onPress={() => goToCard(currentIndex + 1)}
-        >
-          <Feather
-            name="chevron-left"
-            size={28}
-            color={
-              currentIndex === allCards.length - 1 ? colors.textTertiary : colors.text
-            }
-          />
-        </Pressable>
+        {currentIndex === allCards.length - 1 ? (
+          <Pressable
+            style={[styles.navBtn, { backgroundColor: colors.success + "22", borderColor: colors.success }]}
+            onPress={() => setShowCompleteModal(true)}
+          >
+            <Feather name="check" size={28} color={colors.success} />
+          </Pressable>
+        ) : (
+          <Pressable
+            style={[
+              styles.navBtn,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => goToCard(currentIndex + 1)}
+          >
+            <Feather name="chevron-left" size={28} color={colors.text} />
+          </Pressable>
+        )}
       </View>
 
       {/* ── Completion Modal ── */}

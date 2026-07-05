@@ -80,7 +80,6 @@ export default function FlashcardsIndexScreen() {
     let limit = 15;
 
     try {
-      // ── Show cached vocabulary immediately ──
       const cached = await cacheGet<Flashcard[]>("vocab_list");
       if (cached && cached.length > 0) {
         vocab = cached;
@@ -136,6 +135,20 @@ export default function FlashcardsIndexScreen() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function fetchAllWords() {
+    const collegeId = await SecureStore.getItemAsync(STORAGE_KEYS.COLLEGE_ID);
+    if (!collegeId) return;
+    try {
+      const res = await apiFetch<Flashcard[]>(
+        `${ENDPOINTS.VOCABULARY}?collegeId=${collegeId}&limit=999`
+      );
+      if (res.success && res.data && res.data.length > 0) {
+        setAllWords(res.data);
+        await cacheSet("vocab_list", res.data);
+      }
+    } catch {}
   }
 
   async function loadProgress() {
@@ -331,7 +344,10 @@ export default function FlashcardsIndexScreen() {
                 borderBottomWidth: 2,
               },
             ]}
-            onPress={() => setActiveTab(tab.id)}
+            onPress={() => {
+              setActiveTab(tab.id);
+              if (tab.id === "all" && allWords.length === 0) fetchAllWords();
+            }}
           >
             <Text
               style={[
