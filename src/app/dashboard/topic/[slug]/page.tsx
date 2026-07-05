@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
-import { Badge } from "@/components/ui/Badge";
+
 import { Button } from "@/components/ui/Button";
 import { Navbar } from "@/components/layout/Navbar";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -15,13 +15,11 @@ import {
   ArrowLeft,
   BookOpen,
   CheckCircle,
-  Lightbulb,
-  Sparkles,
+  Trophy,
+  FileText,
+  Zap,
   ClipboardCheck,
   Bot,
-  Play,
-  Star,
-  GraduationCap,
 } from "lucide-react";
 
 interface Topic {
@@ -31,30 +29,20 @@ interface Topic {
   subjectId: string;
   videoUrl: string;
   aiExplanation?: string;
+  summaryText?: string;
   keyPoints: string[];
   vocabulary: { word: string; definition: string }[];
   order: number;
   isFree: boolean;
   isPublished: boolean;
   difficulty: "beginner" | "intermediate" | "advanced";
+  contentType: string;
 }
-
-const difficultyLabels: Record<string, string> = {
-  beginner: "مبتدئ",
-  intermediate: "متوسط",
-  advanced: "متقدم",
-};
-
-const difficultyLabelsEn: Record<string, string> = {
-  beginner: "Beginner",
-  intermediate: "Intermediate",
-  advanced: "Advanced",
-};
 
 export default function TopicDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { t, lang, isRTL } = useLanguage();
+  const { t, lang } = useLanguage();
   const slug = params.slug as string;
 
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -119,11 +107,9 @@ export default function TopicDetailPage() {
     }
   }
 
-  function getYouTubeEmbedUrl(url: string): string | null {
-    const match = url.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/
-    );
-    return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+  function extractYoutubeId(url: string): string {
+    const match = url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match?.[1] ?? "";
   }
 
   if (loading) {
@@ -159,154 +145,166 @@ export default function TopicDetailPage() {
     );
   }
 
-  const embedUrl = topic.videoUrl ? getYouTubeEmbedUrl(topic.videoUrl) : null;
-  const diffLabel = lang === "ar" ? difficultyLabels[topic.difficulty] : difficultyLabelsEn[topic.difficulty];
-  const diffColor =
-    topic.difficulty === "beginner"
-      ? "success"
-      : topic.difficulty === "intermediate"
-      ? "warning"
-      : "danger";
-
   return (
     <div className="min-h-screen bg-background">
-      <Navbar variant="minimal" />
+      {/* ── Sticky top bar ── */}
+      <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center justify-between gap-3">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {lang === "ar" ? "رجوع" : "Back"}
+        </button>
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="mb-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className={`w-4 h-4 ml-1 ${isRTL ? "" : "rotate-180"}`} />
-            {t("topic.back")}
-          </Button>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-success/15 text-success border border-success/20">
+            <CheckCircle className="w-3 h-3" />
+            {lang === "ar" ? "شاهدت الفيديو" : "Video watched"}
+          </span>
+          <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/15 text-primary border border-primary/20">
+            <Trophy className="w-3 h-3" />
+            {lang === "ar" ? "أجبت الاختبار" : "Quiz passed"}
+          </span>
         </div>
 
-        {/* Header - Enhanced */}
-        <div className="mb-8 slide-up">
-          <div className="flex items-center gap-2 text-sm text-text-muted mb-2 flex-wrap">
-            <Badge variant={diffColor}>{diffLabel}</Badge>
+        <Link href="/dashboard" className="text-xs text-text-muted hover:text-primary transition-colors">
+          {lang === "ar" ? "لوحتي" : "Dashboard"}
+        </Link>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        {/* ── Lesson title & meta ── */}
+        <div>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             {topic.isFree && (
-              <Badge variant="success">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-success/15 text-success font-medium border border-success/20">
                 {lang === "ar" ? "مجاني" : "Free"}
-              </Badge>
+              </span>
             )}
-            <Badge variant="info">
-              {lang === "ar" ? `الدرس #${topic.order}` : `Lesson #${topic.order}`}
-            </Badge>
+            <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${
+              topic.difficulty === "beginner"
+                ? "bg-primary/10 text-primary border-primary/20"
+                : topic.difficulty === "intermediate"
+                ? "bg-warning/10 text-warning border-warning/20"
+                : "bg-danger/10 text-danger border-danger/20"
+            }`}>
+              {topic.difficulty === "beginner"    ? (lang === "ar" ? "مبتدئ"   : "Beginner")    :
+               topic.difficulty === "intermediate"? (lang === "ar" ? "متوسط"   : "Intermediate") :
+                                                    (lang === "ar" ? "متقدم"   : "Advanced")}
+            </span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-surface border border-border text-text-muted capitalize">
+              {topic.contentType}
+            </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-text-primary">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary leading-snug">
             {topic.title}
           </h1>
         </div>
 
-        {/* Quiz CTA - Enhanced */}
-        <Link href={`/dashboard/topic/${slug}/quiz`}>
-          <Button
-            size="lg"
-            className="w-full sm:w-auto mb-8 flex items-center gap-2 hover:scale-105 transition-all duration-300 shadow-lg shadow-primary/20"
-          >
-            <ClipboardCheck className="w-5 h-5" />
-            {lang === "ar" ? "ابدأ الاختبار" : "Start Quiz"}
-          </Button>
-        </Link>
-
-        {/* Video - Enhanced */}
-        {embedUrl && (
-          <div className="rounded-2xl overflow-hidden shadow-2xl border border-border mb-8 bg-surface hover:shadow-3xl transition-all duration-300 slide-up">
-            <div className="relative aspect-video">
+        {/* ── VIDEO — always first ── */}
+        {topic.videoUrl && (
+          <div className="rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/40">
+            <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
               <iframe
-                src={embedUrl}
                 className="absolute inset-0 w-full h-full"
+                src={`https://www.youtube.com/embed/${extractYoutubeId(topic.videoUrl)}?rel=0&modestbranding=1`}
+                title={topic.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
-              <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/10">
-                <Play className="w-3 h-3 inline ml-1" />
-                {lang === "ar" ? "شاهد الفيديو" : "Watch video"}
-              </div>
             </div>
           </div>
         )}
 
-        {/* AI Explanation - Enhanced */}
-        {topic.aiExplanation && (
-          <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6 mb-8 slide-up">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Sparkles className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="text-lg font-bold text-text-primary">
-                {lang === "ar" ? "شرح تفاعلي" : "Interactive Explanation"}
-              </h2>
-            </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownRenderer content={topic.aiExplanation} />
+        {/* ── Summary ── */}
+        {topic.summaryText && (
+          <div className="bg-surface border border-border rounded-2xl p-6">
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2 mb-4">
+              <FileText className="w-4 h-4 text-primary" />
+              {lang === "ar" ? "ملخص الدرس" : "Summary"}
+            </h2>
+            <div className="text-text-secondary text-sm leading-relaxed prose-sm max-w-none">
+              <MarkdownRenderer content={topic.summaryText} />
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Key Points - Enhanced */}
-          {topic.keyPoints.length > 0 && (
-            <div className="bg-surface rounded-2xl border border-border p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 slide-up">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 rounded-xl bg-warning/10">
-                  <Lightbulb className="w-5 h-5 text-warning" />
-                </div>
-                <h2 className="text-lg font-bold text-text-primary">
-                  {lang === "ar" ? "النقاط الرئيسية" : "Key Points"}
-                </h2>
-              </div>
-              <ul className="space-y-3">
-                {topic.keyPoints.map((point, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 slide-up"
-                    style={{ animationDelay: `${i * 0.05}s` }}
-                  >
-                    <CheckCircle className="w-5 h-5 text-teal mt-0.5 shrink-0" />
-                    <span className="text-text-secondary">{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Vocabulary - Enhanced */}
-          {topic.vocabulary.length > 0 && (
-            <div className="bg-surface rounded-2xl border border-border p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 slide-up" style={{ animationDelay: "0.1s" }}>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 rounded-xl bg-primary/10">
-                  <BookOpen className="w-5 h-5 text-primary" />
-                </div>
-                <h2 className="text-lg font-bold text-text-primary">
-                  {lang === "ar" ? "المفردات" : "Vocabulary"}
-                </h2>
-              </div>
-              <div className="space-y-4">
-                {topic.vocabulary.map((v, i) => (
-                  <div
-                    key={i}
-                    className="pb-3 border-b border-border last:border-0 last:pb-0 slide-up"
-                    style={{ animationDelay: `${i * 0.05}s` }}
-                  >
-                    <p className="font-bold text-text-primary flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary">
-                        {i + 1}
-                      </span>
-                      {v.word}
-                    </p>
-                    <p className="text-sm text-text-secondary mt-0.5 mr-8">
-                      {v.definition}
-                    </p>
+        {/* ── Key Points ── */}
+        {topic.keyPoints && topic.keyPoints.length > 0 && (
+          <div className="bg-surface border border-border rounded-2xl p-6">
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2 mb-4">
+              <Zap className="w-4 h-4 text-warning" />
+              {lang === "ar" ? "النقاط الرئيسية" : "Key Points"}
+            </h2>
+            <div className="space-y-3">
+              {topic.keyPoints.map((kp: string, i: number) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-warning/15 border border-warning/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-[10px] font-bold text-warning">{i + 1}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-sm text-text-secondary leading-relaxed">{kp}</p>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
+
+        {/* ── Vocabulary ── */}
+        {topic.vocabulary && topic.vocabulary.length > 0 && (
+          <div className="bg-surface border border-border rounded-2xl p-6">
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2 mb-4">
+              <BookOpen className="w-4 h-4 text-secondary" />
+              {lang === "ar" ? "المفردات" : "Vocabulary"}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {topic.vocabulary.map((v: { word: string; definition: string }, i: number) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-background border border-border">
+                  <span className="text-sm font-bold text-primary shrink-0">{v.word}</span>
+                  <span className="text-sm text-text-muted">— {v.definition}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── AI Explanation ── */}
+        {topic.aiExplanation && (
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6">
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2 mb-4">
+              <span className="text-lg">✨</span>
+              {lang === "ar" ? "شرح الذكاء الاصطناعي" : "AI Explanation"}
+            </h2>
+            <p className="text-sm text-text-secondary leading-relaxed">{topic.aiExplanation}</p>
+          </div>
+        )}
+
+        {/* ── Quiz section — always last ── */}
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4 text-primary" />
+              {lang === "ar" ? "اختبار الدرس" : "Lesson Quiz"}
+            </h2>
+          </div>
+          <div className="p-6">
+            <div className="text-center py-4">
+              <p className="text-text-secondary text-sm mb-4">
+                {lang === "ar"
+                  ? "شاهد الفيديو واقرأ الدرس جيداً قبل بدء الاختبار"
+                  : "Watch the video and study the lesson before starting the quiz"}
+              </p>
+              <Link href={`/dashboard/topic/${slug}/quiz`}
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#19D3C5] via-[#39C4FF] to-[#6A63FF] text-white font-bold text-sm shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:brightness-110 transition-all">
+                <ClipboardCheck className="w-4 h-4" />
+                {lang === "ar" ? "ابدأ الاختبار" : "Start Quiz"}
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* Ask AI Section - Enhanced */}
-        <div className="mt-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6 slide-up">
+        {/* ── Ask AI Assistant ── */}
+        <div className="mt-8 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6">
           <button
             onClick={() => setAiOpen(!aiOpen)}
             className="flex items-center gap-2 w-full text-right"
@@ -327,7 +325,7 @@ export default function TopicDetailPage() {
           </button>
 
           {aiOpen && (
-            <div className="mt-4 space-y-4 animate-slide-in-right">
+            <div className="mt-4 space-y-4">
               <div className="flex items-end gap-2">
                 <input
                   type="text"
@@ -354,18 +352,9 @@ export default function TopicDetailPage() {
               {aiLoading && (
                 <div className="flex items-center gap-2 text-text-muted text-sm">
                   <div className="flex gap-1">
-                    <div
-                      className="w-2 h-2 rounded-full bg-primary/40 animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    />
-                    <div
-                      className="w-2 h-2 rounded-full bg-primary/40 animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    />
-                    <div
-                      className="w-2 h-2 rounded-full bg-primary/40 animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                   <span>{lang === "ar" ? "جاري التفكير..." : "Thinking..."}</span>
                 </div>
@@ -378,7 +367,7 @@ export default function TopicDetailPage() {
               )}
 
               {aiAnswer && (
-                <div className="bg-surface rounded-xl border border-border p-4 scale-in">
+                <div className="bg-surface rounded-xl border border-border p-4">
                   <div className="flex items-center gap-1.5 mb-2">
                     <Bot className="w-4 h-4 text-primary" />
                     <span className="text-xs font-semibold text-primary">
@@ -391,11 +380,7 @@ export default function TopicDetailPage() {
 
               {aiAnswer && (
                 <button
-                  onClick={() => {
-                    setAiAnswer(null);
-                    setAiQuestion("");
-                    setAiError(null);
-                  }}
+                  onClick={() => { setAiAnswer(null); setAiQuestion(""); setAiError(null); }}
                   className="text-sm text-text-muted hover:text-text-primary transition-colors"
                 >
                   {lang === "ar" ? "مسح" : "Clear"}
@@ -404,7 +389,7 @@ export default function TopicDetailPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

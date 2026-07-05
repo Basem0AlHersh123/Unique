@@ -12,6 +12,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { Plus, Edit2, Trash2, GitBranch, Filter, Eye, EyeOff } from "lucide-react";
+import JsonImport, { type JsonField } from "@/components/ui/JsonImport";
+import BulkImportModal from "@/components/ui/BulkImportModal";
 
 interface Subject {
   _id: string;
@@ -172,6 +174,14 @@ export default function LevelsPage() {
     ? levels.filter((l) => l.subjectId === filterSubject)
     : levels;
 
+  const LEVEL_FIELDS: JsonField[] = [
+    { name: "title", label: lang === "ar" ? "العنوان" : "Title", required: true, type: "string" },
+    { name: "titleEn", label: "Title (EN)", required: false, type: "string" },
+    { name: "subjectId", label: lang === "ar" ? "المادة (ID)" : "Subject ID", required: true, type: "string" },
+    { name: "order", label: lang === "ar" ? "الترتيب" : "Order", required: false, type: "number" },
+    { name: "description", label: lang === "ar" ? "الوصف" : "Description", required: false, type: "string" },
+  ];
+
   if (loading) return <LoadingSkeleton />;
 
   return (
@@ -181,10 +191,34 @@ export default function LevelsPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">{t('admin.levels')}</h2>
           <p className="text-text-secondary mt-1 text-sm sm:text-base">{t('admin.levels_desc')}</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
-          <Plus className="w-5 h-5 ml-2" />
-          {t('admin.add')}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <JsonImport
+            fields={LEVEL_FIELDS}
+            entityLabel={lang === "ar" ? "مستوى" : "Level"}
+            onFill={(data) => {
+              setForm({
+                title: String(data.title ?? ""),
+                titleEn: String(data.titleEn ?? ""),
+                subjectId: String(data.subjectId ?? ""),
+                order: Number(data.order ?? 0),
+                description: String(data.description ?? ""),
+                comingSoon: Boolean(data.comingSoon ?? false),
+                isPublished: Boolean(data.isPublished ?? false),
+              });
+              setShowForm(true);
+            }}
+          />
+          <BulkImportModal
+            apiEndpoint="/api/admin/levels/bulk"
+            fields={LEVEL_FIELDS}
+            entityLabel={lang === "ar" ? "مستويات" : "Levels"}
+            onSuccess={fetchData}
+          />
+          <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
+            <Plus className="w-5 h-5 ml-2" />
+            {t('admin.add')}
+          </Button>
+        </div>
       </div>
 
       {error && (

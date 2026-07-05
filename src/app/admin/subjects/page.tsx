@@ -13,6 +13,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { Plus, Edit2, Trash2, BookOpen, Filter, Search } from "lucide-react";
+import JsonImport, { type JsonField } from "@/components/ui/JsonImport";
+import BulkImportModal from "@/components/ui/BulkImportModal";
 
 interface College {
   _id: string;
@@ -201,6 +203,14 @@ export default function SubjectsPage() {
       return name.includes(q) || s.slug.toLowerCase().includes(q);
     });
 
+  const SUBJECT_FIELDS: JsonField[] = [
+    { name: "name", label: lang === "ar" ? "الاسم" : "Name", required: true, type: "string" },
+    { name: "nameAr", label: lang === "ar" ? "الاسم بالعربي" : "Name (AR)", required: false, type: "string" },
+    { name: "nameEn", label: "Name (EN)", required: false, type: "string" },
+    { name: "collegeId", label: lang === "ar" ? "الكلية (ID)" : "College ID", required: true, type: "string" },
+    { name: "isShared", label: lang === "ar" ? "مشترك" : "Shared", required: false, type: "boolean" },
+  ];
+
   if (loading) return <LoadingSkeleton />;
 
   return (
@@ -210,10 +220,36 @@ export default function SubjectsPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">{t('admin.subjects')}</h2>
           <p className="text-text-secondary mt-1 text-sm sm:text-base">{t('admin.subjects_desc')}</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
-          <Plus className="w-5 h-5 ml-2" />
-          {t('admin.add')}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <JsonImport
+            fields={SUBJECT_FIELDS}
+            entityLabel={lang === "ar" ? "مادة" : "Subject"}
+            onFill={(data) => {
+              setForm({
+                name: String(data.name ?? ""),
+                nameAr: String(data.nameAr ?? ""),
+                nameEn: String(data.nameEn ?? ""),
+                collegeId: String(data.collegeId ?? ""),
+                isShared: Boolean(data.isShared ?? false),
+                slug: String(data.slug ?? String(data.name ?? "").toLowerCase().replace(/\s+/g, "-")),
+                imageType: "icon" as const,
+                imageUrl: "",
+                icon: "BookOpen",
+              });
+              setShowForm(true);
+            }}
+          />
+          <BulkImportModal
+            apiEndpoint="/api/admin/subjects/bulk"
+            fields={SUBJECT_FIELDS}
+            entityLabel={lang === "ar" ? "مواد" : "Subjects"}
+            onSuccess={fetchData}
+          />
+          <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
+            <Plus className="w-5 h-5 ml-2" />
+            {t('admin.add')}
+          </Button>
+        </div>
       </div>
 
       {error && (

@@ -10,6 +10,8 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import JsonImport, { type JsonField } from "@/components/ui/JsonImport";
+import BulkImportModal from "@/components/ui/BulkImportModal";
 import {
   Plus, Edit2, Trash2, BookMarked, Filter, Eye, EyeOff,
 } from "lucide-react";
@@ -215,6 +217,17 @@ export default function VocabularyPage() {
     hard: { label: lang === "ar" ? "صعب" : "Hard", color: "danger" },
   };
 
+  const VOCAB_FIELDS: JsonField[] = [
+    { name: "word", label: lang === "ar" ? "الكلمة" : "Word", required: true, type: "string" },
+    { name: "definition", label: lang === "ar" ? "التعريف" : "Definition", required: true, type: "string" },
+    { name: "example", label: lang === "ar" ? "مثال" : "Example", required: true, type: "string" },
+    { name: "arabicMeaning", label: lang === "ar" ? "المعنى بالعربي" : "Arabic Meaning", required: true, type: "string" },
+    { name: "collegeId", label: lang === "ar" ? "الكلية (ID)" : "College ID", required: true, type: "string" },
+    { name: "subjectId", label: lang === "ar" ? "المادة (ID)" : "Subject ID", required: false, type: "string" },
+    { name: "difficulty", label: lang === "ar" ? "الصعوبة" : "Difficulty", required: false, type: "string" },
+    { name: "imageUrl", label: lang === "ar" ? "رابط الصورة" : "Image URL", required: false, type: "string" },
+  ];
+
   if (loading) return <LoadingSkeleton />;
 
   return (
@@ -228,10 +241,36 @@ export default function VocabularyPage() {
             {lang === "ar" ? "إدارة المفردات اللغوية" : "Manage vocabulary words"}
           </p>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
-          <Plus className="w-5 h-5 ml-2" />
-          {lang === "ar" ? "إضافة مفردة" : "Add Word"}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <JsonImport
+            fields={VOCAB_FIELDS}
+            entityLabel={lang === "ar" ? "مفردة" : "Word"}
+            onFill={(data) => {
+              setForm({
+                word: String(data.word ?? ""),
+                definition: String(data.definition ?? ""),
+                example: String(data.example ?? ""),
+                arabicMeaning: String(data.arabicMeaning ?? ""),
+                imageUrl: String(data.imageUrl ?? ""),
+                collegeId: String(data.collegeId ?? ""),
+                subjectId: String(data.subjectId ?? ""),
+                difficulty: String(data.difficulty ?? "medium"),
+                isPublished: Boolean(data.isPublished ?? true),
+              });
+              setShowForm(true);
+            }}
+          />
+          <BulkImportModal
+            apiEndpoint="/api/admin/vocabulary/bulk"
+            fields={VOCAB_FIELDS}
+            entityLabel={lang === "ar" ? "مفردات" : "Vocabulary"}
+            onSuccess={fetchData}
+          />
+          <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
+            <Plus className="w-5 h-5 ml-2" />
+            {lang === "ar" ? "إضافة مفردة" : "Add Word"}
+          </Button>
+        </div>
       </div>
 
       {error && (

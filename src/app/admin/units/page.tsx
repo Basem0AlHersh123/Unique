@@ -12,6 +12,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { Plus, Edit2, Trash2, FolderOpen, Filter, Eye, EyeOff, ToggleLeft, ToggleRight } from "lucide-react";
+import JsonImport, { type JsonField } from "@/components/ui/JsonImport";
+import BulkImportModal from "@/components/ui/BulkImportModal";
 
 interface Subject {
   _id: string;
@@ -228,6 +230,16 @@ export default function UnitsPage() {
     ? units.filter((u) => u.subjectId === filterSubject)
     : units;
 
+  const UNIT_FIELDS: JsonField[] = [
+    { name: "title", label: lang === "ar" ? "العنوان" : "Title", required: true, type: "string" },
+    { name: "titleEn", label: "Title (EN)", required: false, type: "string" },
+    { name: "levelId", label: lang === "ar" ? "المستوى (ID)" : "Level ID", required: true, type: "string" },
+    { name: "subjectId", label: lang === "ar" ? "المادة (ID)" : "Subject ID", required: true, type: "string" },
+    { name: "order", label: lang === "ar" ? "الترتيب" : "Order", required: false, type: "number" },
+    { name: "examEnabled", label: lang === "ar" ? "الاختبار مفعّل" : "Exam Enabled", required: false, type: "boolean" },
+    { name: "description", label: lang === "ar" ? "الوصف" : "Description", required: false, type: "string" },
+  ];
+
   if (loading) return <LoadingSkeleton />;
 
   return (
@@ -237,10 +249,38 @@ export default function UnitsPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">{t('admin.units')}</h2>
           <p className="text-text-secondary mt-1 text-sm sm:text-base">{t('admin.units_desc')}</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
-          <Plus className="w-5 h-5 ml-2" />
-          {t('admin.add')}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <JsonImport
+            fields={UNIT_FIELDS}
+            entityLabel={lang === "ar" ? "وحدة" : "Unit"}
+            onFill={(data) => {
+              setForm({
+                title: String(data.title ?? ""),
+                titleEn: String(data.titleEn ?? ""),
+                subjectId: String(data.subjectId ?? ""),
+                levelId: String(data.levelId ?? ""),
+                order: Number(data.order ?? 0),
+                description: String(data.description ?? ""),
+                comingSoon: Boolean(data.comingSoon ?? false),
+                isPublished: Boolean(data.isPublished ?? false),
+                examEnabled: Boolean(data.examEnabled ?? true),
+                passingScore: Number(data.passingScore ?? 70),
+                questionCount: Number(data.questionCount ?? 20),
+              });
+              setShowForm(true);
+            }}
+          />
+          <BulkImportModal
+            apiEndpoint="/api/admin/units/bulk"
+            fields={UNIT_FIELDS}
+            entityLabel={lang === "ar" ? "وحدات" : "Units"}
+            onSuccess={fetchData}
+          />
+          <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
+            <Plus className="w-5 h-5 ml-2" />
+            {t('admin.add')}
+          </Button>
+        </div>
       </div>
 
       {error && (

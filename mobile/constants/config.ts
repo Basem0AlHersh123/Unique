@@ -71,4 +71,5 @@ export const STORAGE_KEYS = {
   REMINDER_TIME:   "unique_reminder_time",
   REMINDER_ON:     "unique_reminder_on",
   FLASHCARD_PROGRESS: "flashcard_progress",
+  VOCAB_LIMIT:        "vocab_daily_limit",
 } as const;

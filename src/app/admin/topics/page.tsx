@@ -12,6 +12,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { Plus, Edit2, Trash2, Layers, Filter, Video, Eye, EyeOff } from "lucide-react";
+import JsonImport, { type JsonField } from "@/components/ui/JsonImport";
+import BulkImportModal from "@/components/ui/BulkImportModal";
 
 interface College {
   _id: string;
@@ -68,7 +70,7 @@ const emptyForm: FormData = {
 
 export default function TopicsPage() {
   const { showToast } = useToast();
-  const { t, isRTL } = useLanguage();
+  const { t, lang, isRTL } = useLanguage();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [colleges, setColleges] = useState<College[]>([]);
@@ -199,6 +201,18 @@ export default function TopicsPage() {
 
   if (loading) return <LoadingSkeleton />;
 
+  const TOPIC_FIELDS: JsonField[] = [
+    { name: "title", label: lang === "ar" ? "العنوان" : "Title", required: true, type: "string" },
+    { name: "subjectId", label: lang === "ar" ? "المادة (ID)" : "Subject ID", required: true, type: "string" },
+    { name: "unitId", label: lang === "ar" ? "الوحدة (ID)" : "Unit ID", required: false, type: "string" },
+    { name: "videoUrl", label: lang === "ar" ? "رابط الفيديو" : "Video URL", required: false, type: "string" },
+    { name: "videoType", label: lang === "ar" ? "نوع الفيديو" : "Video Type", required: false, type: "string" },
+    { name: "contentType", label: lang === "ar" ? "نوع المحتوى" : "Content Type", required: false, type: "string" },
+    { name: "order", label: lang === "ar" ? "الترتيب" : "Order", required: false, type: "number" },
+    { name: "isEssential", label: lang === "ar" ? "أساسي" : "Essential", required: false, type: "boolean" },
+    { name: "difficulty", label: lang === "ar" ? "الصعوبة" : "Difficulty", required: false, type: "string" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -206,10 +220,35 @@ export default function TopicsPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">{t('admin.topics')}</h2>
           <p className="text-text-secondary mt-1 text-sm sm:text-base">{t('admin.topics_desc')}</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
-          <Plus className="w-5 h-5 ml-2" />
-          {t('admin.add')}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <JsonImport
+            fields={TOPIC_FIELDS}
+            entityLabel={lang === "ar" ? "درس" : "Topic"}
+            onFill={(data) => {
+              setForm({
+                title: String(data.title ?? ""),
+                slug: String(data.slug ?? ""),
+                subjectId: String(data.subjectId ?? ""),
+                unitId: String(data.unitId ?? ""),
+                videoUrl: String(data.videoUrl ?? ""),
+                order: Number(data.order ?? 0),
+                isFree: Boolean(data.isFree ?? false),
+                difficulty: String(data.difficulty ?? "beginner"),
+              });
+              setShowForm(true);
+            }}
+          />
+          <BulkImportModal
+            apiEndpoint="/api/admin/topics/bulk"
+            fields={TOPIC_FIELDS}
+            entityLabel={lang === "ar" ? "دروس" : "Topics"}
+            onSuccess={fetchData}
+          />
+          <Button onClick={() => { resetForm(); setShowForm(true); }} withRipple>
+            <Plus className="w-5 h-5 ml-2" />
+            {t('admin.add')}
+          </Button>
+        </div>
       </div>
 
       {error && (

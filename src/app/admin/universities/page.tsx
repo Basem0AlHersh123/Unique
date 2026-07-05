@@ -11,6 +11,7 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import JsonImport from "@/components/ui/JsonImport";
 
 interface University {
   _id: string;
@@ -171,9 +172,20 @@ export default function UniversitiesPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h2 className="text-2xl font-bold text-text-primary">{t('admin.universities')}</h2>
-        <Button onClick={() => { resetForm(); setShowForm(true); }}>
-          {t('admin.add_university')}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <JsonImport
+            fields={[
+              { name: "name", label: lang === "ar" ? "الاسم" : "Name", required: true, type: "string" },
+              { name: "nameAr", label: lang === "ar" ? "الاسم بالعربي" : "Arabic Name", required: false, type: "string" },
+              { name: "nameEn", label: lang === "ar" ? "الاسم بالإنجليزي" : "English Name", required: false, type: "string" }
+            ]}
+            entityLabel={lang === "ar" ? "جامعة" : "University"}
+            onFill={(data) => { resetForm(); setForm({ ...form, ...(data as any) }); }}
+          />
+          <Button onClick={() => { resetForm(); setShowForm(true); }}>
+            {t('admin.add_university')}
+          </Button>
+        </div>
       </div>
 
       {error && (

@@ -8,7 +8,7 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
-import { cacheGet, cacheSet } from "@/lib/cache";
+import { cacheGet, cacheSet, addPendingNoteOp } from "@/lib/cache";
 import { isOnline } from "@/lib/offline";
 import type { StudentNote } from "@/lib/types";
 import { useLanguage } from "@/lib/i18n/context";
@@ -103,18 +103,12 @@ export default function NotesScreen() {
           );
           setAllNotes(sorted);
           await cacheSet("notes_list", sorted);
-        } else if (!cached) {
-          setError(res.error ?? "حدث خطأ في تحميل الملاحظات");
         }
       } catch {
-        if (!cached) {
-          setError("لا يوجد اتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.");
-        }
-        // If we have cache, silently use it — no error shown
+        // Silently use cached data — no error shown
       }
-    } else if (!cached) {
-      setError("لا يوجد اتصال بالإنترنت. ملاحظاتك ستظهر عند الاتصال.");
     }
+    // When offline, cached data is already shown above — no error
 
     setLoading(false);
   }, []);
@@ -194,28 +188,30 @@ export default function NotesScreen() {
       type: "warning",
       title: lang === "ar" ? "حذف الملاحظة" : "Delete Note",
       message: lang === "ar" ? "هل تريد حذف هذه الملاحظة؟" : "Delete this note?",
-      confirmLabel: lang === "ar" ? "حذف" : "Delete",
-      onConfirm: async () => {
-        const online = await isOnline();
-        if (!online) {
-          showAlert({
-            type: "info",
-            title: lang === "ar" ? "غير متصل" : "Offline",
-            message: lang === "ar"
-              ? "لا يمكن الحذف بدون إنترنت"
-              : "Cannot delete while offline",
-          });
-          return;
-        }
-        try {
-          await apiFetch(ENDPOINTS.NOTE(id), { method: "DELETE" });
-          const updated = allNotes.filter((n) => n._id !== id);
-          setAllNotes(updated);
-          await cacheSet("notes_list", updated);
-        } catch {
-          showAlert({ type: "error", title: "خطأ", message: "فشل الحذف" });
-        }
-      },
+      buttons: [
+        { text: lang === "ar" ? "إلغاء" : "Cancel", style: "cancel" },
+        {
+          text: lang === "ar" ? "حذف" : "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const updated = allNotes.filter((n) => n._id !== id);
+            setAllNotes(updated);
+            await cacheSet("notes_list", updated);
+            await addPendingNoteOp({
+              id: Date.now().toString(),
+              method: "DELETE",
+              endpoint: ENDPOINTS.NOTE(id),
+              body: {},
+              createdAt: Date.now(),
+            });
+            try {
+              await apiFetch(ENDPOINTS.NOTE(id), { method: "DELETE" });
+            } catch {
+              // Will sync when online via flushPendingNotes
+            }
+          },
+        },
+      ],
     });
   }
 

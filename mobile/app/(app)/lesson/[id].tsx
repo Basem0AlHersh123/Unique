@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import VideoPlayer from "@/components/learning/VideoPlayer";
+import MathText from "@/components/ui/MathText";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
 import type { Lesson, Question, QuizResult } from "@/lib/types";
@@ -160,10 +161,10 @@ export default function LessonScreen() {
                 <Feather name={a.isCorrect ? "check-circle" : "x-circle"} size={18} color={a.isCorrect ? "#22C55E" : "#EF4444"} />
                 <Text style={s.ansNum}>سؤال {i + 1}</Text>
               </View>
-              <Text style={s.ansQ}>{a.question}</Text>
-              <Text style={s.ansCorrect}>✓ {a.options[a.correct]}</Text>
-              {!a.isCorrect && <Text style={s.ansWrong}>✗ {a.options[a.selected]}</Text>}
-              {a.explanation ? <Text style={s.ansExp}>{a.explanation}</Text> : null}
+              <MathText content={a.question} style={s.ansQ} />
+              <MathText content={`✓ ${a.options[a.correct]}`} style={s.ansCorrect} />
+              {!a.isCorrect && <MathText content={`✗ ${a.options[a.selected]}`} style={s.ansWrong} />}
+              {a.explanation ? <MathText content={a.explanation} style={s.ansExp} /> : null}
             </View>
           ))}
 
@@ -208,7 +209,7 @@ export default function LessonScreen() {
           <Text style={s.progressText}>{currentQ + 1} / {questions.length}</Text>
         </View>
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-          <Text style={s.qText}>{q.question}</Text>
+          <MathText content={q.question} style={s.qText} />
           <View style={s.optionsList}>
             {q.options.map((opt, idx) => {
               const isSel = selected[q._id] === idx;
@@ -217,7 +218,7 @@ export default function LessonScreen() {
                   <View style={[s.radio, isSel && s.radioSel]}>
                     {isSel && <Feather name="check" size={12} color="#fff" />}
                   </View>
-                  <Text style={[s.optText, isSel && s.optTextSel]}>{opt}</Text>
+                  <MathText content={opt} style={[s.optText, isSel && s.optTextSel]} />
                 </Pressable>
               );
             })}
@@ -271,7 +272,7 @@ export default function LessonScreen() {
         {lesson.summaryText ? (
           <View style={s.section}>
             <Text style={s.sectionTitle}>ملخص الدرس</Text>
-            <Text style={s.summaryText}>{lesson.summaryText}</Text>
+            <MathText content={lesson.summaryText} style={s.summaryText} />
           </View>
         ) : null}
 
@@ -281,7 +282,7 @@ export default function LessonScreen() {
             {lesson.keyPoints.map((pt, i) => (
               <View key={i} style={s.pointRow}>
                 <Feather name="check-circle" size={15} color="#22C55E" />
-                <Text style={s.pointText}>{pt}</Text>
+                <MathText content={pt} style={s.pointText} />
               </View>
             ))}
           </View>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,17 @@ import {
   FlatList,
   Dimensions,
   Image,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { apiFetch } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "@/lib/theme/context";
 import { ENDPOINTS, STORAGE_KEYS } from "@/constants/config";
+import { cacheGet, cacheSet } from "@/lib/cache";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
@@ -32,6 +34,8 @@ interface Flashcard {
   createdAt: string;
 }
 
+type StatusFilter = "all" | "known" | "later" | "pending";
+
 export default function FlashcardsIndexScreen() {
   const router = useRouter();
   const { colors } = useTheme();
@@ -41,6 +45,8 @@ export default function FlashcardsIndexScreen() {
   const [todayWords, setTodayWords] = useState<Flashcard[]>([]);
   const [allWords, setAllWords] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [progress, setProgress] = useState<{
     lastIndex: number;
     known: string[];
@@ -52,58 +58,56 @@ export default function FlashcardsIndexScreen() {
     { id: "all", label: lang === "ar" ? "جميع المفردات" : "All Vocabulary" },
   ];
 
-  const [initialResumeDone, setInitialResumeDone] = useState(false);
+  const statusFilters: { id: StatusFilter; label: string }[] = [
+    { id: "all", label: lang === "ar" ? "الكل" : "All" },
+    { id: "known", label: lang === "ar" ? "محفوظة" : "Known" },
+    { id: "later", label: lang === "ar" ? "لاحقاً" : "Later" },
+    { id: "pending", label: lang === "ar" ? "غير مكتملة" : "Pending" },
+  ];
 
   useEffect(() => {
     loadData();
     loadProgress();
   }, []);
 
-  useEffect(() => {
-    if (!loading && todayWords.length > 0 && !initialResumeDone) {
-      setInitialResumeDone(true);
-      if (progress.lastIndex > 0) {
-        const idx = Math.min(progress.lastIndex, todayWords.length - 1);
-        const card = todayWords[idx];
-        if (card) {
-          router.replace({
-            pathname: "/(app)/flashcards/[id]",
-            params: {
-              id: card._id,
-              mode: "today",
-              index: String(idx),
-              from: "today",
-            },
-          });
-        }
-      }
-    }
-  }, [loading, todayWords]);
+  useFocusEffect(useCallback(() => {
+    loadProgress();
+  }, []));
 
   async function loadData() {
     setLoading(true);
     let vocab: Flashcard[] = [];
+    let limit = 15;
 
     try {
+      // ── Show cached vocabulary immediately ──
+      const cached = await cacheGet<Flashcard[]>("vocab_list");
+      if (cached && cached.length > 0) {
+        vocab = cached;
+        setTodayWords(vocab);
+        setAllWords(vocab);
+      }
+
+      const savedLimit = await SecureStore.getItemAsync(STORAGE_KEYS.VOCAB_LIMIT);
+      if (savedLimit) limit = parseInt(savedLimit, 10) || 15;
+
       const collegeId = await SecureStore.getItemAsync(STORAGE_KEYS.COLLEGE_ID);
       const lessonId = await SecureStore.getItemAsync(STORAGE_KEYS.LESSON_ID);
 
-      // ── Attempt 1: Vocabulary API ──
       if (collegeId) {
         try {
           const res = await apiFetch<Flashcard[]>(
-            `${ENDPOINTS.VOCABULARY}?collegeId=${collegeId}&limit=15`
+            `${ENDPOINTS.VOCABULARY}?collegeId=${collegeId}&limit=${limit}`
           );
           if (res.success && res.data && res.data.length > 0) {
             vocab = res.data;
+            await cacheSet("vocab_list", vocab);
           }
         } catch (e) {
-          // vocabulary API failed – fall through
-          console.log("Vocabulary API failed, trying lesson fallback");
+          console.log("Vocabulary API failed — using cached data");
         }
       }
 
-      // ── Attempt 2: Fallback to Lesson Vocabulary ──
       if (vocab.length === 0 && lessonId) {
         try {
           const lessonRes = await apiFetch<any>(ENDPOINTS.TOPIC(lessonId));
@@ -118,16 +122,15 @@ export default function FlashcardsIndexScreen() {
               difficulty: item.difficulty || "medium",
               createdAt: new Date().toISOString(),
             }));
+            await cacheSet("vocab_list", vocab);
           }
         } catch (e) {
           console.log("Lesson fallback also failed");
         }
       }
 
-      // ── No data from API, keep empty ──
-
       setTodayWords(vocab);
-      setAllWords(vocab); // In a real app, 'all' would fetch more
+      setAllWords(vocab);
     } catch (error) {
       console.error("Unexpected error in loadData:", error);
     } finally {
@@ -172,6 +175,23 @@ export default function FlashcardsIndexScreen() {
       },
     });
   }
+
+  const currentWords = activeTab === "today" ? todayWords : allWords;
+
+  const filteredWords = currentWords.filter((item) => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchWord = item.word.toLowerCase().includes(q);
+      const matchDef = item.definition.toLowerCase().includes(q);
+      const matchArabic = (item.arabicMeaning || "").includes(searchQuery);
+      if (!matchWord && !matchDef && !matchArabic) return false;
+    }
+    if (statusFilter === "known") return progress.known.includes(item._id);
+    if (statusFilter === "later") return progress.unknown.includes(item._id);
+    if (statusFilter === "pending")
+      return !progress.known.includes(item._id) && !progress.unknown.includes(item._id);
+    return true;
+  });
 
   function renderFlashcard({ item, index }: { item: Flashcard; index: number }) {
     const isKnown = progress.known.includes(item._id);
@@ -263,16 +283,10 @@ export default function FlashcardsIndexScreen() {
                   ]}
                 >
                   {item.difficulty === "easy"
-                    ? lang === "ar"
-                      ? "سهل"
-                      : "Easy"
+                    ? lang === "ar" ? "سهل" : "Easy"
                     : item.difficulty === "hard"
-                    ? lang === "ar"
-                      ? "صعب"
-                      : "Hard"
-                    : lang === "ar"
-                    ? "متوسط"
-                    : "Medium"}
+                    ? lang === "ar" ? "صعب" : "Hard"
+                    : lang === "ar" ? "متوسط" : "Medium"}
                 </Text>
               </View>
             )}
@@ -291,8 +305,6 @@ export default function FlashcardsIndexScreen() {
       </SafeAreaView>
     );
   }
-
-  const currentWords = activeTab === "today" ? todayWords : allWords;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
@@ -324,10 +336,7 @@ export default function FlashcardsIndexScreen() {
             <Text
               style={[
                 styles.tabText,
-                {
-                  color:
-                    activeTab === tab.id ? colors.accent : colors.textSecondary,
-                },
+                { color: activeTab === tab.id ? colors.accent : colors.textSecondary },
               ]}
             >
               {tab.label}
@@ -336,17 +345,74 @@ export default function FlashcardsIndexScreen() {
         ))}
       </View>
 
+      {/* Search bar */}
+      <View style={[styles.searchContainer, { borderBottomColor: colors.border }]}>
+        <View style={[styles.searchInputWrap, { backgroundColor: colors.inputBg, borderColor: colors.border }]}>
+          <Feather name="search" size={16} color={colors.textTertiary} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder={lang === "ar" ? "بحث عن كلمة..." : "Search words..."}
+            placeholderTextColor={colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery ? (
+            <Pressable onPress={() => setSearchQuery("")}>
+              <Feather name="x-circle" size={16} color={colors.textTertiary} />
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Status filter chips */}
+      <View style={[styles.filterRow, { borderBottomColor: colors.border }]}>
+        {statusFilters.map((f) => {
+          const active = statusFilter === f.id;
+          let chipColor = colors.accent;
+          if (f.id === "known") chipColor = colors.success;
+          else if (f.id === "later") chipColor = colors.danger;
+          else if (f.id === "pending") chipColor = colors.textSecondary;
+          return (
+            <Pressable
+              key={f.id}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor: active ? chipColor + "22" : "transparent",
+                  borderColor: active ? chipColor : colors.border,
+                  borderWidth: active ? 1.5 : 1,
+                },
+              ]}
+              onPress={() => setStatusFilter(f.id)}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  { color: active ? chipColor : colors.textSecondary },
+                ]}
+              >
+                {f.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
       {/* Stats bar */}
       <View style={[styles.statsBar, { borderBottomColor: colors.border }]}>
         <Text style={[styles.statsText, { color: colors.textSecondary }]}>
-          {currentWords.length}{" "}
+          {filteredWords.length}{" "}
           {lang === "ar" ? "كلمة" : "words"}
-          {activeTab === "today" &&
-            ` · ${progress.known.length + progress.unknown.length} ${
-              lang === "ar" ? "مكتملة" : "reviewed"
-            }`}
+          {searchQuery || statusFilter !== "all"
+            ? ` (${currentWords.length} ${lang === "ar" ? "إجمالي" : "total"})`
+            : activeTab === "today"
+            ? ` · ${progress.known.length + progress.unknown.length} ${
+                lang === "ar" ? "مكتملة" : "reviewed"
+              }`
+            : ""}
         </Text>
-        {activeTab === "today" && (
+        {activeTab === "today" && !searchQuery && statusFilter === "all" && (
           <Pressable
             style={[styles.resetBtn, { borderColor: colors.border }]}
             onPress={() => {
@@ -363,18 +429,22 @@ export default function FlashcardsIndexScreen() {
       </View>
 
       {/* Grid */}
-      {currentWords.length === 0 ? (
+      {filteredWords.length === 0 ? (
         <View style={styles.center}>
           <Feather name="book-open" size={48} color={colors.border} />
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            {lang === "ar"
+            {searchQuery
+              ? lang === "ar"
+                ? "لا توجد نتائج للبحث"
+                : "No results found"
+              : lang === "ar"
               ? "لا توجد مفردات بعد"
               : "No vocabulary added yet"}
           </Text>
         </View>
       ) : (
         <FlatList
-          data={currentWords}
+          data={filteredWords}
           keyExtractor={(item) => item._id}
           numColumns={2}
           contentContainerStyle={styles.grid}
@@ -412,6 +482,42 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 15,
     fontWeight: "600",
+    fontFamily: "Cairo_600SemiBold",
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  searchInputWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    height: 40,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Cairo_400Regular",
+    paddingVertical: 0,
+  },
+  filterRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+    borderBottomWidth: 1,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  filterChipText: {
+    fontSize: 13,
     fontFamily: "Cairo_600SemiBold",
   },
   statsBar: {

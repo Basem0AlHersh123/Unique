@@ -7,6 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { apiFetch } from "@/lib/api";
 import ExamTimer from "@/components/learning/ExamTimer";
+import MathText from "@/components/ui/MathText";
 import type { ExamEligibility, Question } from "@/lib/types";
 import { showAlert } from "@/lib/ui/AlertModal";
 
@@ -321,7 +322,7 @@ export default function UnitExamScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={s.qText}>{current.question}</Text>
+        <MathText content={current.question} style={s.qText} />
         <View style={s.optionsList}>
           {current.options.map((opt, idx) => {
             const isSel = selected[current._id] === idx;
@@ -334,7 +335,7 @@ export default function UnitExamScreen() {
                 <View style={[s.radio, isSel && s.radioSel]}>
                   {isSel && <Feather name="check" size={12} color="#fff" />}
                 </View>
-                <Text style={[s.optText, isSel && s.optTextSel]}>{opt}</Text>
+                <MathText content={opt} style={[s.optText, isSel && s.optTextSel]} />
               </Pressable>
             );
           })}

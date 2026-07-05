@@ -13,8 +13,11 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { useToast } from "@/components/ui/ToastProvider";
+import JsonImport, { type JsonField } from "@/components/ui/JsonImport";
+import BulkImportModal from "@/components/ui/BulkImportModal";
 
 interface Topic {
   _id: string;
@@ -692,6 +695,16 @@ function TeacherDashboardInner() {
       ]
     : [];
 
+  const TEACHER_Q_FIELDS: JsonField[] = [
+    { name: "question", label: "Question", required: true, type: "string" },
+    { name: "options", label: "Options (array)", required: true, type: "array" },
+    { name: "correctAnswer", label: "Correct Answer (index)", required: true, type: "number" },
+    { name: "subjectId", label: "Subject ID", required: true, type: "string" },
+    { name: "topicId", label: "Topic ID", required: false, type: "string" },
+    { name: "difficulty", label: "Difficulty", required: false, type: "string" },
+    { name: "explanation", label: "Explanation", required: false, type: "string" },
+  ];
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -1357,6 +1370,28 @@ function TeacherDashboardInner() {
               <Plus className="w-4 h-4 ml-1" />
               {t("teacher.add_question")}
             </Button>
+            <JsonImport
+              fields={TEACHER_Q_FIELDS}
+              entityLabel={lang === "ar" ? "سؤال" : "Question"}
+              onFill={(data) => {
+                setQForm({
+                  question: String(data.question ?? ""),
+                  options: Array.isArray(data.options) ? data.options.map(String) : ["", "", "", ""],
+                  correctAnswer: Number(data.correctAnswer ?? 0),
+                  explanation: String(data.explanation ?? ""),
+                  difficulty: String(data.difficulty ?? "medium") as "easy" | "medium" | "hard",
+                });
+                if (typeof data.topicId === "string") setSelectedTopicForQ(data.topicId);
+                if (typeof data.subjectId === "string") setSelectedSubjectForQ(data.subjectId);
+                setShowQuestionForm(true);
+              }}
+            />
+            <BulkImportModal
+              apiEndpoint="/api/teacher/questions/bulk"
+              fields={TEACHER_Q_FIELDS}
+              entityLabel={lang === "ar" ? "أسئلة" : "Questions"}
+              onSuccess={() => { loadQuestions(); }}
+            />
           </div>
 
           {questionsLoading ? (
@@ -1385,20 +1420,22 @@ function TeacherDashboardInner() {
                           {lang === "ar" ? qDiffLabel[q.difficulty] || qDiffLabel.medium : qDiffLabelEn[q.difficulty] || qDiffLabelEn.medium}
                         </span>
                       </div>
-                      <p className="font-medium text-text-primary text-sm sm:text-base mb-2">{q.question}</p>
+                      <div className="font-medium text-text-primary text-sm sm:text-base mb-2">
+                        <MarkdownRenderer content={q.question} />
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                         {q.options.map((opt, oi) => (
                           <div key={oi} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm ${oi === q.correctAnswer ? "bg-teal/10 text-teal border border-teal/20" : "bg-background text-text-secondary border border-border"}`}>
                             <span className="w-5 h-5 rounded-full bg-surface-hover flex items-center justify-center text-[10px] font-bold shrink-0">{String.fromCharCode(65 + oi)}</span>
-                            {opt}
+                            <MarkdownRenderer content={opt} />
                           </div>
                         ))}
                       </div>
                       {q.explanation && (
-                        <p className="mt-2 text-xs text-text-muted bg-background rounded-lg p-2 border border-border">
+                        <div className="mt-2 text-xs text-text-muted bg-background rounded-lg p-2 border border-border">
                           <span className="font-medium text-text-secondary">{lang === "ar" ? "شرح: " : "Explanation: "}</span>
-                          {q.explanation}
-                        </p>
+                          <MarkdownRenderer content={q.explanation} />
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0 mr-2">

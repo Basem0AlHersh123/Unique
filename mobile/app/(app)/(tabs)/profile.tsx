@@ -81,6 +81,7 @@ export default function ProfileScreen() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState(new Date());
   const [dailyGoal, setDailyGoal] = useState(1);
+  const [vocabLimit, setVocabLimit] = useState(10);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -152,6 +153,9 @@ export default function ProfileScreen() {
         setReminderTime(d);
       }
       if (goal) setDailyGoal(parseInt(goal, 10) || 1);
+
+      const vl = await SecureStore.getItemAsync(STORAGE.VOCAB_LIMIT);
+      if (vl) setVocabLimit(parseInt(vl, 10) || 10);
 
       const em = await SecureStore.getItemAsync("unique_essential_mode");
       setEssentialMode(em === "true");
@@ -687,6 +691,27 @@ export default function ProfileScreen() {
                       <Pressable onPress={() => setDailyGoal(g => Math.max(1, g - 1))}><Feather name="minus-circle" size={22} color={colors.accent} /></Pressable>
                       <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 16, minWidth: 20, textAlign: "center", fontFamily: "Cairo_700Bold" }}>{dailyGoal}</Text>
                       <Pressable onPress={() => setDailyGoal(g => Math.min(20, g + 1))}><Feather name="plus-circle" size={22} color={colors.accent} /></Pressable>
+                    </View>
+                  </View>
+                  <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
+                    <View style={styles.settingsRight}>
+                      <Feather name="book-open" size={20} color={colors.textSecondary} />
+                      <Text style={[styles.settingsLabel, { color: colors.text }]}>
+                        {lang === "ar" ? "حد المفردات اليومي" : "Daily Vocab Limit"}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                      <Pressable onPress={async () => {
+                        const v = Math.max(3, vocabLimit - 5);
+                        setVocabLimit(v);
+                        await SecureStore.setItemAsync(STORAGE.VOCAB_LIMIT, String(v));
+                      }}><Feather name="minus-circle" size={22} color={colors.accent} /></Pressable>
+                      <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 16, minWidth: 24, textAlign: "center", fontFamily: "Cairo_700Bold" }}>{vocabLimit}</Text>
+                      <Pressable onPress={async () => {
+                        const v = Math.min(100, vocabLimit + 5);
+                        setVocabLimit(v);
+                        await SecureStore.setItemAsync(STORAGE.VOCAB_LIMIT, String(v));
+                      }}><Feather name="plus-circle" size={22} color={colors.accent} /></Pressable>
                     </View>
                   </View>
                 </>

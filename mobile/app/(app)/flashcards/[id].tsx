@@ -18,6 +18,7 @@ import { apiFetch } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n/context";
 import { useTheme } from "@/lib/theme/context";
 import { ENDPOINTS, STORAGE_KEYS } from "@/constants/config";
+import { cacheGet, cacheSet } from "@/lib/cache";
 
 const { width, height } = Dimensions.get("window");
 
@@ -57,6 +58,7 @@ export default function FlashcardDetailScreen() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showArabic, setShowArabic] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [error, setError] = useState(false);
   const [progress, setProgress] = useState<Progress>({
     lastIndex: 0,
     known: [],
@@ -73,28 +75,40 @@ export default function FlashcardDetailScreen() {
 
   async function loadData() {
     setLoading(true);
+    setError(false);
     let cardData: FlashcardDetail | null = null;
     let allData: FlashcardDetail[] = [];
 
     try {
+      // ── Attempt 1: Load from cache ──
+      const cached = await cacheGet<FlashcardDetail[]>("vocab_list");
+      if (cached && cached.length > 0) {
+        allData = cached;
+        const found = cached.find((v) => v._id === params.id);
+        if (found) cardData = found;
+      }
+
       const collegeId = await SecureStore.getItemAsync(STORAGE_KEYS.COLLEGE_ID);
       const lessonId = await SecureStore.getItemAsync(STORAGE_KEYS.LESSON_ID);
 
-      // ── Attempt 1: Fetch specific card from vocabulary API ──
+      // ── Attempt 2: Fetch vocabulary list from API ──
       if (collegeId) {
         try {
-          const cardRes = await apiFetch<FlashcardDetail>(
-            `${ENDPOINTS.VOCABULARY}/${params.id}`
+          const listRes = await apiFetch<FlashcardDetail[]>(
+            `${ENDPOINTS.VOCABULARY}?collegeId=${collegeId}&limit=50`
           );
-          if (cardRes.success && cardRes.data) {
-            cardData = cardRes.data;
+          if (listRes.success && listRes.data && listRes.data.length > 0) {
+            allData = listRes.data;
+            await cacheSet("vocab_list", allData);
+            const found = listRes.data.find((v) => v._id === params.id);
+            if (found) cardData = found;
           }
         } catch (e) {
-          console.log("Single card API failed, trying lesson fallback");
+          console.log("Vocabulary list API failed — using cached data");
         }
       }
 
-      // ── Attempt 2: Fetch all cards from lesson fallback ──
+      // ── Attempt 3: Lesson fallback ──
       if (!cardData && lessonId) {
         try {
           const lessonRes = await apiFetch<any>(ENDPOINTS.TOPIC(lessonId));
@@ -110,6 +124,7 @@ export default function FlashcardDetailScreen() {
               createdAt: new Date().toISOString(),
             }));
             allData = vocab;
+            await cacheSet("vocab_list", vocab);
             const found = vocab.find((v: any) => v._id === params.id);
             if (found) cardData = found;
           }
@@ -118,14 +133,21 @@ export default function FlashcardDetailScreen() {
         }
       }
 
-      // ── No data from API, keep empty ──
-
-      setCard(cardData);
-      setAllCards(allData);
-      const idx = allData.findIndex((c) => c._id === params.id);
-      setCurrentIndex(idx >= 0 ? idx : 0);
+      if (!cardData && allData.length === 0) {
+        setError(true);
+      } else if (!cardData && allData.length > 0) {
+        setCard(allData[0]);
+        setAllCards(allData);
+        setCurrentIndex(0);
+      } else {
+        setCard(cardData);
+        setAllCards(allData);
+        const idx = allData.findIndex((c) => c._id === params.id);
+        setCurrentIndex(idx >= 0 ? idx : 0);
+      }
     } catch (error) {
       console.error("Failed to load flashcard:", error);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -194,12 +216,16 @@ export default function FlashcardDetailScreen() {
     let updatedUnknown = [...progress.unknown];
 
     if (action === "known") {
-      if (!updatedKnown.includes(card._id)) {
+      if (updatedKnown.includes(card._id)) {
+        updatedKnown = updatedKnown.filter((id) => id !== card._id);
+      } else {
         updatedKnown.push(card._id);
       }
       updatedUnknown = updatedUnknown.filter((id) => id !== card._id);
     } else {
-      if (!updatedUnknown.includes(card._id)) {
+      if (updatedUnknown.includes(card._id)) {
+        updatedUnknown = updatedUnknown.filter((id) => id !== card._id);
+      } else {
         updatedUnknown.push(card._id);
       }
       updatedKnown = updatedKnown.filter((id) => id !== card._id);
@@ -212,13 +238,6 @@ export default function FlashcardDetailScreen() {
     };
     setProgress(updated);
     saveProgress(updated);
-
-    const nextIndex = currentIndex + 1;
-    if (nextIndex < allCards.length) {
-      goToCard(nextIndex);
-    } else {
-      setShowCompleteModal(true);
-    }
   }
 
   const frontInterpolate = flipAnim.interpolate({
@@ -230,11 +249,43 @@ export default function FlashcardDetailScreen() {
     outputRange: ["180deg", "360deg"],
   });
 
-  if (loading || !card) {
+  if (loading) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <View style={styles.center}>
           <ActivityIndicator color={colors.accent} size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !card) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()}>
+            <Feather name="arrow-right" size={24} color={colors.text} />
+          </Pressable>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.center}>
+          <Feather name="book-open" size={56} color={colors.border} />
+          <Text style={[styles.errorTitle, { color: colors.text }]}>
+            {lang === "ar" ? "لا توجد مفردات" : "No vocabulary"}
+          </Text>
+          <Text style={[styles.errorSubtitle, { color: colors.textSecondary }]}>
+            {lang === "ar"
+              ? "لم يتم إضافة أي كلمات بعد"
+              : "No vocabulary words added yet"}
+          </Text>
+          <Pressable
+            style={[styles.errorBtn, { backgroundColor: colors.accent }]}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.errorBtnText}>
+              {lang === "ar" ? "العودة" : "Go Back"}
+            </Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -677,6 +728,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusText: { fontSize: 13, fontFamily: "Cairo_400Regular" },
+  errorTitle: { fontSize: 22, fontFamily: "Cairo_700Bold", marginTop: 16 },
+  errorSubtitle: { fontSize: 14, fontFamily: "Cairo_400Regular", marginTop: 4 },
+  errorBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, marginTop: 24 },
+  errorBtnText: { color: "#fff", fontSize: 15, fontFamily: "Cairo_700Bold" },
   modalOverlay: {
     flex: 1, backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center", alignItems: "center",
