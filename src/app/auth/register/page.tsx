@@ -23,6 +23,7 @@ import {
   Check,
   Sparkles,
 } from "lucide-react";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface University {
@@ -396,6 +397,21 @@ export default function RegisterPage() {
               </>
             )}
           </form>
+
+          <div className="relative mt-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-surface px-3 text-text-muted">
+                {isRTL ? "أو" : "Or"}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <GoogleButton mode="register" onError={(msg) => setServerError(msg)} />
+          </div>
 
           <p className="text-center text-sm text-text-secondary mt-6">
             {t("auth.register.has_account")}{" "}

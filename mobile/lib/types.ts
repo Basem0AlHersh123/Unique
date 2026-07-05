@@ -25,6 +25,7 @@ export interface Subject {
   collegeId: string;
   topics: string[];
   teacherIds: string[];
+  color?: string;
 }
 
 export interface Level {

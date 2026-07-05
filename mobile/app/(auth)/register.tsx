@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import LogoHeader from "@/components/auth/LogoHeader";
 import { ENDPOINTS } from "@/constants/config";
 import { apiFetch } from "@/lib/api";
 import { saveToken, saveUser } from "@/lib/auth";
+import { useGoogleAuth } from "@/lib/useGoogleAuth";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -32,6 +33,11 @@ export default function RegisterScreen() {
   }>({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { request, promptAsync } = useGoogleAuth(
+    () => router.replace("/(app)/" as any),
+    (msg) => setApiError(msg)
+  );
 
   function validate() {
     const newErrors: typeof errors = {};
@@ -137,6 +143,15 @@ export default function RegisterScreen() {
 
             {apiError ? <Text style={styles.apiError}>{apiError}</Text> : null}
 
+            <Pressable
+              style={[styles.googleBtn, !request && { opacity: 0.5 }]}
+              onPress={() => promptAsync()}
+              disabled={!request}
+            >
+              <Text style={styles.googleBtnIcon}>G</Text>
+              <Text style={styles.googleBtnText}>المتابعة بحساب Google</Text>
+            </Pressable>
+
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>أو</Text>
@@ -187,4 +202,25 @@ const styles = StyleSheet.create({
   footer: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 },
   footerText: { color: "#94a3b8", fontSize: 14, fontFamily: "Cairo_400Regular" },
   footerLink: { color: "#6C63FF", fontSize: 14, fontWeight: "700", fontFamily: "Cairo_700Bold" },
+  googleBtn: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  googleBtnIcon: {
+    fontSize: 18,
+    fontFamily: "Cairo_700Bold",
+    color: "#4285F4",
+  },
+  googleBtnText: {
+    fontSize: 15,
+    fontFamily: "Cairo_700Bold",
+    color: "#1a1a1a",
+  },
 });

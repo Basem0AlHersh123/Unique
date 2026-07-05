@@ -21,7 +21,9 @@
         "backgroundColor": "#6C63FF"
       },
       "allowBackup": true,
-      "permissions": ["INTERNET"],
+      "permissions": [
+        "INTERNET"
+      ],
       "statusBar": {
         "backgroundColor": "#0f0a2e",
         "barStyle": "light-content"
@@ -57,7 +59,8 @@
         {
           "backgroundColor": "#0f0a2e"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

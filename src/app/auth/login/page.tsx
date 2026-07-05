@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import axios from "axios";
 import api from "@/lib/api";
 import { Mail, Lock, ArrowLeft, RefreshCw, Sparkles } from "lucide-react";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 export default function LoginPage() {
@@ -205,6 +206,21 @@ export default function LoginPage() {
               <ArrowLeft className={`w-5 h-5 ${isRTL ? "" : "rotate-180"}`} />
             </Button>
           </form>
+
+          <div className="relative mt-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-surface px-3 text-text-muted">
+                {isRTL ? "أو" : "Or"}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <GoogleButton mode="login" onError={(msg) => setServerError(msg)} />
+          </div>
 
           <p className="text-center text-sm text-text-secondary mt-6">
             {t("auth.login.no_account")}{" "}

@@ -3,6 +3,7 @@ import { Cairo, Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import ParticlesBackground from "@/components/layout/ParticlesBackground";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 import "./globals.css";
 
@@ -45,11 +46,13 @@ export default function RootLayout({
         <ParticlesBackground />
         <ThemeProvider>
           <LanguageProvider>
+            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
             <ToastProvider>
               <div className="relative z-10 flex-1 flex flex-col">
                 {children}
               </div>
             </ToastProvider>
+            </GoogleOAuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

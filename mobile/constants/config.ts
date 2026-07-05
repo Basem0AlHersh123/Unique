@@ -48,6 +48,9 @@ export const ENDPOINTS = {
   ADMIN_STATS:        "/api/admin/stats",
   TEACHER_STATS:      "/api/teacher/stats",
 
+  // Contact
+  CONTACT:            "/api/contact",
+
   // App config & announcements
   APP_CONFIG:         "/api/app/config",
   ANNOUNCEMENTS:      "/api/announcements",

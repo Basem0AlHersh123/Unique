@@ -218,7 +218,7 @@ function timeAgo(dateStr: string, lang: string) {
 
 // ─── STUDENT VIEW ─────────────────────────────────────────────────────────────
 
-function StudentView({ stats, lang, colors }: { stats: any; colors: any; lang: string }) {
+function StudentView({ stats, lang, colors, user }: { stats: any; colors: any; lang: string; user?: AuthUser | null }) {
   const prog = stats?.progress;
   const avgPct = Math.round(prog?.stats?.averagePercentage ?? 0);
   const totalAttempts = prog?.stats?.totalAttempts ?? 0;
@@ -236,8 +236,25 @@ function StudentView({ stats, lang, colors }: { stats: any; colors: any; lang: s
 
   const strengthSubjects = subjectBreakdown.filter((s: any) => s.avgPct >= 70);
   const weakSubjects = subjectBreakdown.filter((s: any) => s.avgPct < 70 && s.attempts > 0);
+  const streak = user?.streak ?? 0;
   return (
     <>
+      {/* Streak banner */}
+      <View style={[sh.streakBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={sh.streakLeft}>
+          <Text style={sh.streakEmoji}>🔥</Text>
+          <View>
+            <Text style={[sh.streakCount, { color: colors.text }]}>{streak}</Text>
+            <Text style={[sh.streakLabel, { color: colors.textSecondary }]}>
+              {lang === "ar" ? "يوم متواصل" : "Day Streak"}
+            </Text>
+          </View>
+        </View>
+        <View style={[sh.streakBarBg, { backgroundColor: colors.border }]}>
+          <View style={[sh.streakBarFill, { width: `${Math.min(100, (streak / 30) * 100)}%` as any, backgroundColor: "#F59E0B" }]} />
+        </View>
+      </View>
+
       {/* Overall score donut */}
       <View style={[sh.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
@@ -652,7 +669,7 @@ export default function DashboardScreen() {
             <TeacherView stats={stats} lang={lang} colors={colors} />
           )}
           {(!user?.role || user.role === "student") && (
-            <StudentView stats={stats} lang={lang} colors={colors} />
+            <StudentView stats={stats} lang={lang} colors={colors} user={user} />
           )}
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -716,5 +733,28 @@ const sh = StyleSheet.create({
 
   emptyState: {
     alignItems: "center", paddingVertical: 48, paddingHorizontal: 24,
+  },
+
+  streakBanner: {
+    flexDirection: "row", alignItems: "center", gap: 14,
+    borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 4,
+  },
+  streakLeft: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+  },
+  streakEmoji: {
+    fontSize: 28,
+  },
+  streakCount: {
+    fontSize: 22, fontFamily: "Cairo_700Bold",
+  },
+  streakLabel: {
+    fontSize: 11, fontFamily: "Cairo_400Regular", marginTop: -2,
+  },
+  streakBarBg: {
+    flex: 1, height: 6, borderRadius: 3, overflow: "hidden",
+  },
+  streakBarFill: {
+    height: "100%", borderRadius: 3,
   },
 });

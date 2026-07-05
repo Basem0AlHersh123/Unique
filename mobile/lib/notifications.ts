@@ -60,8 +60,9 @@ export async function registerForPushNotifications(): Promise<string | null> {
 /**
  * Schedule a daily reminder at the given time (HH:MM).
  * Cancels any existing daily reminder first.
+ * Supports bilingual (ar/en) notification content.
  */
-export async function scheduleDailyReminder(timeStr: string, goalCount: number): Promise<void> {
+export async function scheduleDailyReminder(timeStr: string, goalCount: number, lang?: string): Promise<void> {
   if (isExpoGo) return;
   try {
     const { cancelAllScheduledNotificationsAsync, scheduleNotificationAsync } = await import("expo-notifications");
@@ -69,11 +70,14 @@ export async function scheduleDailyReminder(timeStr: string, goalCount: number):
     await cancelAllScheduledNotificationsAsync();
 
     const [hours, minutes] = timeStr.split(":").map(Number);
+    const isAr = lang === "ar";
 
     await scheduleNotificationAsync({
       content: {
-        title: "وقت الدراسة 📚",
-        body: `هدفك اليوم: ${goalCount} ${goalCount === 1 ? "درس" : "دروس"}. واصل التقدم!`,
+        title: isAr ? "وقت الدراسة 📚" : "Study Time 📚",
+        body: isAr
+          ? `هدفك اليوم: ${goalCount} ${goalCount === 1 ? "درس" : "دروس"}. واصل التقدم!`
+          : `Today's goal: ${goalCount} ${goalCount === 1 ? "lesson" : "lessons"}. Keep going!`,
         sound: "default",
       },
       trigger: {

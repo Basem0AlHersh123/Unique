@@ -292,7 +292,7 @@ export default function ProfileScreen() {
       const h = reminderTime.getHours().toString().padStart(2, "0");
       const m = reminderTime.getMinutes().toString().padStart(2, "0");
       const timeStr = `${h}:${m}`;
-      await scheduleDailyReminder(timeStr, dailyGoal);
+      await scheduleDailyReminder(timeStr, dailyGoal, lang);
       await SecureStore.setItemAsync("unique_reminder_time", timeStr);
       apiFetch("/api/auth/profile", { method: "PATCH", body: { studyReminderEnabled: true, studyReminderTime: timeStr, dailyGoal } }).catch(() => {});
     } else {
@@ -567,17 +567,17 @@ export default function ProfileScreen() {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScroll}>
             <View style={[styles.settingsSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <SettingsRow
-                label={lang === "ar" ? "تغيير الجامعة" : "Change University"}
+                label={t("profile.change_university")}
                 icon="globe"
                 onPress={async () => {
                   showAlert({
                     type: "confirm",
-                    title: lang === "ar" ? "تغيير الجامعة" : "Change University",
-                    message: lang === "ar" ? "هل تريد تغيير جامعتك؟ ستختار كلية جديدة بعد ذلك." : "Change your university? You'll pick a new college after.",
+                    title: t("profile.change_university"),
+                    message: t("profile.change_university_confirm"),
                     buttons: [
-                      { text: lang === "ar" ? "إلغاء" : "Cancel", style: "cancel" },
+                      { text: t("common.cancel"), style: "cancel" },
                       {
-                        text: lang === "ar" ? "تغيير" : "Change",
+                        text: t("profile.change_university_action"),
                         onPress: async () => {
                           await SecureStore.deleteItemAsync("unique_university_id");
                           await SecureStore.deleteItemAsync("unique_college_id");
@@ -666,8 +666,13 @@ export default function ProfileScreen() {
                         value: reminderTime,
                         mode: "time",
                         is24Hour: true,
-                        onChange: (_, date) => {
-                          if (date) setReminderTime(date);
+                        onChange: async (_, date) => {
+                          if (date) {
+                            setReminderTime(date);
+                            const h = date.getHours().toString().padStart(2, "0");
+                            const m = date.getMinutes().toString().padStart(2, "0");
+                            await SecureStore.setItemAsync("unique_reminder_time", `${h}:${m}`);
+                          }
                         },
                       });
                     } else {
@@ -688,9 +693,17 @@ export default function ProfileScreen() {
                       <Text style={[styles.settingsLabel, { color: colors.text }]}>{t("profile.daily_goal")}</Text>
                     </View>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                      <Pressable onPress={() => setDailyGoal(g => Math.max(1, g - 1))}><Feather name="minus-circle" size={22} color={colors.accent} /></Pressable>
+                      <Pressable onPress={async () => {
+                        const v = Math.max(1, dailyGoal - 1);
+                        setDailyGoal(v);
+                        await SecureStore.setItemAsync("unique_daily_goal", String(v));
+                      }}><Feather name="minus-circle" size={22} color={colors.accent} /></Pressable>
                       <Text style={{ color: colors.text, fontWeight: "bold", fontSize: 16, minWidth: 20, textAlign: "center", fontFamily: "Cairo_700Bold" }}>{dailyGoal}</Text>
-                      <Pressable onPress={() => setDailyGoal(g => Math.min(20, g + 1))}><Feather name="plus-circle" size={22} color={colors.accent} /></Pressable>
+                      <Pressable onPress={async () => {
+                        const v = Math.min(20, dailyGoal + 1);
+                        setDailyGoal(v);
+                        await SecureStore.setItemAsync("unique_daily_goal", String(v));
+                      }}><Feather name="plus-circle" size={22} color={colors.accent} /></Pressable>
                     </View>
                   </View>
                   <View style={[styles.settingsRow, { borderBottomWidth: 0 }]}>
@@ -721,9 +734,14 @@ export default function ProfileScreen() {
                   value={reminderTime}
                   mode="time"
                   is24Hour={true}
-                  onChange={(_, date) => {
+                  onChange={async (_, date) => {
                     setShowTimePicker(false);
-                    if (date) setReminderTime(date);
+                    if (date) {
+                      setReminderTime(date);
+                      const h = date.getHours().toString().padStart(2, "0");
+                      const m = date.getMinutes().toString().padStart(2, "0");
+                      await SecureStore.setItemAsync("unique_reminder_time", `${h}:${m}`);
+                    }
                   }}
                 />
               )}
