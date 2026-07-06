@@ -11,10 +11,14 @@ interface GoogleButtonProps {
   onError?: (msg: string) => void;
 }
 
+const googleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
 export function GoogleButton({ mode = "login", onError }: GoogleButtonProps) {
   const router = useRouter();
   const { t, isRTL } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
+
+  if (!googleConfigured) return null;
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {

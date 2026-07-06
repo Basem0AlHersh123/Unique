@@ -46,13 +46,21 @@ export default function RootLayout({
         <ParticlesBackground />
         <ThemeProvider>
           <LanguageProvider>
-            <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-            <ToastProvider>
-              <div className="relative z-10 flex-1 flex flex-col">
-                {children}
-              </div>
-            </ToastProvider>
-            </GoogleOAuthProvider>
+            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? (
+              <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+                <ToastProvider>
+                  <div className="relative z-10 flex-1 flex flex-col">
+                    {children}
+                  </div>
+                </ToastProvider>
+              </GoogleOAuthProvider>
+            ) : (
+              <ToastProvider>
+                <div className="relative z-10 flex-1 flex flex-col">
+                  {children}
+                </div>
+              </ToastProvider>
+            )}
           </LanguageProvider>
         </ThemeProvider>
       </body>

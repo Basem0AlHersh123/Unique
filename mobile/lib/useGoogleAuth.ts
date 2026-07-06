@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { saveToken, saveUser, saveRefreshToken } from "@/lib/auth";
@@ -6,10 +6,19 @@ import { apiFetch } from "@/lib/api";
 
 WebBrowser.maybeCompleteAuthSession();
 
+const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+const googleConfigured = !!(webClientId && androidClientId);
+
 export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => void) {
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  onSuccessRef.current = onSuccess;
+  onErrorRef.current = onError;
+
   const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: webClientId || "",
+    androidClientId: androidClientId || "",
     scopes: ["profile", "email"],
   });
 
@@ -18,7 +27,7 @@ export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => v
 
     const idToken = response.authentication?.idToken;
     if (!idToken) {
-      onError("فشل الحصول على رمز Google");
+      onErrorRef.current("فشل الحصول على رمز Google");
       return;
     }
 
@@ -38,14 +47,14 @@ export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => v
         if (payload.data.refreshToken) {
           await saveRefreshToken(payload.data.refreshToken);
         }
-        onSuccess();
+        onSuccessRef.current();
       } else {
-        onError(payload.error || "فشل تسجيل الدخول");
+        onErrorRef.current(payload.error || "فشل تسجيل الدخول");
       }
     } catch (err) {
-      onError(err instanceof Error ? err.message : "حدث خطأ");
+      onErrorRef.current(err instanceof Error ? err.message : "حدث خطأ");
     }
-  }, [response, onSuccess, onError]);
+  }, [response]);
 
   useEffect(() => {
     if (response) {
@@ -53,5 +62,5 @@ export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => v
     }
   }, [response, handleResponse]);
 
-  return { request, promptAsync };
+  return { request, promptAsync, googleConfigured };
 }

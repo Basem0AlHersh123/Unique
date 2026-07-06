@@ -29,7 +29,7 @@ export default function LoginScreen() {
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { request, promptAsync } = useGoogleAuth(
+  const { request, promptAsync, googleConfigured } = useGoogleAuth(
     () => router.replace("/(app)/" as any),
     (msg) => setApiError(msg)
   );
@@ -124,20 +124,23 @@ export default function LoginScreen() {
             <Text style={styles.apiError}>{apiError}</Text>
           ) : null}
 
-          <Pressable
-            style={[styles.googleBtn, !request && { opacity: 0.5 }]}
-            onPress={() => promptAsync()}
-            disabled={!request}
-          >
-            <Text style={styles.googleBtnIcon}>G</Text>
-            <Text style={styles.googleBtnText}>المتابعة بحساب Google</Text>
-          </Pressable>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>أو</Text>
-            <View style={styles.dividerLine} />
-          </View>
+          {googleConfigured && (
+            <>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>أو</Text>
+                <View style={styles.dividerLine} />
+              </View>
+              <Pressable
+                style={[styles.googleBtn, !request && { opacity: 0.5 }]}
+                onPress={() => promptAsync()}
+                disabled={!request}
+              >
+                <Text style={styles.googleBtnIcon}>G</Text>
+                <Text style={styles.googleBtnText}>المتابعة بحساب Google</Text>
+              </Pressable>
+            </>
+          )}
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>ليس لديك حساب؟</Text>
