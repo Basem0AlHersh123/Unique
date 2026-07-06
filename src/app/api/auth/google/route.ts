@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import { signAccessToken, signRefreshToken } from "@/lib/auth";
+import { signAccessToken, signRefreshToken, hashPassword } from "@/lib/auth";
 import { isMobileClient } from "@/lib/mobileAuth";
 
 function hashToken(token: string): string {
@@ -108,10 +108,13 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
+      const randomPassword = crypto.randomBytes(32).toString("hex");
+      const hashedPassword = await hashPassword(randomPassword);
       user = await User.create({
         name: googleUser.name,
         email: googleUser.email,
         googleId: googleUser.sub,
+        password: hashedPassword,
         profileImage: googleUser.picture,
         isVerified: true,
         role: "student",
