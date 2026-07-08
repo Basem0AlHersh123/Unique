@@ -47,6 +47,7 @@ interface QuizResult {
   total: number;
   percentage: number;
   answers: ResultAnswer[];
+  nextLesson?: { slug: string; title: string } | null;
 }
 
 export default function QuizPage() {
@@ -229,10 +230,17 @@ export default function QuizPage() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-3 justify-center mt-6">
+            <div className="flex gap-3 justify-center mt-6 flex-wrap">
               <Button onClick={restart} className="hover:scale-105 transition-all">
                 {lang === "ar" ? "إعادة المحاولة" : "Retry"}
               </Button>
+              {passed && result.nextLesson && (
+                <Link href={`/dashboard/topic/${result.nextLesson.slug}/quiz`}>
+                  <Button className="bg-gradient-to-r from-[#19D3C5] via-[#39C4FF] to-[#6A63FF] text-white hover:brightness-110 hover:scale-105 transition-all">
+                    {lang === "ar" ? "الدرس التالي ←" : "Next Lesson →"}
+                  </Button>
+                </Link>
+              )}
               <Link href={`/dashboard/topic/${slug}`}>
                 <Button variant="secondary">{t("quiz.back_to_topic")}</Button>
               </Link>

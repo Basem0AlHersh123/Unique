@@ -41,8 +41,14 @@ export async function POST(req: NextRequest) {
     const errors: { index: number; error: string }[] = [];
 
     for (let i = 0; i < parsed.data.items.length; i++) {
+      const item = parsed.data.items[i];
+      const dangerous = JSON.stringify(item);
+      if (dangerous.includes("$where") || dangerous.includes("$expr") || dangerous.includes("__proto__")) {
+        errors.push({ index: i, error: "محتوى غير مسموح به" });
+        continue;
+      }
       try {
-        await Unit.create(parsed.data.items[i]);
+        await Unit.create(item);
         created.push(i);
       } catch (err) {
         errors.push({ index: i, error: (err as Error).message });

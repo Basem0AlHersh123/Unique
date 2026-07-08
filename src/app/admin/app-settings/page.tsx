@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { Settings, Smartphone, Wrench, AlertTriangle } from "lucide-react";
+import { Settings, Smartphone, Wrench, AlertTriangle, Globe, Shield, KeyRound } from "lucide-react";
 
 interface AppConfig {
   minAppVersion: string; updateMessage: string; updateUrl: string;
   forceUpdateEnabled: boolean; maintenanceMode: boolean; maintenanceMessage: string;
+  domainUrl: string; turnstileBypassPassword: string;
 }
 
 export default function AppSettingsPage() {
@@ -20,6 +21,7 @@ export default function AppSettingsPage() {
   const [config, setConfig] = useState<AppConfig>({
     minAppVersion:"1.0.0", updateMessage:"", updateUrl:"",
     forceUpdateEnabled:false, maintenanceMode:false, maintenanceMessage:"",
+    domainUrl:"", turnstileBypassPassword:"",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,9 +50,34 @@ export default function AppSettingsPage() {
         <Settings className="w-6 h-6 text-primary" />
         <div>
           <h1 className="text-xl font-bold text-text-primary">{lang === "ar" ? "إعدادات التطبيق" : "App Settings"}</h1>
-          <p className="text-xs text-text-muted">{lang === "ar" ? "التحكم في إجبار التحديث ووضع الصيانة" : "Control force update and maintenance mode"}</p>
+          <p className="text-xs text-text-muted">{lang === "ar" ? "التحكم في إجبار التحديث ووضع الصيانة وإعدادات النطاق" : "Control force update, maintenance mode, domain & security settings"}</p>
         </div>
       </div>
+
+      <Card className="p-6 space-y-4">
+        <div className="flex items-center gap-2"><Globe className="w-5 h-5 text-primary"/><h2 className="text-base font-bold text-text-primary">{lang === "ar" ? "إعدادات النطاق" : "Domain Settings"}</h2></div>
+        <Input label={lang === "ar" ? "رابط الموقع (النطاق)" : "Site URL (Domain)"}
+          placeholder="https://unique.edu"
+          value={config.domainUrl}
+          onChange={e=>setConfig(c=>({...c,domainUrl:e.target.value}))} />
+        <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
+          <Globe className="w-4 h-4 text-primary shrink-0"/>
+          <p className="text-xs text-text-secondary">{lang === "ar" ? "هذا الرابط سيستخدم في الروابط الخارجية والإشعارات" : "This URL will be used in external links and notifications"}</p>
+        </div>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <div className="flex items-center gap-2"><Shield className="w-5 h-5 text-primary"/><h2 className="text-base font-bold text-text-primary">{lang === "ar" ? "الأمان" : "Security"}</h2></div>
+        <Input label={lang === "ar" ? "كلمة مرور تجاوز التحقق (Turnstile)" : "Turnstile Bypass Password"}
+          type="password"
+          placeholder="••••••••"
+          value={config.turnstileBypassPassword}
+          onChange={e=>setConfig(c=>({...c,turnstileBypassPassword:e.target.value}))} />
+        <div className="flex items-center gap-2 p-3 bg-warning/5 rounded-lg border border-warning/20">
+          <KeyRound className="w-4 h-4 text-warning shrink-0"/>
+          <p className="text-xs text-warning font-medium">{lang === "ar" ? "تحذير: شارك هذه الكلمة فقط مع من تثق بهم" : "Warning: Only share this password with people you trust"}</p>
+        </div>
+      </Card>
 
       <Card className="p-6 space-y-4">
         <div className="flex items-center gap-2"><Smartphone className="w-5 h-5 text-primary"/><h2 className="text-base font-bold text-text-primary">{lang === "ar" ? "التحديث الإجباري" : "Force Update"}</h2></div>

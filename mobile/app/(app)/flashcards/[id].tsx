@@ -49,7 +49,7 @@ export default function FlashcardDetailScreen() {
     from?: "today" | "all";
   }>();
   const { colors } = useTheme();
-  const { lang } = useLanguage();
+  const { lang, isRTL } = useLanguage();
 
   const [card, setCard] = useState<FlashcardDetail | null>(null);
   const [allCards, setAllCards] = useState<FlashcardDetail[]>([]);
@@ -264,7 +264,7 @@ export default function FlashcardDetailScreen() {
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
-            <Feather name="arrow-right" size={24} color={colors.text} />
+            <Feather name={isRTL ? "arrow-right" : "arrow-left"} size={24} color={colors.text} />
           </Pressable>
           <View style={{ width: 24 }} />
         </View>
@@ -298,7 +298,7 @@ export default function FlashcardDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()}>
-          <Feather name="arrow-right" size={24} color={colors.text} />
+          <Feather name={isRTL ? "arrow-right" : "arrow-left"} size={24} color={colors.text} />
         </Pressable>
         <Text style={[styles.counter, { color: colors.textSecondary }]}>
           {currentIndex + 1} / {allCards.length}
@@ -484,7 +484,7 @@ export default function FlashcardDetailScreen() {
           onPress={() => goToCard(currentIndex - 1)}
         >
           <Feather
-            name="chevron-right"
+            name={isRTL ? "chevron-right" : "chevron-left"}
             size={28}
             color={currentIndex === 0 ? colors.textTertiary : colors.text}
           />
@@ -531,7 +531,7 @@ export default function FlashcardDetailScreen() {
             ]}
             onPress={() => goToCard(currentIndex + 1)}
           >
-            <Feather name="chevron-left" size={28} color={colors.text} />
+            <Feather name={isRTL ? "chevron-left" : "chevron-right"} size={28} color={colors.text} />
           </Pressable>
         )}
       </View>

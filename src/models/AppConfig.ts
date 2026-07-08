@@ -7,16 +7,20 @@ export interface IAppConfig extends Document {
   forceUpdateEnabled: boolean;
   maintenanceMode: boolean;
   maintenanceMessage: string;
+  domainUrl: string;
+  turnstileBypassPassword: string;
 }
 
 const AppConfigSchema = new Schema<IAppConfig>(
   {
-    minAppVersion:      { type: String, default: "1.0.0" },
-    updateMessage:      { type: String, default: "يرجى تحديث التطبيق للاستمرار" },
-    updateUrl:          { type: String, default: "" },
-    forceUpdateEnabled: { type: Boolean, default: false },
-    maintenanceMode:    { type: Boolean, default: false },
-    maintenanceMessage: { type: String, default: "التطبيق في وضع الصيانة، يرجى المحاولة لاحقاً" },
+    minAppVersion:          { type: String, default: "1.0.0" },
+    updateMessage:          { type: String, default: "يرجى تحديث التطبيق للاستمرار" },
+    updateUrl:              { type: String, default: "" },
+    forceUpdateEnabled:     { type: Boolean, default: false },
+    maintenanceMode:        { type: Boolean, default: false },
+    maintenanceMessage:     { type: String, default: "التطبيق في وضع الصيانة، يرجى المحاولة لاحقاً" },
+    domainUrl:              { type: String, default: "" },
+    turnstileBypassPassword: { type: String, default: "" },
   },
   { timestamps: true, collection: "appconfig" }
 );

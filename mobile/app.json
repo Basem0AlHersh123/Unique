@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "UNIQUE",
-    "slug": "unique-app",
+    "slug": "VentList",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
@@ -60,7 +60,8 @@
           "backgroundColor": "#0f0a2e"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true
@@ -69,6 +70,7 @@
       "eas": {
         "projectId": "3959a07d-b92d-4875-b36d-05c8f98fb12d"
       }
-    }
+    },
+    "owner": "hammood"
   }
 }

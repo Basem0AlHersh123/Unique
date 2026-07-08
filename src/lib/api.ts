@@ -19,9 +19,6 @@ function processQueue(error: unknown, token: string | null) {
 
 const api = axios.create({
   timeout: 30000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 api.interceptors.request.use((config) => {
@@ -105,7 +102,10 @@ export async function apiFetch<T>(
           : typeof options?.body === "string"
           ? JSON.parse(options.body)
           : options?.body,
-      headers: options?.headers,
+      headers: {
+        ...(options?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        ...options?.headers,
+      },
     });
     return res.data;
   } catch (err: unknown) {

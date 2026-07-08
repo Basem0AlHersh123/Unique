@@ -1,14 +1,26 @@
-import { useCallback, useEffect, useRef } from "react";
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
+import { useCallback, useRef, useState } from "react";
+import { Platform } from "react-native";
 import { saveToken, saveUser, saveRefreshToken } from "@/lib/auth";
 import { apiFetch } from "@/lib/api";
-
-WebBrowser.maybeCompleteAuthSession();
 
 const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 const googleConfigured = !!(webClientId && androidClientId);
+
+let GoogleSigninModule: any = null;
+
+try {
+  GoogleSigninModule = require("@react-native-google-signin/google-signin");
+  if (googleConfigured) {
+    GoogleSigninModule.GoogleSignin.configure({
+      webClientId,
+      androidClientId,
+      offlineAccess: false,
+    });
+  }
+} catch {
+  // Native module not available (Expo Go / dev without native build)
+}
 
 export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => void) {
   const onSuccessRef = useRef(onSuccess);
@@ -16,22 +28,35 @@ export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => v
   onSuccessRef.current = onSuccess;
   onErrorRef.current = onError;
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: webClientId || "",
-    androidClientId: androidClientId || "",
-    scopes: ["profile", "email"],
-  });
+  const [loading, setLoading] = useState(false);
 
-  const handleResponse = useCallback(async () => {
-    if (response?.type !== "success") return;
+  const promptAsync = useCallback(async () => {
+    if (!googleConfigured) {
+      onErrorRef.current("لم يتم تكوين تسجيل الدخول بواسطة Google");
+      return;
+    }
 
-    const idToken = response.authentication?.idToken;
-    if (!idToken) {
-      onErrorRef.current("فشل الحصول على رمز Google");
+    if (!GoogleSigninModule) {
+      onErrorRef.current(
+        Platform.OS === "android"
+          ? "تسجيل الدخول بواسطة Google متاح فقط في النسخة النهائية. قم ببناء التطبيق باستخدام EAS."
+          : "Google Sign-In is only available in a production build. Build the app with EAS."
+      );
       return;
     }
 
     try {
+      const { GoogleSignin, statusCodes } = GoogleSigninModule;
+
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      setLoading(true);
+
+      const { idToken } = await GoogleSignin.signIn();
+      if (!idToken) {
+        onErrorRef.current("فشل الحصول على رمز Google");
+        return;
+      }
+
       const payload = await apiFetch<{
         accessToken: string;
         refreshToken?: string;
@@ -51,16 +76,22 @@ export function useGoogleAuth(onSuccess: () => void, onError: (msg: string) => v
       } else {
         onErrorRef.current(payload.error || "فشل تسجيل الدخول");
       }
-    } catch (err) {
-      onErrorRef.current(err instanceof Error ? err.message : "حدث خطأ");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        const code = (err as any).code;
+        if (code === "SIGN_IN_CANCELLED") return;
+        if (code === "PLAY_SERVICES_NOT_AVAILABLE" || err.message?.includes("Play Services")) {
+          onErrorRef.current("خدمات Google غير متوفرة على هذا الجهاز");
+          return;
+        }
+        onErrorRef.current(err.message || "حدث خطأ");
+      } else {
+        onErrorRef.current("حدث خطأ");
+      }
+    } finally {
+      setLoading(false);
     }
-  }, [response]);
+  }, []);
 
-  useEffect(() => {
-    if (response) {
-      handleResponse();
-    }
-  }, [response, handleResponse]);
-
-  return { request, promptAsync, googleConfigured };
+  return { request: null, promptAsync, loading, googleConfigured };
 }

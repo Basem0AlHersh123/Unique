@@ -39,7 +39,7 @@ type StatusFilter = "all" | "known" | "later" | "pending";
 export default function FlashcardsIndexScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { lang } = useLanguage();
+  const { lang, isRTL } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<"today" | "all">("today");
   const [todayWords, setTodayWords] = useState<Flashcard[]>([]);
@@ -324,7 +324,7 @@ export default function FlashcardsIndexScreen() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()}>
-          <Feather name="arrow-right" size={24} color={colors.text} />
+          <Feather name={isRTL ? "arrow-right" : "arrow-left"} size={24} color={colors.text} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
           {lang === "ar" ? "📇 المفردات" : "📇 Vocabulary"}

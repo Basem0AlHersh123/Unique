@@ -20,6 +20,7 @@ interface Topic {
   title: string;
   slug: string;
   subjectId: string;
+  unitId?: string;
   videoUrl: string;
   aiExplanation?: string;
   summaryText?: string;
@@ -41,6 +42,7 @@ export default function TopicDetailPage() {
   const [topic, setTopic] = useState<Topic | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [videoWatched, setVideoWatched] = useState(false);
 
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
@@ -75,6 +77,31 @@ export default function TopicDetailPage() {
     }
     load();
   }, [slug]);
+
+  // Track video as watched when it comes into view
+  useEffect(() => {
+    if (!topic?.videoUrl || videoWatched) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVideoWatched(true);
+          apiFetch("/api/progress/lesson", {
+            method: "POST",
+            body: JSON.stringify({
+              lessonId: topic._id,
+              unitId: topic.unitId || topic._id,
+              subjectId: topic.subjectId,
+              action: "watched",
+            }),
+          }).catch(() => {});
+        }
+      },
+      { threshold: 0.5 }
+    );
+    const el = document.getElementById("topic-video");
+    if (el) observer.observe(el);
+    return () => observer.disconnect();
+  }, [topic, videoWatched]);
 
   async function handleAskAi() {
     const q = aiQuestion.trim();
@@ -207,7 +234,7 @@ export default function TopicDetailPage() {
 
         {/* ── Video ── */}
         {topic.videoUrl && (
-          <div className="animate-fade-in-up-delay-1 rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/30">
+          <div id="topic-video" className="animate-fade-in-up-delay-1 rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/30">
             <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
               <iframe
                 className="absolute inset-0 w-full h-full"

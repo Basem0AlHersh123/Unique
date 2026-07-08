@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Topic } from "@/models/Topic";
 import { Question } from "@/models/Question";
 import { Attempt } from "@/models/Attempt";
+import { LessonProgress } from "@/models/LessonProgress";
 import { requireAuth } from "@/lib/requireAuth";
 
 const submitSchema = z.object({
@@ -79,6 +80,48 @@ export async function POST(
       answers: gradedAnswers,
     });
 
+    const percentage = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
+
+    // Update lesson progress if passed
+    let nextLesson: { slug: string; title: string } | null = null;
+    if (percentage >= 70) {
+      const existing = await LessonProgress.findOne({
+        userId: auth.payload.userId,
+        lessonId: topic._id,
+      });
+
+      const update: Record<string, unknown> = {
+        userId: auth.payload.userId,
+        lessonId: topic._id,
+        unitId: topic.unitId || topic._id,
+        subjectId: topic.subjectId,
+        passedQuiz: true,
+        score,
+      };
+
+      if (existing?.watchedVideo) {
+        update.completedAt = new Date();
+      }
+
+      await LessonProgress.findOneAndUpdate(
+        { userId: auth.payload.userId, lessonId: topic._id },
+        { $set: update },
+        { upsert: true, new: true }
+      );
+
+      // Find next lesson in same unit (or subject if no unit)
+      const filter: Record<string, unknown> = { order: topic.order + 1, isPublished: true };
+      if (topic.unitId) {
+        filter.unitId = topic.unitId;
+      } else {
+        filter.subjectId = topic.subjectId;
+      }
+      const nextTopic = await Topic.findOne(filter).select("slug title").lean();
+      if (nextTopic) {
+        nextLesson = { slug: nextTopic.slug, title: nextTopic.title };
+      }
+    }
+
     const result = gradedAnswers.map((a) => ({
       questionId: a.questionId,
       selected: a.selected,
@@ -95,8 +138,9 @@ export async function POST(
         attemptId: attempt._id,
         score,
         total: questions.length,
-        percentage: questions.length > 0 ? Math.round((score / questions.length) * 100) : 0,
+        percentage,
         answers: result,
+        nextLesson,
       },
     });
   } catch (err) {

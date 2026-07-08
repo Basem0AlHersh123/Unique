@@ -5,12 +5,14 @@ import { AppConfig } from "@/models/AppConfig";
 import { requireAdmin } from "@/lib/requireAdmin";
 
 const schema = z.object({
-  minAppVersion:      z.string().regex(/^\d+\.\d+\.\d+$/, "يجب أن يكون بصيغة 1.0.0").optional(),
-  updateMessage:      z.string().max(300).optional(),
-  updateUrl:          z.string().optional(),
-  forceUpdateEnabled: z.boolean().optional(),
-  maintenanceMode:    z.boolean().optional(),
-  maintenanceMessage: z.string().max(300).optional(),
+  minAppVersion:          z.string().regex(/^\d+\.\d+\.\d+$/, "يجب أن يكون بصيغة 1.0.0").optional(),
+  updateMessage:          z.string().max(300).optional(),
+  updateUrl:              z.string().optional(),
+  forceUpdateEnabled:     z.boolean().optional(),
+  maintenanceMode:        z.boolean().optional(),
+  maintenanceMessage:     z.string().max(300).optional(),
+  domainUrl:              z.string().optional(),
+  turnstileBypassPassword: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {

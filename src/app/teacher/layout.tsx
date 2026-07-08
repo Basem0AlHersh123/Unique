@@ -101,9 +101,9 @@ function TeacherLayoutInner({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <aside
-      className={`flex flex-col bg-surface/50 backdrop-blur-sm border-l border-border shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`flex flex-col backdrop-blur-sm border-l border-border shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "w-16" : "w-64"
-      }`}
+      } dark:bg-surface/50 bg-white/80`}
     >
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">

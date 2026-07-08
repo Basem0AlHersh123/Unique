@@ -22,6 +22,7 @@ import {
   Phone,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -45,14 +46,14 @@ function NavLink({
     <Link
       href={href}
       title={label}
-      className={`group flex items-center p-2 rounded-xl transition-all duration-200 ${
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
         active
-          ? "bg-primary/10 text-primary"
-          : "text-text-muted hover:text-text-primary hover:bg-surface-hover"
+          ? "bg-primary/15 text-primary"
+          : "text-text-muted hover:text-primary hover:bg-primary/8"
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
-      <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
+      <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
         {label}
       </span>
     </Link>
@@ -74,14 +75,14 @@ function NavLinkPrimary({
     <Link
       href={href}
       title={label}
-      className={`group flex items-center p-2 rounded-xl transition-all duration-200 ${
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
         active
           ? "bg-primary text-white shadow-lg shadow-primary/20"
           : "bg-primary/10 text-primary hover:bg-primary hover:text-white"
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
-      <span className="hidden lg:inline max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
+      <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
         {label}
       </span>
     </Link>
@@ -130,6 +131,7 @@ export function Navbar({ variant = "full", showBack }: NavbarProps) {
         { href: "/colleges", icon: Building2, label: t("nav.colleges"), primary: false },
         { href: "/chat", icon: MessageCircle, label: t("nav.chat"), primary: false },
         { href: "/ai/chat", icon: Bot, label: t("nav.ai_chat"), primary: false },
+        { href: "/settings", icon: Settings, label: t("nav.settings"), primary: false },
         { href: "/about", icon: Info, label: t("nav.about"), primary: false },
         { href: "/contact", icon: Phone, label: t("nav.contact"), primary: false },
       ]
@@ -234,10 +236,10 @@ export function Navbar({ variant = "full", showBack }: NavbarProps) {
               <button
                 onClick={handleLogout}
                 title={t("nav.logout")}
-                className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200 group"
+                className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200"
               >
                 <LogOut className="w-5 h-5 shrink-0" />
-                <span className="max-w-0 overflow-hidden group-hover:max-w-40 group-hover:ms-2 transition-all duration-500 whitespace-nowrap text-sm font-medium">
+                <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
                   {t("nav.logout")}
                 </span>
               </button>

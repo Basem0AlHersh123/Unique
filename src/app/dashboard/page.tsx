@@ -295,6 +295,40 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
+      {/* First-time college selection blocker */}
+      {!college && !loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-surface rounded-3xl border border-border/50 shadow-2xl max-w-md w-full p-8 scale-in text-center space-y-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20">
+              <GraduationCap className="w-10 h-10 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-text-primary">
+                {lang === "ar" ? "اختر كليتك" : "Choose Your College"}
+              </h2>
+              <p className="text-text-secondary text-sm mt-2 leading-relaxed">
+                {lang === "ar"
+                  ? "يجب اختيار الكلية قبل البدء. هذا يساعدنا في تخصيص المحتوى المناسب لك."
+                  : "You need to select a college before proceeding. This helps us personalize your content."}
+              </p>
+            </div>
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-sm shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 transition-all duration-300"
+            >
+              <GraduationCap className="w-5 h-5" />
+              {lang === "ar" ? "اختر الكلية" : "Select College"}
+            </Link>
+            <p className="text-xs text-text-muted">
+              {lang === "ar"
+                ? "يمكنك تغيير الكلية لاحقاً من الإعدادات"
+                : "You can change your college later from settings"}
+            </p>
+          </div>
+        </div>
+      )}
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Welcome Card - Enhanced */}
         <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 rounded-2xl border border-primary/10 p-6 overflow-hidden">

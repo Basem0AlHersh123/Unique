@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
-import { StatusBar, Modal, Linking, Pressable, View, Text } from "react-native";
+import { StatusBar, Modal, View, Text, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import Constants from "expo-constants";
 import { LanguageProvider } from "@/lib/i18n/context";
 import { ThemeProvider, useTheme } from "@/lib/theme/context";
 import AlertModal from "@/lib/ui/AlertModal";
+import UpdateModal from "@/components/ui/UpdateModal";
 import { isVersionOutdated } from "@/lib/version";
 import { apiFetch } from "@/lib/api";
 import { ENDPOINTS } from "@/constants/config";
@@ -90,31 +93,86 @@ export default function RootLayout() {
       <LanguageProvider>
         <RootLayoutInner />
       </LanguageProvider>
-      <Modal visible={updateRequired} transparent animationType="fade">
-        <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.85)", justifyContent:"center", alignItems:"center", padding:32 }}>
-          <View style={{ backgroundColor:"#1a1040", borderRadius:24, padding:28, borderWidth:1, borderColor:"#6C63FF", width:"100%", maxWidth:360, alignItems:"center", gap:16 }}>
-            <Text style={{ fontSize:48 }}>🚀</Text>
-            <Text style={{ fontSize:20, fontFamily:"Cairo_700Bold", color:"#fff", textAlign:"center" }}>تحديث مطلوب</Text>
-            <Text style={{ fontSize:14, fontFamily:"Cairo_400Regular", color:"#94a3b8", textAlign:"center", lineHeight:22 }}>{updateMessage}</Text>
-            {updateUrl ? (
-              <Pressable style={{ backgroundColor:"#6C63FF", paddingHorizontal:32, paddingVertical:14, borderRadius:16, width:"100%", alignItems:"center" }}
-                onPress={() => Linking.openURL(updateUrl)}>
-                <Text style={{ color:"#fff", fontSize:16, fontFamily:"Cairo_700Bold" }}>تحديث الآن</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-      </Modal>
-      <Modal visible={maintenance} transparent animationType="fade">
-        <View style={{ flex:1, backgroundColor:"rgba(0,0,0,0.9)", justifyContent:"center", alignItems:"center", padding:32 }}>
-          <View style={{ backgroundColor:"#1a1040", borderRadius:24, padding:28, borderWidth:1, borderColor:"#F59E0B", width:"100%", maxWidth:360, alignItems:"center", gap:16 }}>
-            <Text style={{ fontSize:48 }}>🔧</Text>
-            <Text style={{ fontSize:20, fontFamily:"Cairo_700Bold", color:"#fff", textAlign:"center" }}>تحت الصيانة</Text>
-            <Text style={{ fontSize:14, fontFamily:"Cairo_400Regular", color:"#94a3b8", textAlign:"center", lineHeight:22 }}>{maintenanceMessage}</Text>
-          </View>
+      <UpdateModal
+        visible={updateRequired}
+        message={updateMessage}
+        updateUrl={updateUrl}
+      />
+      <Modal visible={maintenance} transparent animationType="fade" statusBarTranslucent>
+        <View style={styles.maintenanceOverlay}>
+          <LinearGradient
+            colors={["#1a1040", "#231557", "#1a1040"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.maintenanceCard}
+          >
+            <View style={styles.maintenanceIconWrap}>
+              <Feather name="tool" size={28} color="#F59E0B" />
+            </View>
+            <Text style={styles.maintenanceTitle}>تحت الصيانة</Text>
+            <Text style={styles.maintenanceSubtitle}>Under Maintenance</Text>
+            <View style={styles.maintenanceDivider} />
+            <Text style={styles.maintenanceMessage}>{maintenanceMessage}</Text>
+          </LinearGradient>
         </View>
       </Modal>
       <AlertModal />
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  maintenanceOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  maintenanceCard: {
+    width: "100%",
+    maxWidth: 360,
+    borderRadius: 28,
+    padding: 32,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(245, 158, 11, 0.3)",
+  },
+  maintenanceIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(245, 158, 11, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  maintenanceTitle: {
+    fontSize: 22,
+    fontFamily: "Cairo_700Bold",
+    color: "#ffffff",
+    textAlign: "center",
+  },
+  maintenanceSubtitle: {
+    fontSize: 13,
+    fontFamily: "Cairo_400Regular",
+    color: "#F59E0B",
+    textAlign: "center",
+    marginTop: 2,
+    letterSpacing: 1,
+  },
+  maintenanceDivider: {
+    width: 40,
+    height: 2,
+    backgroundColor: "rgba(245, 158, 11, 0.4)",
+    borderRadius: 1,
+    marginVertical: 18,
+  },
+  maintenanceMessage: {
+    fontSize: 14,
+    fontFamily: "Cairo_400Regular",
+    color: "#94a3b8",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+});

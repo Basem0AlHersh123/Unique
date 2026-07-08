@@ -37,6 +37,11 @@ export async function POST(req: NextRequest) {
 
     for (let i = 0; i < parsed.data.items.length; i++) {
       const item = parsed.data.items[i];
+      const dangerous = JSON.stringify(item);
+      if (dangerous.includes("$where") || dangerous.includes("$expr") || dangerous.includes("__proto__")) {
+        errors.push({ index: i, error: "محتوى غير مسموح به" });
+        continue;
+      }
       try {
         const slug = item.slug || item.name
           .toLowerCase()
