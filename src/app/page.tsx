@@ -205,6 +205,33 @@ export default function Home() {
               opacity="0.3"
             />
           </svg>
+          {/* Decorative zigzag road */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 1440 800"
+            fill="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="zigzag-grad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="white" stopOpacity="0" />
+                <stop offset="50%" stopColor="white" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="white" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0 500 L 288 300 L 576 500 L 864 300 L 1152 500 L 1440 300"
+              stroke="url(#zigzag-grad)"
+              strokeWidth="2"
+              strokeDasharray="8 8"
+            />
+            <circle cx="0" cy="500" r="4" fill="white" fillOpacity="0.08" />
+            <circle cx="288" cy="300" r="4" fill="white" fillOpacity="0.08" />
+            <circle cx="576" cy="500" r="4" fill="white" fillOpacity="0.08" />
+            <circle cx="864" cy="300" r="4" fill="white" fillOpacity="0.08" />
+            <circle cx="1152" cy="500" r="4" fill="white" fillOpacity="0.08" />
+            <circle cx="1440" cy="300" r="4" fill="white" fillOpacity="0.08" />
+          </svg>
           {/* Floating glow orbs */}
           <div className="absolute top-20 -left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-float" />
           <div className="absolute -bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
@@ -570,7 +597,7 @@ export default function Home() {
                   ))}
                 </div>
                 <p className="text-text-secondary text-sm leading-relaxed mb-6">
-                  "{testimonial.content}"
+                  `&rdquo;`{testimonial.content}`&rdquo;`
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-sm font-bold shadow-md">

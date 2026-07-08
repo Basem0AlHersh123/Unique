@@ -10,9 +10,9 @@
 
 :root {
   /* ── Primary Accents (desaturated — 5% of the UI) ── */
-  --color-primary: #0EA5E9;
-  --color-primary-dark: #3B82F6;
-  --color-primary-light: rgba(14, 165, 233, 0.10);
+  --color-primary: #4F7CFF;
+  --color-primary-dark: #3B62E0;
+  --color-primary-light: rgba(79, 124, 255, 0.10);
 
   --color-secondary: #6366F1;
   --color-accent: #D4A017;
@@ -23,10 +23,10 @@
   --color-danger: #EF4444;
 
   /* ── Light Mode — clean, warm, premium ── */
-  --color-background: #F0F2F8;
+  --color-background: #F0F4FF;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #E8ECF5;
-  --color-border: #D1D9E8;
+  --color-surface-hover: #EBF0FF;
+  --color-border: rgba(79, 124, 255, 0.15);
 
   --color-text-primary: #0F172A;
   --color-text-secondary: #475569;
