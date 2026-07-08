@@ -28,6 +28,17 @@ export default function LoginPage() {
   const [turnstileError, setTurnstileError] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    resetField,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { turnstileToken: "" },
+  });
+
   useEffect(() => {
     if (localStorage.getItem("accessToken")) {
       router.replace("/dashboard");
@@ -39,17 +50,6 @@ export default function LoginPage() {
   if (checkingAuth) {
     return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   }
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    resetField,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { turnstileToken: "" },
-  });
 
   function onCaptchaSuccess(token: string) {
     setValue("turnstileToken", token);
