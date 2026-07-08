@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { Message } from "@/models/Message";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 type MemberLike = { _id?: { toString(): string }; toString(): string };
 
@@ -102,6 +103,8 @@ export async function POST(
   try {
     const { id } = await params;
     const { content } = await req.json();
+    const sanitizeError = sanitizeData({ content });
+    if (sanitizeError) return sanitizeError;
 
     if (!content?.trim()) {
       return NextResponse.json(
@@ -185,6 +188,8 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = editSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -242,6 +247,8 @@ export async function DELETE(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = deleteSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Unit } from "@/models/Unit";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateUnitSchema = z.object({
   title: z.string().min(1, "عنوان الوحدة مطلوب").optional(),
@@ -54,6 +55,8 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateUnitSchema.safeParse(body);
 
     if (!parsed.success) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 type GroupDoc = {
   createdBy?: { _id?: { toString(): string }; toString(): string };
@@ -107,6 +108,8 @@ export async function PATCH(
     const allowedFields = ["name", "description", "isLocked", "joinMode"];
     const updates: Record<string, unknown> = {};
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         updates[field] = body[field];

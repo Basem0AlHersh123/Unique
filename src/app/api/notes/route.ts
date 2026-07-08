@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { StudentNote } from "@/models/StudentNote";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createNoteSchema = z.object({
   content: z.string().min(1, "المحتوى مطلوب").max(5000),
@@ -48,6 +49,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createNoteSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });

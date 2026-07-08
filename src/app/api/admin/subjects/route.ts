@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Subject } from "@/models/Subject";
 import { College } from "@/models/College";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createSubjectSchema = z.object({
   name: z.string().min(2, "اسم المادة قصير جداً"),
@@ -45,6 +46,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createSubjectSchema.safeParse(body);
 
     if (!parsed.success) {

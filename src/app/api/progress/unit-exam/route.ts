@@ -7,6 +7,7 @@ import { Question } from "@/models/Question";
 import { Topic } from "@/models/Topic";
 import { Unit } from "@/models/Unit";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 function getTodayMidnight(): Date {
   const now = new Date();
@@ -187,6 +188,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = submitExamSchema.safeParse(body);
 
     if (!parsed.success) {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Vocabulary } from "@/models/Vocabulary";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createVocabularySchema = z.object({
   word: z.string().min(1, "الكلمة مطلوبة"),
@@ -46,6 +47,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createVocabularySchema.safeParse(body);
 
     if (!parsed.success) {

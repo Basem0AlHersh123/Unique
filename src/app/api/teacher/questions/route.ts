@@ -5,6 +5,7 @@ import { Question } from "@/models/Question";
 import { Subject } from "@/models/Subject";
 import { requireTeacher } from "@/lib/requireTeacher";
 import { verifyAccessToken } from "@/lib/auth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const questionSchema = z.object({
   question: z.string().min(2, "نص السؤال قصير جداً"),
@@ -62,6 +63,8 @@ export async function POST(req: NextRequest) {
     const payload = verifyAccessToken(token);
 
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = questionSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(

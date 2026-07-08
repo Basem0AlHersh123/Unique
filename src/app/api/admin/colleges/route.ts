@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { College } from "@/models/College";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createCollegeSchema = z.object({
   name: z.string().min(2, "اسم الكلية قصير جداً"),
@@ -45,6 +46,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createCollegeSchema.safeParse(body);
 
     if (!parsed.success) {

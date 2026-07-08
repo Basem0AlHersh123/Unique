@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { JoinRequest } from "@/models/JoinRequest";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 type GroupDoc = {
   createdBy?: { _id?: { toString(): string }; toString(): string };
@@ -73,7 +74,10 @@ export async function PATCH(
 
   try {
     const { id, requestId } = await params;
-    const { status } = await req.json();
+    const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
+    const { status } = body;
 
     if (!["approved", "rejected"].includes(status)) {
       return NextResponse.json(

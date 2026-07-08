@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Level } from "@/models/Level";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateLevelSchema = z.object({
   title: z.string().min(1, "عنوان المستوى مطلوب").optional(),
@@ -50,6 +51,8 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateLevelSchema.safeParse(body);
 
     if (!parsed.success) {

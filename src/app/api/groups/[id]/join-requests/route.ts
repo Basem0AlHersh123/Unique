@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { JoinRequest } from "@/models/JoinRequest";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 type GroupDoc = {
   createdBy?: { _id?: { toString(): string }; toString(): string };

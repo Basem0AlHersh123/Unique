@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Topic } from "@/models/Topic";
 import { requireTeacher } from "@/lib/requireTeacher";
 import { verifyAccessToken } from "@/lib/auth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateTopicSchema = z.object({
   videoUrl: z.string().optional(),
@@ -35,6 +36,8 @@ export async function PATCH(
     const payload = verifyAccessToken(token);
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateTopicSchema.safeParse(body);
 
     if (!parsed.success) {

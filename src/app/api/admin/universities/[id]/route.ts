@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { University } from "@/models/University";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -39,6 +40,8 @@ export async function PATCH(
     await connectDB();
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.issues[0].message }, { status: 400 });
     const university = await University.findByIdAndUpdate(id, { $set: parsed.data }, { new: true });

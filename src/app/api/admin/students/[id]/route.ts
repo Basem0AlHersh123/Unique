@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateStudentSchema = z.object({
   name: z.string().min(2).optional(),
@@ -22,6 +23,8 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateStudentSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(

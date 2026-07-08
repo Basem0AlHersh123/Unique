@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Subject } from "@/models/Subject";
 import { User } from "@/models/User";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const assignSchema = z.object({
   subjectId: z.string().min(1),
@@ -16,6 +17,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = assignSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -64,6 +67,8 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = assignSchema.safeParse(body);
 
     if (!parsed.success) {

@@ -6,6 +6,7 @@ import { Level } from "@/models/Level";
 import { Subject } from "@/models/Subject";
 import { requireTeacher } from "@/lib/requireTeacher";
 import { verifyAccessToken } from "@/lib/auth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createUnitSchema = z.object({
   title: z.string().min(1, "عنوان الوحدة مطلوب"),
@@ -62,6 +63,8 @@ export async function POST(req: NextRequest) {
     const token = authHeader.slice("Bearer ".length);
     const payload = verifyAccessToken(token);
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createUnitSchema.safeParse(body);
 
     if (!parsed.success) {

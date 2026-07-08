@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { AppConfig } from "@/models/AppConfig";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const schema = z.object({
   minAppVersion:          z.string().regex(/^\d+\.\d+\.\d+$/, "يجب أن يكون بصيغة 1.0.0").optional(),
@@ -29,6 +30,8 @@ export async function PATCH(req: NextRequest) {
   if (check) return check;
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ success:false, error:parsed.error.issues[0].message }, { status:400 });

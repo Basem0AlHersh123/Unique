@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { Level } from "@/models/Level";
 import { Subject } from "@/models/Subject";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createLevelSchema = z.object({
   title: z.string().min(1, "عنوان المستوى مطلوب"),
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createLevelSchema.safeParse(body);
 
     if (!parsed.success) {

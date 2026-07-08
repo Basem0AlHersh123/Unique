@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Question } from "@/models/Question";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createQuestionSchema = z.object({
   question: z.string().min(2, "نص السؤال قصير جداً"),
@@ -54,6 +55,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createQuestionSchema.safeParse(body);
 
     if (!parsed.success) {

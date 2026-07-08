@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { ContactMessage } from "@/models/ContactMessage";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const contactSchema = z.object({
   name: z.string().min(2, "الاسم قصير جداً").max(100),
@@ -14,6 +15,8 @@ const contactSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = contactSchema.safeParse(body);
 
     if (!parsed.success) {

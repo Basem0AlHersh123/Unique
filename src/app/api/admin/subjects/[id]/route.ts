@@ -5,6 +5,7 @@ import { Subject } from "@/models/Subject";
 import { College } from "@/models/College";
 import { Topic } from "@/models/Topic";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateSubjectSchema = z.object({
   name: z.string().min(2, "اسم المادة قصير جداً").optional(),
@@ -27,6 +28,8 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateSubjectSchema.safeParse(body);
 
     if (!parsed.success) {

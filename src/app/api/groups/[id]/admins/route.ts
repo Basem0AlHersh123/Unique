@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 type GroupDoc = {
   createdBy?: { _id?: { toString(): string }; toString(): string };
@@ -25,7 +26,10 @@ export async function POST(
 
   try {
     const { id } = await params;
-    const { userId: targetUserId } = await req.json();
+    const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
+    const { userId: targetUserId } = body;
 
     if (!targetUserId) {
       return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { SiteContent } from "@/models/SiteContent";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 export async function GET(req: NextRequest) {
   const adminCheck = requireAdmin(req);
@@ -26,6 +27,8 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const { section, data } = body;
 
     if (!section || typeof section !== "string") {

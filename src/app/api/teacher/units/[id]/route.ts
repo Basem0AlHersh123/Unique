@@ -5,6 +5,7 @@ import { Unit } from "@/models/Unit";
 import { Subject } from "@/models/Subject";
 import { requireTeacher } from "@/lib/requireTeacher";
 import { verifyAccessToken } from "@/lib/auth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateUnitSchema = z.object({
   title: z.string().min(1).optional(),
@@ -29,6 +30,8 @@ export async function PATCH(
     const payload = verifyAccessToken(token);
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateUnitSchema.safeParse(body);
 
     if (!parsed.success) {

@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { requireAuth } from "@/lib/requireAuth";
 import { signAccessToken } from "@/lib/auth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateSchema = z.object({
   name: z.string().min(2, "الاسم قصير جداً").max(100).optional(),
@@ -44,6 +45,8 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateSchema.safeParse(body);
 
     if (!parsed.success) {

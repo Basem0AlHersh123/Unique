@@ -5,6 +5,7 @@ import { Topic } from "@/models/Topic";
 import { Subject } from "@/models/Subject";
 import { requireTeacher } from "@/lib/requireTeacher";
 import { verifyAccessToken } from "@/lib/auth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const createTopicSchema = z.object({
   title: z.string().min(2, "عنوان الموضوع قصير جداً"),
@@ -25,6 +26,8 @@ export async function POST(req: NextRequest) {
     const token = authHeader.slice("Bearer ".length);
     const payload = verifyAccessToken(token);
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = createTopicSchema.safeParse(body);
 
     if (!parsed.success) {

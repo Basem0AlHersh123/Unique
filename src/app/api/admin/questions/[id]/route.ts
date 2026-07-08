@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Question } from "@/models/Question";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const updateQuestionSchema = z.object({
   question: z.string().min(2, "نص السؤال قصير جداً").optional(),
@@ -27,6 +28,8 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = updateQuestionSchema.safeParse(body);
 
     if (!parsed.success) {

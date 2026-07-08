@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { ContactMessage } from "@/models/ContactMessage";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 export async function GET(req: NextRequest) {
   const adminCheck = requireAdmin(req);
@@ -28,6 +29,8 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const { id, read } = body;
 
     if (!id) {

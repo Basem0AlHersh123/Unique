@@ -6,10 +6,13 @@ import { loginSchema } from "@/lib/validation/auth";
 import { verifyPassword, signAccessToken, signRefreshToken } from "@/lib/auth";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { isMobileClient } from "@/lib/mobileAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
 
     const parsed = loginSchema.safeParse(body);
     if (!parsed.success) {

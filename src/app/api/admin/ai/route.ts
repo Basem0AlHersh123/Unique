@@ -4,6 +4,7 @@ import { ApiSetting } from "@/models/ApiSetting";
 import { ApiUsage } from "@/models/ApiUsage";
 import { requireAdmin } from "@/lib/requireAdmin";
 import { encrypt, decrypt } from "@/lib/encryption";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 export async function GET(req: NextRequest) {
   const adminCheck = requireAdmin(req);
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
         key: maskedKey,
         provider: setting?.provider ?? "gemini",
         model: setting?.aiModel ?? "gemini-2.0-flash",
+        freeModel: setting?.freeModel ?? "gemini-2.0-flash-lite",
         updatedAt: setting?.updatedAt ?? null,
         usage,
       },
@@ -73,6 +75,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
 
     const updateData: Record<string, unknown> = {
       provider: "gemini",
@@ -88,7 +92,11 @@ export async function POST(req: NextRequest) {
       updateData.aiModel = body.model;
     }
 
-    if (!updateData.key && !updateData.aiModel) {
+    if (body.freeModel && typeof body.freeModel === "string") {
+      updateData.freeModel = body.freeModel;
+    }
+
+    if (!updateData.key && !updateData.aiModel && !updateData.freeModel) {
       return NextResponse.json(
         { success: false, error: "مفتاح API أو الموديل مطلوب" },
         { status: 400 }
@@ -108,6 +116,7 @@ export async function POST(req: NextRequest) {
       data: {
         provider: setting.provider,
         model: setting.aiModel,
+        freeModel: setting.freeModel,
         updatedAt: setting.updatedAt,
       },
     });

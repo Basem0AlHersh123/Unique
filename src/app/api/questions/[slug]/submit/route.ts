@@ -6,6 +6,7 @@ import { Question } from "@/models/Question";
 import { Attempt } from "@/models/Attempt";
 import { LessonProgress } from "@/models/LessonProgress";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 const submitSchema = z.object({
   answers: z.array(
@@ -26,6 +27,8 @@ export async function POST(
   try {
     const { slug } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     const parsed = submitSchema.safeParse(body);
 
     if (!parsed.success) {

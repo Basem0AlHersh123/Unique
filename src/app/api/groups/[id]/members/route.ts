@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { User } from "@/models/User";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 import { z } from "zod";
 
 type GroupDoc = {
@@ -34,6 +35,8 @@ export async function POST(
 
     const { id } = await params;
     const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
     let targetUserId: string | undefined = body.userId;
 
     if (!targetUserId && body.email) {

@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Group } from "@/models/Group";
 import { User } from "@/models/User";
 import { requireAuth } from "@/lib/requireAuth";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 function canCreateGroup(role: string, tier: string): boolean {
   if (role === "admin" || role === "teacher") return true;
@@ -65,7 +66,10 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const { name, description, type, subjectId, joinMode, isVisible, allowImages } = await req.json();
+    const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
+    const { name, description, type, subjectId, joinMode, isVisible, allowImages } = body;
     const { userId, role } = auth.payload;
 
     await connectDB();

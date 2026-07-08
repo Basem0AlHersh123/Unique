@@ -3,10 +3,14 @@ import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { sendResetEmail } from "@/lib/email";
+import { sanitizeData } from "@/lib/data-sanitizer";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
+    const sanitizeError = sanitizeData(body);
+    if (sanitizeError) return sanitizeError;
+    const { email } = body;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json(
