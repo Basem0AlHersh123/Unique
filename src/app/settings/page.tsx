@@ -109,7 +109,10 @@ export default function SettingsPage() {
         setProfileImage(url);
         await apiFetch("/api/auth/profile", { method:"PATCH", body: { profileImage: url } });
       }
-    } catch { alert(lang === "ar" ? "فشل رفع الصورة" : "Upload failed"); }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      alert(msg);
+    }
     finally { setUploadingImage(false); }
   }
 

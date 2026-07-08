@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable,
-  ActivityIndicator, Animated, FlatList, Alert,
+  ActivityIndicator, FlatList,
   Linking, Image, RefreshControl, TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,6 +16,7 @@ import { useTheme } from "@/lib/theme/context";
 import { cacheGet, cacheSet } from "@/lib/cache";
 import { isOnline } from "@/lib/offline";
 import BottomSheet from "@/components/ui/BottomSheet";
+import ZigzagPath from "@/components/learning/ZigzagPath";
 import type { Subject, Level, Unit, Announcement } from "@/lib/types";
 
 interface LessonProgress {
@@ -104,163 +105,6 @@ function getSubjectEmoji(name: string): string {
   if (lower.includes('طب') || lower.includes('medic')) return '🏥';
   if (lower.includes('صيدلة') || lower.includes('pharmacy')) return '💊';
   return '📚';
-}
-
-function PulseCircle({ color }: { color: string }) {
-  const scale = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const anim = Animated.loop(
-      Animated.sequence([
-        Animated.timing(scale, { toValue: 1.18, duration: 700, useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 1, duration: 700, useNativeDriver: true }),
-      ])
-    );
-    anim.start();
-    return () => anim.stop();
-  }, [scale]);
-  return (
-    <Animated.View style={[styles.lessonNode, styles.lessonNodeCurrent, { backgroundColor: color, transform: [{ scale }] }]}>
-      <Feather name="play" size={18} color="#fff" />
-    </Animated.View>
-  );
-}
-
-function LessonNode({
-  lesson, status, onPress, primaryColor,
-}: {
-  lesson: LessonItem;
-  status: "done" | "current" | "locked";
-  onPress: () => void;
-  primaryColor: string;
-}) {
-  if (status === "done") {
-    return (
-      <Pressable onPress={onPress} style={styles.lessonNodeWrap}>
-        <View style={[styles.lessonNode, styles.lessonNodeDone, { backgroundColor: "#F59E0B" }]}>
-          <Feather name="check" size={20} color="#fff" />
-        </View>
-        <Text style={styles.lessonNodeLabel} numberOfLines={1}>{lesson.title}</Text>
-      </Pressable>
-    );
-  }
-  if (status === "current") {
-    return (
-      <Pressable onPress={onPress} style={styles.lessonNodeWrap}>
-        <PulseCircle color={primaryColor} />
-        <Text style={[styles.lessonNodeLabel, { color: primaryColor, fontFamily: "Cairo_700Bold" }]} numberOfLines={1}>{lesson.title}</Text>
-      </Pressable>
-    );
-  }
-  return (
-    <View style={styles.lessonNodeWrap}>
-      <View style={[styles.lessonNode, styles.lessonNodeLocked]}>
-        <Feather name="lock" size={16} color="#475569" />
-      </View>
-      <Text style={[styles.lessonNodeLabel, { color: "#475569" }]} numberOfLines={1}>{lesson.title}</Text>
-    </View>
-  );
-}
-
-function UnitMountain({
-  unit, index, onUnitPress, onLessonPress, primaryColor, onExamPress,
-}: {
-  unit: UnitWithLessons;
-  index: number;
-  onUnitPress: () => void;
-  onLessonPress: (lessonId: string) => void;
-  primaryColor: string;
-  onExamPress?: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const expandAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(expandAnim, {
-      toValue: expanded ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [expanded]);
-
-  const completedIds = new Set(
-    unit.progress.filter((p) => p.watchedVideo && p.passedQuiz).map((p) => p.lessonId)
-  );
-
-  function getLessonStatus(lesson: LessonItem, idx: number): "done" | "current" | "locked" {
-    if (completedIds.has(lesson._id)) return "done";
-    for (let i = 0; i < idx; i++) {
-      if (!completedIds.has(unit.lessons[i]._id)) return "locked";
-    }
-    return "current";
-  }
-
-  const unitDoneCount = unit.lessons.filter((l) => completedIds.has(l._id)).length;
-  const unitTotal = unit.lessons.length;
-  const unitPct = unitTotal > 0 ? Math.round((unitDoneCount / unitTotal) * 100) : 0;
-
-  const chevronRotation = expandAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
-
-  return (
-    <View style={styles.unitBlock}>
-      <View style={styles.mountainWrap}>
-        <Text style={styles.mountainEmoji}>🏔️</Text>
-        <Text style={styles.flagEmoji}>🚩</Text>
-      </View>
-
-      <Pressable style={[styles.unitPill, { backgroundColor: primaryColor }]} onPress={() => setExpanded((p) => !p)}>
-        <Text style={styles.unitPillText} numberOfLines={1}>
-          {String(index + 1).padStart(2, "0")}. {unit.title}
-        </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          {unitPct === 100 && <Feather name="check-circle" size={14} color="#fff" />}
-          <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
-            <Feather name="chevron-down" size={16} color="#fff" />
-          </Animated.View>
-        </View>
-      </Pressable>
-
-      <Animated.View
-        style={{
-          maxHeight: expandAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 2000],
-          }),
-          overflow: "hidden",
-        }}
-      >
-        {unit.lessons.length > 0 && (
-          <View style={styles.lessonsPath}>
-            {unit.lessons.map((lesson, lIdx) => {
-              const status = getLessonStatus(lesson, lIdx);
-              return (
-                <View key={lesson._id}>
-                  {lIdx > 0 && <View style={styles.dotConnector} />}
-                  <LessonNode
-                    lesson={lesson}
-                    status={status}
-                    onPress={() => status !== "locked" && onLessonPress(lesson._id)}
-                    primaryColor={primaryColor}
-                  />
-                </View>
-              );
-            })}
-
-            {unit.examEnabled && onExamPress && (
-              <Pressable style={[styles.examPill, { borderColor: primaryColor }]} onPress={onExamPress}>
-                <Feather name="edit-3" size={16} color={primaryColor} />
-                <Text style={[styles.examPillText, { color: primaryColor }]}>الامتحان النهائي</Text>
-              </Pressable>
-            )}
-          </View>
-        )}
-      </Animated.View>
-
-      <View style={styles.unitConnector} />
-    </View>
-  );
 }
 
 const ANN_COLORS = {
@@ -686,17 +530,12 @@ export default function LearnScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.pathScroll} showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6C63FF" colors={["#6C63FF"]} />}>
-          {unitsWithLessons.map((unit, idx) => (
-            <UnitMountain
-              key={unit._id}
-              unit={unit}
-              index={idx}
-              primaryColor={primaryColor}
-              onUnitPress={() => {}}
-              onLessonPress={(lessonId) => router.push(`/(app)/lesson/${lessonId}` as any)}
-              onExamPress={unit.examEnabled ? () => router.push(`/(app)/unit/${unit._id}` as any) : undefined}
-            />
-          ))}
+          <ZigzagPath
+            units={unitsWithLessons}
+            primaryColor={primaryColor}
+            onLessonPress={(lessonId) => router.push(`/(app)/lesson/${lessonId}` as any)}
+            onExamPress={(unitId) => router.push(`/(app)/unit/${unitId}` as any)}
+          />
           <View style={{ height: 80 }} />
         </ScrollView>
       )}
@@ -954,29 +793,6 @@ const styles = StyleSheet.create({
   },
 
   pathScroll: { paddingTop: 20, paddingHorizontal: 0, alignItems: "center" },
-
-  unitBlock: { width: "100%", alignItems: "center", paddingHorizontal: 24 },
-  mountainWrap: { position: "relative", width: 80, height: 70, alignItems: "center", justifyContent: "flex-end" },
-  mountainEmoji: { fontSize: 52 },
-  flagEmoji: { position: "absolute", top: 0, right: 14, fontSize: 18 },
-  unitPill: {
-    paddingHorizontal: 20, paddingVertical: 12, borderRadius: 30,
-    width: "90%", alignItems: "center", flexDirection: "row",
-    justifyContent: "center", marginTop: 4,
-    shadowColor: "#6C63FF", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
-    elevation: 6,
-  },
-  unitPillText: { color: "#fff", fontSize: 15, fontFamily: "Cairo_700Bold", textAlign: "center" },
-  unitConnector: { width: 2, height: 40, backgroundColor: "#2d1f6e", marginVertical: 4 },
-
-  lessonsPath: { alignItems: "center", marginTop: 8, width: "100%" },
-  dotConnector: { width: 2, height: 24, backgroundColor: "#2d1f6e", alignSelf: "center" },
-  lessonNodeWrap: { alignItems: "center", gap: 6, paddingVertical: 2 },
-  lessonNode: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
-  lessonNodeDone: {},
-  lessonNodeCurrent: {},
-  lessonNodeLocked: { backgroundColor: "#1e1b3a", borderWidth: 2, borderColor: "#2d1f6e" },
-  lessonNodeLabel: { fontSize: 12, color: "#94a3b8", textAlign: "center", fontFamily: "Cairo_400Regular", maxWidth: 200 },
 
   flashcardEntry: {
     flexDirection: "row",

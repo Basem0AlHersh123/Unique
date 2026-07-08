@@ -131,7 +131,7 @@ function TeacherLayoutInner({ children }: { children: React.ReactNode }) {
                 return newVal;
               })
             }
-            className={`p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors ${
+            className={`p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors ${
               sidebarCollapsed ? "mx-auto" : "mr-auto"
             }`}
             title={
@@ -156,7 +156,7 @@ function TeacherLayoutInner({ children }: { children: React.ReactNode }) {
             sidebarCollapsed ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
           }`}
         >
-          <p className="text-xs text-text-muted mt-0.5 mr-auto whitespace-nowrap">
+          <p className="text-xs text-text-secondary mt-0.5 mr-auto whitespace-nowrap">
             {t("teacher.title")}
           </p>
         </div>
@@ -193,7 +193,7 @@ function TeacherLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="p-4 border-t border-border flex flex-col gap-2">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors"
+          className="flex items-center gap-2 text-sm text-text-secondary hover:text-primary transition-colors"
           title={
             sidebarCollapsed
               ? lang === "ar"
@@ -212,7 +212,7 @@ function TeacherLayoutInner({ children }: { children: React.ReactNode }) {
         </Link>
         <button
           onClick={() => setLogoutConfirm(true)}
-          className="flex items-center gap-2 text-sm text-text-muted hover:text-danger transition-colors"
+          className="flex items-center gap-2 text-sm text-text-secondary hover:text-danger transition-colors"
           title={
             sidebarCollapsed
               ? lang === "ar"

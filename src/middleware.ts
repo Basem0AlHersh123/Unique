@@ -8,14 +8,12 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Max-Age": "86400",
 };
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   if (request.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers: corsHeaders });
   }
   const response = NextResponse.next();
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
+  Object.entries(corsHeaders).forEach(([k, v]) => response.headers.set(k, v));
   return response;
 }
 

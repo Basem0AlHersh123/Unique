@@ -258,22 +258,34 @@ export default function AboutPage() {
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 {item.videoUrl ? (
-                  <a
-                    href={item.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center relative cursor-pointer group/vid"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/vid:opacity-100 transition-opacity" />
-                    <div className="w-16 h-16 rounded-full bg-white/90 shadow-2xl flex items-center justify-center group-hover/vid:scale-110 transition-transform duration-300 z-10">
-                      <Play className="w-7 h-7 text-primary mr-0.5" />
-                    </div>
-                    <div className="absolute bottom-3 right-3 z-10">
-                      <span className="px-2 py-1 rounded-lg bg-black/50 text-white text-xs backdrop-blur-sm">
-                        {t("about.videos.watch")}
-                      </span>
-                    </div>
-                  </a>
+                  (() => {
+                    const youtubeMatch =
+                      /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/.exec(
+                        item.videoUrl
+                      );
+                    if (youtubeMatch) {
+                      return (
+                        <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 relative">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${youtubeMatch[1]}`}
+                            className="absolute inset-0 w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 relative">
+                        <video
+                          src={item.videoUrl}
+                          className="absolute inset-0 w-full h-full object-contain bg-black/20"
+                          controls
+                          playsInline
+                        />
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

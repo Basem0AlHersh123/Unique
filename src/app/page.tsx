@@ -521,33 +521,28 @@ export default function Home() {
             <div className="relative group slide-up" style={{ animationDelay: "0.2s" }}>
               {homeVideo ? (
                 (() => {
-                  const embedUrl = getEmbedUrl(homeVideo);
-                  return embedUrl ? (
+                  const youtubeId = extractYoutubeId(homeVideo);
+                  if (youtubeId) {
+                    return (
+                      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video shadow-2xl group-hover:shadow-3xl transition-shadow duration-300">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${youtubeId}`}
+                          className="absolute inset-0 w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    );
+                  }
+                  return (
                     <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video shadow-2xl group-hover:shadow-3xl transition-shadow duration-300">
-                      <iframe
-                        src={embedUrl}
-                        className="absolute inset-0 w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
+                      <video
+                        src={homeVideo}
+                        className="absolute inset-0 w-full h-full object-contain bg-black/20"
+                        controls
+                        playsInline
                       />
                     </div>
-                  ) : (
-                    <a
-                      href={homeVideo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border aspect-video flex items-center justify-center shadow-2xl group-hover:shadow-3xl transition-shadow duration-300"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
-                      <div className="relative text-center">
-                        <div className="w-20 h-20 mx-auto rounded-full bg-white/90 shadow-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 cursor-pointer">
-                          <Play className="w-8 h-8 text-primary mr-0.5" />
-                        </div>
-                        <p className="text-text-secondary mt-4 text-sm font-medium">
-                          {t("video.play")}
-                        </p>
-                      </div>
-                    </a>
                   );
                 })()
               ) : (
@@ -661,7 +656,7 @@ export default function Home() {
               <Button
                 variant="secondary"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 backdrop-blur-sm"
               >
                 {t("cta.browse")}
               </Button>

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { Key, Save, Activity, Users } from "lucide-react";
+import { Key, Save, Activity, Users, Crown } from "lucide-react";
 
 interface UsageTotals {
   totalTokensIn: number;
@@ -21,6 +21,7 @@ interface ApiSettingData {
   key: string | null;
   provider: string;
   model: string;
+  freeModel: string;
   updatedAt: string | null;
   usage: UsageTotals;
 }
@@ -28,6 +29,7 @@ interface ApiSettingData {
 const AI_MODELS = [
   { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash Lite" },
   { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
   { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
 ];
 
@@ -57,6 +59,7 @@ export default function AdminAIPage() {
   const [keyInput, setKeyInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash");
+  const [selectedFreeModel, setSelectedFreeModel] = useState("gemini-2.0-flash-lite");
   const [savingModel, setSavingModel] = useState(false);
   const [daysFilter, setDaysFilter] = useState(30);
 
@@ -71,6 +74,7 @@ export default function AdminAIPage() {
         if (settingRes.success) {
           setSetting(settingRes.data ?? null);
           if (settingRes.data?.model) setSelectedModel(settingRes.data.model);
+          if (settingRes.data?.freeModel) setSelectedFreeModel(settingRes.data.freeModel);
         }
         if (usageRes.success) setUsage(usageRes.data ?? null);
       } catch (err) {
@@ -118,7 +122,7 @@ export default function AdminAIPage() {
     try {
       const res = await apiFetch<{ model: string }>("/api/admin/ai", {
         method: "POST",
-        body: JSON.stringify({ model: selectedModel }),
+        body: JSON.stringify({ model: selectedModel, freeModel: selectedFreeModel }),
       });
       if (res.success) {
         showToast("تم حفظ الموديل", "success");
@@ -207,9 +211,17 @@ export default function AdminAIPage() {
         )}
 
         <div className="mt-6 border-t border-border pt-6">
-          <h3 className="text-sm font-semibold text-text-primary mb-3">AI Model</h3>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-            <div className="flex-1 w-full">
+          <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <Crown className="w-4 h-4 text-yellow-400" />
+            {lang === "ar" ? "نماذج الذكاء الاصطناعي" : "AI Models"}
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-text-secondary block mb-1.5 flex items-center gap-1">
+                <Crown className="w-3.5 h-3.5 text-yellow-400" />
+                {lang === "ar" ? "نموذج المستخدمين المدفوعين" : "Paid Users Model"}
+              </label>
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
@@ -220,13 +232,31 @@ export default function AdminAIPage() {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="text-xs font-medium text-text-secondary block mb-1.5">
+                {lang === "ar" ? "نموذج المستخدمين المجانيين" : "Free Users Model"}
+              </label>
+              <select
+                value={selectedFreeModel}
+                onChange={(e) => setSelectedFreeModel(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-surface border-2 border-border text-text-primary outline-none focus:border-primary transition-all duration-300"
+              >
+                {AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
             <Button
               onClick={handleSaveModel}
               isLoading={savingModel}
-              disabled={selectedModel === setting?.model}
+              disabled={selectedModel === setting?.model && selectedFreeModel === setting?.freeModel}
             >
               <Save className="w-4 h-4 ml-2" />
-              حفظ الموديل
+              {lang === "ar" ? "حفظ النماذج" : "Save Models"}
             </Button>
           </div>
         </div>

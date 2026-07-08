@@ -3,10 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { getAuthOrRefresh } from "@/lib/auth-client";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { Navbar } from "@/components/layout/Navbar";
 import {
   ChevronDown, ChevronUp, Lock, CheckCircle, PlayCircle,
-  ArrowRight, BookOpen, Trophy, Zap, LayoutDashboard,
+  ArrowRight, BookOpen, Trophy, Zap,
 } from "lucide-react";
 
 interface Level    { _id: string; title: string; titleEn?: string; order: number; isPublished: boolean; }
@@ -14,7 +16,7 @@ interface Unit     { _id: string; title: string; titleEn?: string; order: number
 interface Topic    { _id: string; title: string; slug: string; isFree: boolean; difficulty: string; contentType: string; isPublished: boolean; isEssential?: boolean; }
 interface Progress { lessonId: string; passedQuiz: boolean; watchedVideo: boolean; }
 interface ExamAttempt { unitId: string; passed: boolean; score: number; }
-interface SubjectInfo { _id: string; nameAr: string; nameEn: string; slug: string; }
+interface SubjectInfo { _id: string; nameAr: string; nameEn: string; slug: string; collegeId?: string; }
 
 function unitCompletionPct(topics: Topic[], progress: Progress[]): number {
   if (!topics.length) return 0;
@@ -67,6 +69,7 @@ export default function SubjectPage() {
   const { lang, isRTL } = useLanguage();
 
   const [subject, setSubject]       = useState<SubjectInfo | null>(null);
+  const [subjects, setSubjects]     = useState<SubjectInfo[]>([]);
   const [levels, setLevels]         = useState<Level[]>([]);
   const [allUnits, setAllUnits]     = useState<Record<string, Unit[]>>({});
   const [allTopics, setAllTopics]   = useState<Record<string, Record<string, Topic[]>>>({});
@@ -78,7 +81,13 @@ export default function SubjectPage() {
 
   const loadSubject = useCallback(async () => {
     try {
-      const subjectsRes = await apiFetch<SubjectInfo[]>("/api/admin/subjects");
+      const u = await getAuthOrRefresh();
+      if (!u) return;
+      const profileRes = await apiFetch<{ collegeId?: string }>("/api/auth/profile");
+      const cid = profileRes.data?.collegeId;
+      const subjectsUrl = cid ? `/api/admin/subjects?collegeId=${cid}` : "/api/admin/subjects";
+      const subjectsRes = await apiFetch<SubjectInfo[]>(subjectsUrl);
+      setSubjects(subjectsRes.data ?? []);
       const sub = subjectsRes.data?.find(s => s.slug === slug || s._id === slug);
       if (!sub) return;
       setSubject(sub);
@@ -128,7 +137,12 @@ export default function SubjectPage() {
     finally { setLoading(false); }
   }, [slug]);
 
-  useEffect(() => { loadSubject(); }, [loadSubject]);
+  useEffect(() => {
+    loadSubject();
+    const onVisible = () => { if (document.visibilityState === "visible") loadSubject(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [loadSubject]);
 
   const levelName = (l: Level) => lang === "ar" ? l.title : (l.titleEn || l.title);
   const unitName  = (u: Unit)  => lang === "ar" ? u.title  : (u.titleEn  || u.title);
@@ -167,17 +181,50 @@ export default function SubjectPage() {
         .animate-road { animation: road-draw 0.5s ease-out forwards; }
       `}</style>
 
-      {/* ── Nav ── */}
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center justify-between gap-3">
-        <button onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface border border-border text-text-secondary text-sm hover:text-primary hover:border-primary/40 transition-all">
-          <LayoutDashboard className="w-4 h-4" />
-          {lang === "ar" ? "لوحتي" : "Dashboard"}
-        </button>
-        <div className="text-sm font-bold text-text-primary">
-          {lang === "ar" ? (subject?.nameAr || subject?.nameEn) : (subject?.nameEn || subject?.nameAr)}
+      <Navbar variant="full" />
+
+      {/* ── Subject + Level quick-switcher ── */}
+      <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center gap-3 overflow-x-auto no-scrollbar">
+          {subjects.length > 0 && (
+            <select
+              value={subject?._id ?? ""}
+              onChange={e => {
+                const s = subjects.find(s => s._id === e.target.value);
+                if (s) router.push(`/dashboard/subject/${s.slug}`);
+              }}
+              className="shrink-0 bg-background/60 backdrop-blur-sm border-2 border-border/50 rounded-xl px-3 py-2 text-sm text-text-primary font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              dir="auto"
+            >
+              {subjects.map(s => (
+                <option key={s._id} value={s._id}>
+                  {lang === "ar" ? (s.nameAr || s.nameEn) : (s.nameEn || s.nameAr)}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+            {levels.map((l, i) => (
+              <button
+                key={l._id}
+                onClick={() => {
+                  setExpandedLevel(l._id);
+                  setExpandedUnit(null);
+                  setTimeout(() => {
+                    document.getElementById(`level-${l._id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }, 120);
+                }}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                  expandedLevel === l._id
+                    ? "bg-primary text-white border-primary shadow-sm"
+                    : "bg-surface text-text-muted border-border hover:border-primary/40 hover:text-primary"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="w-20" />
       </div>
 
       <div className="max-w-3xl mx-auto px-4">
@@ -211,7 +258,7 @@ export default function SubjectPage() {
             const colorClass = levelColors[levelIndex % levelColors.length];
 
             return (
-              <div key={level._id} className="w-full flex flex-col items-center">
+              <div key={level._id} id={`level-${level._id}`} className="w-full flex flex-col items-center">
                 {/* Connecting line */}
                 {levelIndex > 0 && (
                   <div className={`w-1 h-12 rounded-full transition-all duration-500 ${

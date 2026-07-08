@@ -27,6 +27,8 @@ import {
   Settings,
   Shield,
   BookMarked,
+  CreditCard,
+  ClipboardList,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getAuthOrRefresh } from "@/lib/auth-client";
@@ -52,6 +54,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/teachers", label: t("admin.teachers"), icon: UserCheck },
     { href: "/admin/groups", label: t("nav.groups"), icon: MessageCircle },
     { href: "/admin/ai", label: t("admin.ai_settings"), icon: Sparkles },
+    {
+      href: "/admin/payments",
+      label: lang === "ar" ? "المدفوعات" : "Payments",
+      icon: CreditCard,
+    },
+    {
+      href: "/admin/exam-results",
+      label: lang === "ar" ? "نتائج الاختبارات" : "Exam Results",
+      icon: ClipboardList,
+    },
     {
       href: "/admin/cms",
       label: lang === "ar" ? "محتوى الموقع" : "Site Content",
@@ -120,7 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const sidebar = (
     <aside
-      className={`flex flex-col bg-[#0B1228]/80 backdrop-blur-xl border-l border-[#22D3EE]/08 shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`flex flex-col bg-[#0B1228]/80 backdrop-blur-xl border-l border-primary/10 shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "w-16" : "w-64"
       } dark:bg-[#0B1228]/80 bg-white/90`}
     >
@@ -150,7 +162,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 return newVal;
               })
             }
-            className={`p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors ${
+              className={`p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors ${
               sidebarCollapsed ? "mx-auto" : "mr-auto"
             }`}
             title={
@@ -175,7 +187,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             sidebarCollapsed ? "max-h-0 opacity-0" : "max-h-8 opacity-100"
           }`}
         >
-          <p className="text-xs text-text-muted mt-0.5 mr-auto whitespace-nowrap">
+          <p className="text-xs text-text-secondary mt-0.5 mr-auto whitespace-nowrap">
             {t("admin.title")}
           </p>
         </div>
@@ -193,14 +205,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               title={sidebarCollapsed ? tooltip : undefined}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/20 shadow-sm shadow-[#22D3EE]/10"
-                  : "text-text-muted hover:text-[#22D3EE] hover:bg-[#22D3EE]/05"
+                  ? "bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/10"
+                  : "text-text-secondary hover:text-primary hover:bg-primary/5"
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
               <span
-                className={`truncate transition-all duration-300 ease-in-out overflow-hidden ${
-                  sidebarCollapsed ? "max-w-0 opacity-0" : "max-w-40 opacity-100"
+                className={`truncate transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ${
+                  sidebarCollapsed ? "max-w-0 opacity-0 w-0" : "max-w-[160px] opacity-100"
                 }`}
               >
                 {item.label}
@@ -212,7 +224,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="p-4 border-t border-border flex flex-col gap-2">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 text-sm text-text-muted hover:text-primary transition-colors group"
+          className="flex items-center gap-2 text-sm text-text-secondary hover:text-primary transition-colors group"
           title={
             sidebarCollapsed
               ? lang === "ar"
@@ -236,7 +248,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Link>
         <button
           onClick={() => setLogoutConfirm(true)}
-          className="flex items-center gap-2 text-sm text-text-muted hover:text-danger transition-colors group"
+          className="flex items-center gap-2 text-sm text-text-secondary hover:text-danger transition-colors group"
           title={
             sidebarCollapsed
               ? lang === "ar"

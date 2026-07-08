@@ -47,17 +47,25 @@ export async function callGemini(
     ],
   };
 
-  const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+  const url = `${GEMINI_API_BASE}/${model}:generateContent`;
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const errText = await response.text();
     console.error("Gemini API error:", errText);
-    throw new Error("فشل الاتصال بالذكاء الاصطناعي، حاول مرة أخرى");
+    let apiMsg = "فشل الاتصال بالذكاء الاصطناعي، حاول مرة أخرى";
+    try {
+      const errData = JSON.parse(errText);
+      if (errData?.error?.message) apiMsg = errData.error.message;
+    } catch {}
+    throw new Error(apiMsg);
   }
 
   const data = await response.json();
@@ -83,5 +91,6 @@ export async function callGemini(
 export const AVAILABLE_MODELS = [
   { id: "gemini-2.0-flash-lite", name: "Gemini 2.0 Flash Lite" },
   { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
   { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
 ] as const;
