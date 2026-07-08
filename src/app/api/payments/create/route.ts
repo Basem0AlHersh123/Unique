@@ -24,7 +24,7 @@ function signPayload(orderId: string, amount: number, appId: string): string {
 export async function POST(req: NextRequest) {
   const authResult = requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
-  const { userId } = authResult;
+  const { userId } = authResult.payload;
 
   try {
     const body = await req.json();
