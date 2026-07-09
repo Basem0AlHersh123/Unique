@@ -1,0 +1,856 @@
+[
+  {
+    "question": "I usually ______ for 6 hours a day, but I ______ for 8 hours yesterday.",
+    "options": [
+      "work / worked",
+      "works / worked",
+      "worked / worked",
+      "work / work"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "We use 'usually + present simple' for habits and 'past simple' for specific past actions with 'yesterday'."
+  },
+  {
+    "question": "A: ______ you usually work for 8 hours a day? B: Yes, I ______. But last week I ______ for 8 hours a day.",
+    "options": [
+      "Do / do / didn't work",
+      "Do / did / didn't worked",
+      "Did / did / don't work",
+      "Do / did / don't work"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Do' is used for present simple questions. 'Didn't work' is correct — never 'didn't worked' (double past marker)."
+  },
+  {
+    "question": "Water ______ at a temperature of zero degrees Celsius.",
+    "options": [
+      "have frozen",
+      "freezing",
+      "freeze",
+      "freezes"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Scientific facts use present simple with the third person singular -s."
+  },
+  {
+    "question": "My friend ______ playing video games.",
+    "options": [
+      "enjoying",
+      "enjoys",
+      "is enjoying",
+      "enjoy"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Enjoy' is a stative-like verb; present simple 'enjoys' is correct for a general habit."
+  },
+  {
+    "question": "I ______ TV yesterday evening.",
+    "options": [
+      "saw",
+      "looked",
+      "viewed",
+      "watched"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Watch TV' is the correct colocation. 'See' is for movies at the cinema. 'Look' needs a direction. 'View' is formal/written."
+  },
+  {
+    "question": "The police ______ me yesterday night when I was going home.",
+    "options": [
+      "stop",
+      "stopped",
+      "stopping",
+      "to stop"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Yesterday night' signals past simple — 'stopped'."
+  },
+  {
+    "question": "They could not figure out when the explosion ______ last night.",
+    "options": [
+      "happen",
+      "happened",
+      "would happen",
+      "has happened"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Last night' is a specific past time marker — past simple 'happened'."
+  },
+  {
+    "question": "When ______ you ______?",
+    "options": [
+      "was / born",
+      "did / born",
+      "were / born",
+      "are / born"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Born' is always used with 'be': 'When were you born?' — passive structure."
+  },
+  {
+    "question": "I ______ Microsoft Access for many years.",
+    "options": [
+      "haven't use",
+      "am used",
+      "am being using",
+      "have used"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'For many years' with a result in the present = present perfect. 'have used' is correct."
+  },
+  {
+    "question": "Have you been learning English ______ 2006?",
+    "options": [
+      "since",
+      "for",
+      "from",
+      "in"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Since' is used with a specific point in time (2006). 'For' is used with a duration (three years)."
+  },
+  {
+    "question": "I've been living here ______ 2006.",
+    "options": [
+      "for",
+      "since",
+      "ago",
+      "in"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "2006 is a specific point in time, so 'since' is correct."
+  },
+  {
+    "question": "I have been studying English ______ three years.",
+    "options": [
+      "for",
+      "since",
+      "ago",
+      "before"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Three years' is a duration/period, so 'for' is correct."
+  },
+  {
+    "question": "When I ______ home, Ann ______ just left to the airport.",
+    "options": [
+      "arrive / had",
+      "arrived / had",
+      "arrive / has",
+      "am arriving / has"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Ann left before the speaker arrived. The earlier action uses past perfect 'had left'."
+  },
+  {
+    "question": "How long ______ a prince before he ______?",
+    "options": [
+      "had he been / was crowned",
+      "was he being / was being crowned",
+      "he had been / was crowned",
+      "has he been / is crowned"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Past perfect continuous + simple past: 'had he been [a prince]' before 'was crowned'."
+  },
+  {
+    "question": "_____ I opened the door and looked outside, I noticed that it _____ heavily.",
+    "options": [
+      "so / has been raining",
+      "since / has been raining",
+      "once / had been raining",
+      "once / has been raining"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Once' = as soon as. The rain was happening before the noticing = past perfect continuous 'had been raining'."
+  },
+  {
+    "question": "Someday man ______ to Mars.",
+    "options": [
+      "will travel",
+      "will travels",
+      "travel",
+      "will travelling"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "After 'will', always use the base form of the verb. 'will travel' is correct."
+  },
+  {
+    "question": "Come tomorrow morning, I ______ the wall.",
+    "options": [
+      "will painted",
+      "will be painting",
+      "am painting",
+      "have painted"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Tomorrow morning' + an action in progress = future continuous 'will be painting'."
+  },
+  {
+    "question": "Don't keep hiding that from your parents. It's high time ______ them.",
+    "options": [
+      "tell",
+      "you told",
+      "you tell",
+      "telling"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'It's high time' is always followed by past simple (subjunctive): 'It's high time you told them'."
+  },
+  {
+    "question": "______ you help me carry these bags upstairs please?",
+    "options": [
+      "Could",
+      "Will",
+      "Should",
+      "May"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Could you...' is the most polite form for requests. Both 'Could' and 'Can' are correct, but 'Could' is more polite."
+  },
+  {
+    "question": "Do you mind if I ______ this computer?",
+    "options": [
+      "operating",
+      "operate",
+      "operates",
+      "didn't operate"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Do you mind if I...' is followed by the base form (present simple): 'operate'."
+  },
+  {
+    "question": "Do you mind if I open the window? B: ______.",
+    "options": [
+      "I would rather you didn't",
+      "I would rather you don't",
+      "I would rather you won't",
+      "I would rather you do"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Would rather' for preference about someone else's action = 'I would rather you + past simple (didn't)'."
+  },
+  {
+    "question": "If it rains, we ______ stay at home.",
+    "options": [
+      "will",
+      "would",
+      "had",
+      "did"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "First conditional (real future possibility): If + present simple → will + base verb."
+  },
+  {
+    "question": "If I ______ rich, I would buy a beautiful house.",
+    "options": [
+      "am",
+      "was",
+      "were",
+      "are"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Second conditional (unreal): If + were (for all persons) → would. 'If I were' is grammatically correct."
+  },
+  {
+    "question": "If she helps you, I ______ give her some money.",
+    "options": [
+      "will",
+      "might",
+      "would",
+      "could"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "First conditional: present simple in if-clause → 'will' in main clause."
+  },
+  {
+    "question": "What will the alarm system do if someone ______ into a smart house?",
+    "options": [
+      "breaking",
+      "broke into",
+      "breaks",
+      "have broken into"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "First conditional: if + present simple ('breaks') → will in main clause."
+  },
+  {
+    "question": "The window ______ by the boy yesterday.",
+    "options": [
+      "breaks",
+      "broke",
+      "was broken",
+      "is broken"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Yesterday' = past. Passive = was + past participle: 'was broken'."
+  },
+  {
+    "question": "Are cars ______ in your country?",
+    "options": [
+      "going to make",
+      "made",
+      "making",
+      "make"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Present simple passive question: 'Are cars made...' = are + past participle."
+  },
+  {
+    "question": "The flight ______ so we could not go to Cairo.",
+    "options": [
+      "Was landed",
+      "Was taken off",
+      "Was delayed",
+      "Was delighted"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Delayed' = postponed/late. The flight was delayed — passive voice, past simple."
+  },
+  {
+    "question": "The university computers ______ by the computer center technicians.",
+    "options": [
+      "serviced",
+      "are serviced",
+      "are serving",
+      "have serviced"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Present simple passive (routine): 'are serviced' = are + past participle."
+  },
+  {
+    "question": "Ali fixed his machine. This machine ______.",
+    "options": [
+      "can be fixed",
+      "could be fixed",
+      "was fixed",
+      "can fixed"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Ali fixed it = past action. Passive restatement: 'was fixed'."
+  },
+  {
+    "question": "He stopped ______ golf because of the rain.",
+    "options": [
+      "playing",
+      "plays",
+      "played",
+      "had played"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Stop + -ing' means to quit doing something. 'Stop to play' would mean he stopped in order to play."
+  },
+  {
+    "question": "I considered ______ to Italy.",
+    "options": [
+      "travelling",
+      "travel",
+      "to travelling",
+      "none of above"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Consider' is always followed by -ing: 'considered travelling'."
+  },
+  {
+    "question": "I really prefer doing anything ______ watching TV.",
+    "options": [
+      "to",
+      "for",
+      "on",
+      "with"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Prefer + -ing + to + -ing': 'prefer doing... to watching'. NOT 'than'."
+  },
+  {
+    "question": "Stop fighting ______ and solve your problems like adults.",
+    "options": [
+      "one another",
+      "yourselves",
+      "each others",
+      "each another"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'One another' = reciprocal (between people). 'Each other's' has an apostrophe+s for possession. 'Each another' doesn't exist."
+  },
+  {
+    "question": "There is ______ milk in the bottle.",
+    "options": [
+      "little",
+      "few",
+      "fewer",
+      "many"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Milk' is uncountable → use 'little' (not 'few'). 'Few' is for countable nouns."
+  },
+  {
+    "question": "I tried two stores for the shoes I wanted, but ______ had them.",
+    "options": [
+      "Both of them",
+      "Neither of them",
+      "Either of them",
+      "Both of it"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Neither' = not one AND not the other (negative meaning without 'not'). 'Either' with negative verb would also work but isn't an option here."
+  },
+  {
+    "question": "Where can I find the shop ______ sells flowers?",
+    "options": [
+      "who",
+      "that",
+      "where",
+      "when"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'That' or 'which' refers to things. 'Who' refers to people. 'Where' refers to places."
+  },
+  {
+    "question": "Her job isn't interesting, so she is always ______.",
+    "options": [
+      "bored",
+      "boring",
+      "all of them",
+      "none of them"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Bored' = how a person feels. 'Boring' = describes the thing causing the feeling."
+  },
+  {
+    "question": "He is ______, that's why I don't like to look at him.",
+    "options": [
+      "fright",
+      "frightened",
+      "frightening",
+      "frightens"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Frightening' = the person causes fear in others. 'Frightened' = the person feels scared."
+  },
+  {
+    "question": "He drives too ______.",
+    "options": [
+      "fastly",
+      "fast",
+      "faster",
+      "fastest"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Fast' is both adjective AND adverb. 'Fastly' does not exist in English."
+  },
+  {
+    "question": "Learning a new language is ______ than learning to drive.",
+    "options": [
+      "difficult",
+      "more difficult",
+      "most difficult",
+      "as difficult as"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Comparison between two things = comparative: 'more difficult than'."
+  },
+  {
+    "question": "This is the ______ book I've ever read.",
+    "options": [
+      "interesting",
+      "more interesting",
+      "most interesting",
+      "as interesting as"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'The most interesting' = superlative. Used when comparing within a group (I've ever read)."
+  },
+  {
+    "question": "This is by far the ______ vacation I've ever been on.",
+    "options": [
+      "craziest",
+      "crazy",
+      "craziness",
+      "more crazy"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'By far the + superlative': 'craziest' = superlative of 'crazy' (y → iest)."
+  },
+  {
+    "question": "We can't go to the cinema ______ we don't have enough money.",
+    "options": [
+      "because",
+      "because of",
+      "although",
+      "so"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Because' + clause (subject + verb). 'Because of' + noun/noun phrase."
+  },
+  {
+    "question": "He went to work ______ his illness.",
+    "options": [
+      "because",
+      "because of",
+      "in spite of",
+      "although"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'In spite of' + noun = contrast despite difficulty. 'Although' needs a full clause."
+  },
+  {
+    "question": "We enjoyed our picnic ______ the rain.",
+    "options": [
+      "even if",
+      "even though",
+      "however",
+      "despite"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Despite' + noun phrase. 'Even though' would need a full clause: 'even though it rained'."
+  },
+  {
+    "question": "______ the freezing weather outside, we left the office.",
+    "options": [
+      "in spite of",
+      "So",
+      "Because",
+      "Because of"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Because of' + noun phrase (the freezing weather) = cause/reason. 'In spite of' would mean contrast."
+  },
+  {
+    "question": "______ I'm having my hair cut, you can do the shopping.",
+    "options": [
+      "When",
+      "While",
+      "As soon as",
+      "If"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'While' = during the time that (two actions happening simultaneously). Hair cutting is an ongoing action."
+  },
+  {
+    "question": "She died ______ a car crash.",
+    "options": [
+      "at",
+      "for",
+      "in",
+      "on"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Die in an accident/crash' is a fixed collocation. Always 'in' with crash/accident."
+  },
+  {
+    "question": "The keys are ______ the table.",
+    "options": [
+      "in",
+      "on",
+      "at",
+      "under"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'On the table' = surface contact. 'In' = enclosed space. 'At' = general location/point."
+  },
+  {
+    "question": "She is married ______ a doctor.",
+    "options": [
+      "with",
+      "to",
+      "at",
+      "by"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Married to' is the fixed collocation in English. Arabic speakers often say 'married with' (interference from 'متزوجة من')."
+  },
+  {
+    "question": "During my study time, I came ______ this beautiful poem.",
+    "options": [
+      "past",
+      "over",
+      "onto",
+      "upon"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Come upon' = to find/discover something by chance. 'Come across' also means this but isn't an option."
+  },
+  {
+    "question": "They ______ the photograph yesterday.",
+    "options": [
+      "came up",
+      "came into",
+      "came after",
+      "came across"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Come across' = to find unexpectedly. 'Came up' = arose. 'Came into' = inherited."
+  },
+  {
+    "question": "What do you recommend? Well! First of all, ______ fatty food.",
+    "options": [
+      "cut down on",
+      "cut up",
+      "cut back",
+      "cut in"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Cut down on' = reduce the amount of something. The others have different meanings."
+  },
+  {
+    "question": "I like tea, ______ I don't like coffee.",
+    "options": [
+      "and",
+      "but",
+      "or",
+      "because"
+    ],
+    "correctAnswer": 1,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'But' shows contrast. 'And' adds similar information. 'Or' gives alternatives."
+  },
+  {
+    "question": "Will you please write about football ______ tennis?",
+    "options": [
+      "in front of",
+      "in spite of",
+      "instead of",
+      "into"
+    ],
+    "correctAnswer": 2,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Instead of' = in place of / as a substitute. The other options don't fit the meaning."
+  },
+  {
+    "question": "She would like a ______ in teaching.",
+    "options": [
+      "career",
+      "professional",
+      "working",
+      "work"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Career in teaching' = a long-term professional path. 'Work in teaching' is also possible but 'career' fits 'would like a...' better."
+  },
+  {
+    "question": "This private school was so awful that we wrote a letter of ______ to the Head office.",
+    "options": [
+      "relief",
+      "warning",
+      "thanks",
+      "complaint"
+    ],
+    "correctAnswer": 3,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "If something is 'awful', you write a letter of 'complaint'. The other options contradict the context."
+  },
+  {
+    "question": "It is ______ in here now. Shall I switch the AC on?",
+    "options": [
+      "boiling",
+      "warming",
+      "freezing",
+      "cooling"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "Switching AC ON means it's hot. 'Boiling' = very hot. 'Freezing' = very cold (would need a heater)."
+  },
+  {
+    "question": "She needs a ______ to send this letter.",
+    "options": [
+      "stamp",
+      "file",
+      "booth",
+      "package"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "To send a letter you need a 'stamp'. The others don't collocate with 'sending a letter'."
+  },
+  {
+    "question": "The meaning of 'suitably' is ______.",
+    "options": [
+      "appropriately",
+      "moderately",
+      "willing",
+      "a"
+    ],
+    "correctAnswer": 0,
+    "subjectId": "6a3e132e7310f2f6b6a94667",
+    "unitId": "6a3e156b7310f2f6b6a9466a",
+    "difficulty": "easy",
+    "explanation": "'Suitably' = in a way that is right or appropriate for the situation."
+  }
+]
