@@ -132,9 +132,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const sidebar = (
     <aside
-      className={`flex flex-col bg-[#0B1228]/80 backdrop-blur-xl border-l border-primary/10 shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`flex flex-col dark:bg-[#0d0a30]/90 bg-white/95 backdrop-blur-xl dark:border-r dark:border-[#6C63FF]/15 border-r border-border shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? "w-16" : "w-64"
-      } dark:bg-[#0B1228]/80 bg-white/90`}
+      }`}
     >
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">

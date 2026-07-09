@@ -143,7 +143,7 @@ export function Navbar({ variant = "full", showBack }: NavbarProps) {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 glass border-b border-border/20 px-3 sm:px-6 py-3 shrink-0">
+      <nav className="sticky top-0 z-50 dark:bg-[#0a0720]/90 bg-white/85 backdrop-blur-xl border-b dark:border-[#6C63FF]/15 border-border/30 px-3 sm:px-6 py-3 shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           {/* Left: Brand + Back */}
           <div className="flex items-center gap-2 min-w-0">

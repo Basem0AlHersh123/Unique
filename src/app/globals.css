@@ -61,11 +61,11 @@
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
 
-  /* ── Background: Deep midnight navy ── */
-  --color-background: #070A16;
-  --color-surface: #0C101E;
-  --color-surface-hover: #121828;
-  --color-border: rgba(34, 211, 238, 0.08);
+  /* ── Background: Deep purple atmosphere ── */
+  --color-background: #0a0720;
+  --color-surface: #13103a;
+  --color-border: rgba(108, 99, 255, 0.15);
+  --color-surface-hover: #1a1650;
 
   /* ── Text: Three clear brightness levels ── */
   --color-text-primary: #E8EDF5;
@@ -115,16 +115,11 @@
    ============================================================ */
 body {
   background:
-    /* Edge vignette — deepens toward the corners */
-    radial-gradient(ellipse 90% 85% at 50% 50%, transparent 25%, rgba(2, 4, 12, 0.45) 100%),
-    /* Teal ambient from bottom edge — barely perceptible warmth */
-    radial-gradient(ellipse 160% 35% at 50% 100%, rgba(34, 211, 238, 0.012) 0%, transparent 65%),
-    /* Indigo ambient from upper-right */
-    radial-gradient(ellipse 140% 90% at 100% 0%, rgba(109, 94, 248, 0.025) 0%, transparent 70%),
-    /* Cyan ambient from upper-left — primary light source */
-    radial-gradient(ellipse 150% 90% at 0% 0%, rgba(34, 211, 238, 0.030) 0%, transparent 72%),
-    /* Deep indigo fill from center */
-    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(79, 124, 255, 0.018) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 85% at 50% 50%, transparent 25%, rgba(2, 1, 15, 0.5) 100%),
+    radial-gradient(ellipse 160% 35% at 50% 100%, rgba(34, 211, 238, 0.010) 0%, transparent 65%),
+    radial-gradient(ellipse 140% 90% at 100% 0%, rgba(108, 99, 255, 0.030) 0%, transparent 70%),
+    radial-gradient(ellipse 150% 90% at 0% 0%, rgba(34, 211, 238, 0.022) 0%, transparent 72%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(108, 99, 255, 0.018) 0%, transparent 55%),
     var(--color-background);
 
   color: var(--color-text-primary);
@@ -194,13 +189,13 @@ html {
    The blur is subtle — just enough to hint at translucency.
    ============================================================ */
 .glass {
-  background: rgba(16, 22, 42, 0.85);
+  background: rgba(19, 16, 58, 0.88);
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(34, 211, 238, 0.10);
+  border: 1px solid rgba(108, 99, 255, 0.18);
   box-shadow:
-    0 4px 32px rgba(0, 0, 0, 0.35),
-    inset 0 1px rgba(255, 255, 255, 0.02);
+    0 4px 32px rgba(0, 0, 0, 0.40),
+    inset 0 1px rgba(255, 255, 255, 0.025);
 }
 
 :root .glass {
@@ -249,7 +244,7 @@ html {
 
 .surface-hover:hover {
   background: var(--color-surface-hover);
-  border-color: rgba(34, 211, 238, 0.12);
+  border-color: rgba(108, 99, 255, 0.15);
   transform: translateY(-1px);
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.025),
@@ -325,10 +320,7 @@ html {
    Static gradient — motion draws attention away from content.
    ============================================================ */
 .gradient-text {
-  background: linear-gradient(135deg,
-      #22D3EE,
-      #4F7CFF,
-      #6D5EF8);
+  background: linear-gradient(135deg, #22D3EE, #6C63FF, #A78BFA);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

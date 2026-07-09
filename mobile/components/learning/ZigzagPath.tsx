@@ -223,9 +223,9 @@ function NodeConnectors({ nodes }: { nodes: ZigzagNode[] }) {
       pointerEvents="none"
     >
       <Defs>
-        <LinearGradient id="doneGrad" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0%" stopColor="#22C55E" stopOpacity="0.8" />
-          <Stop offset="100%" stopColor="#6C63FF" stopOpacity="0.8" />
+        <LinearGradient id="doneGrad" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0%" stopColor="#22D3EE" stopOpacity="0.9" />
+          <Stop offset="100%" stopColor="#6C63FF" stopOpacity="0.9" />
         </LinearGradient>
       </Defs>
       {paths.map((p, i) => (
@@ -233,10 +233,11 @@ function NodeConnectors({ nodes }: { nodes: ZigzagNode[] }) {
           key={i}
           d={p.d}
           stroke={p.done ? "url(#doneGrad)" : "#2d1f6e"}
-          strokeWidth={3}
-          strokeDasharray={p.done ? undefined : "6 4"}
+          strokeWidth={p.done ? 5 : 4}
+          strokeDasharray={p.done ? undefined : "8 5"}
           fill="none"
           strokeLinecap="round"
+          opacity={p.done ? 1 : 0.7}
         />
       ))}
     </Svg>
@@ -298,17 +299,27 @@ export default function ZigzagPath({
         ? unitStartY + UNIT_HEADER_OFFSET
         : nodes[nodes.length - 1].y + VERTICAL_STEP;
 
+      const previousUnitsAllDone = units
+        .slice(0, unitIdx)
+        .every((prevUnit) => {
+          const prevCompletedIds = new Set(
+            prevUnit.progress.filter((p) => p.watchedVideo && p.passedQuiz).map((p) => p.lessonId)
+          );
+          return prevUnit.lessons.every((l) => prevCompletedIds.has(l._id));
+        });
+
       let status: NodeStatus = "locked";
       if (completedIds.has(lesson._id)) {
         status = "done";
-      } else {
-        const prevDone = lIdx === 0 || completedIds.has(unit.lessons[lIdx - 1]._id);
-        const noPriorUnlocked = nodes.every(
-          (n) => n.status === "done" || n.unitId !== unit._id
-        );
-        if (prevDone || noPriorUnlocked) {
+      } else if (lIdx === 0) {
+        if (unitIdx === 0 || previousUnitsAllDone) {
           const globalHasCurrent = nodes.some((n) => n.status === "current");
-          if (!globalHasCurrent) status = "current";
+          status = !globalHasCurrent ? "current" : "locked";
+        }
+      } else {
+        if (completedIds.has(unit.lessons[lIdx - 1]._id)) {
+          const globalHasCurrent = nodes.some((n) => n.status === "current");
+          status = !globalHasCurrent ? "current" : "locked";
         }
       }
 
@@ -335,13 +346,13 @@ export default function ZigzagPath({
         ? nodes[nodes.length - 1].y + VERTICAL_STEP
         : UNIT_HEADER_OFFSET;
 
-      const allDone = unit.lessons.length > 0 && unit.lessons.every((l) => completedIds.has(l._id));
-      const globalHasCurrent = nodes.some((n) => n.status === "current");
+      const examAllDone = unit.lessons.length > 0 && unit.lessons.every((l) => completedIds.has(l._id));
+      const examGlobalHasCurrent = nodes.some((n) => n.status === "current");
 
       nodes.push({
         id: `exam-${unit._id}`,
         title: lang === "ar" ? "اختبار الوحدة" : "Unit Exam",
-        status: allDone ? "current" : !globalHasCurrent ? "current" : "locked",
+        status: examAllDone ? (examGlobalHasCurrent ? "locked" : "current") : "locked",
         x,
         y,
         isExam: true,
@@ -411,26 +422,27 @@ const zs = StyleSheet.create({
   },
   unitBanner: {
     position: "absolute",
-    left: 16,
-    right: 16,
+    left: 12,
+    right: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(15, 10, 46, 0.85)",
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    backgroundColor: "rgba(19, 16, 58, 0.92)",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   unitBannerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   unitBannerText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: "#e2e8f0",
     flex: 1,
+    letterSpacing: 0.3,
   },
 });
