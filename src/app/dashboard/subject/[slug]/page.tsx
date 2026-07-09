@@ -148,9 +148,9 @@ export default function SubjectPage() {
   const unitName  = (u: Unit)  => lang === "ar" ? u.title  : (u.titleEn  || u.title);
 
   const levelColors = [
-    "from-[#19D3C5] to-[#22D3EE]",
-    "from-[#39C4FF] to-[#4F7CFF]",
-    "from-[#6A63FF] to-[#A855F7]",
+    "from-[#A78BFA] to-[#8B7FFF]",
+    "from-[#6C63FF] to-[#4C3F9E]",
+    "from-[#7C6FFF] to-[#EC4899]",
     "from-[#F59E0B] to-[#F97316]",
     "from-[#22C55E] to-[#10B981]",
     "from-[#EC4899] to-[#F43F5E]",
@@ -289,7 +289,7 @@ export default function SubjectPage() {
                       <circle cx="70" cy="70" r="62" fill="none" stroke="currentColor"
                         strokeWidth="5" className="text-border opacity-30" />
                       <circle cx="70" cy="70" r="62" fill="none"
-                        stroke={completed ? "#22C55E" : "#22D3EE"}
+                        stroke={completed ? "#22C55E" : "#6C63FF"}
                         strokeWidth="5" strokeLinecap="round"
                         strokeDasharray={`${2 * Math.PI * 62}`}
                         strokeDashoffset={`${2 * Math.PI * 62 * (1 - levelPct / 100)}`}
@@ -420,7 +420,7 @@ export default function SubjectPage() {
                                   <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor"
                                     strokeWidth="3" className="text-border opacity-30" />
                                   <circle cx="50" cy="50" r="44" fill="none"
-                                    stroke={completedUnit ? "#22C55E" : "#22D3EE"}
+                                    stroke={completedUnit ? "#22C55E" : "#6C63FF"}
                                     strokeWidth="3" strokeLinecap="round"
                                     strokeDasharray={`${2 * Math.PI * 44}`}
                                     strokeDashoffset={`${2 * Math.PI * 44 * (1 - pct / 100)}`}
@@ -569,7 +569,7 @@ export default function SubjectPage() {
           {levels.length > 0 && (
             <div className="flex flex-col items-center mt-6 gap-2">
               <div className="w-1 h-10 bg-gradient-to-b from-primary/20 to-transparent rounded-full" />
-              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-[#19D3C5] via-[#39C4FF] to-[#6A63FF] flex items-center justify-center shadow-2xl shadow-primary/30">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-[#A78BFA] via-[#6C63FF] to-[#4C3F9E] flex items-center justify-center shadow-2xl shadow-primary/30">
                 <Trophy className="w-7 h-7 text-white" />
               </div>
               <p className="text-sm font-bold text-primary mt-1">

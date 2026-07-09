@@ -236,7 +236,7 @@ export default function QuizPage() {
               </Button>
               {passed && result.nextLesson && (
                 <Link href={`/dashboard/topic/${result.nextLesson.slug}/quiz`}>
-                  <Button className="bg-gradient-to-r from-[#19D3C5] via-[#39C4FF] to-[#6A63FF] text-white hover:brightness-110 hover:scale-105 transition-all">
+                  <Button className="bg-gradient-to-r from-[#A78BFA] via-[#6C63FF] to-[#4C3F9E] text-white hover:brightness-110 hover:scale-105 transition-all">
                     {lang === "ar" ? "الدرس التالي ←" : "Next Lesson →"}
                   </Button>
                 </Link>

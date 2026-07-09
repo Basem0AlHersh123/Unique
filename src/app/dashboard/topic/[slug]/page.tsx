@@ -339,7 +339,7 @@ export default function TopicDetailPage() {
                   : "Watch the video and study the lesson before starting the quiz"}
               </p>
               <Link href={`/dashboard/topic/${slug}/quiz`}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#19D3C5] via-[#39C4FF] to-[#6A63FF] text-white font-bold text-sm shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:brightness-110 hover:scale-105 transition-all duration-300">
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#A78BFA] via-[#6C63FF] to-[#4C3F9E] text-white font-bold text-sm shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:brightness-110 hover:scale-105 transition-all duration-300">
                 <ClipboardCheck className="w-4 h-4" />
                 {lang === "ar" ? "ابدأ الاختبار" : "Start Quiz"}
               </Link>

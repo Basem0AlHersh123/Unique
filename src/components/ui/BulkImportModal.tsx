@@ -144,11 +144,11 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-4xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <div className="w-full max-w-4xl bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-bold text-text-primary">
                   {lang === "ar" ? `استيراد جماعي: ${entityLabel}` : `Bulk Import: ${entityLabel}`}
                 </h3>
                 <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
@@ -157,14 +157,14 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
               </div>
               <button
                 onClick={handleClose}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-text-secondary">
                 {lang === "ar"
                   ? "الصق مصفوفة JSON من العناصر لإنشائها دفعة واحدة. مثال:"
                   : "Paste a JSON array of items to create them in one batch. Example:"}
@@ -175,7 +175,7 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
                 onChange={(e) => { setRaw(e.target.value); setParsedItems(null); setParseError(null); setResult(null); }}
                 placeholder={`[\n${exampleJson}\n]`}
                 rows={6}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white font-mono text-sm outline-none focus:border-primary transition-all duration-300 resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-surface-hover border-2 border-border text-text-primary font-mono text-sm outline-none focus:border-primary transition-all duration-300 resize-none"
                 spellCheck={false}
               />
 
@@ -189,7 +189,7 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
               {parsedItems && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <p className="text-sm font-medium text-text-secondary">
                       {lang === "ar"
                         ? `✅ تم تحليل ${parsedItems.length} عنصر${parsedItems.length !== 1 ? "ًا" : ""}`
                         : `✅ Parsed ${parsedItems.length} item${parsedItems.length !== 1 ? "s" : ""}`}
@@ -209,34 +209,34 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
                     </div>
                   )}
 
-                  <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <div className="border border-border rounded-xl overflow-hidden">
                     <div className="max-h-60 overflow-y-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
+                        <thead className="bg-surface-hover">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 w-10">#</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-text-secondary w-10">#</th>
                             {fields.slice(0, 4).map((f) => (
-                              <th key={f.name} className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                              <th key={f.name} className="px-3 py-2 text-left text-xs font-medium text-text-secondary">
                                 {f.label}
                               </th>
                             ))}
-                            <th className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 w-8"></th>
+                            <th className="px-3 py-2 text-xs font-medium text-text-secondary w-8"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <tbody className="divide-y divide-border">
                           {parsedItems.map((item, i) => (
                             <>
-                              <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                <td className="px-3 py-2 text-gray-400 text-xs">{i + 1}</td>
+                              <tr key={i} className="hover:bg-surface-hover/50">
+                                <td className="px-3 py-2 text-text-muted text-xs">{i + 1}</td>
                                 {fields.slice(0, 4).map((f) => (
-                                  <td key={f.name} className="px-3 py-2 text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
+                                  <td key={f.name} className="px-3 py-2 text-text-secondary truncate max-w-[200px]">
                                     {renderCellValue(item[f.name])}
                                   </td>
                                 ))}
                                 <td className="px-3 py-2">
                                   <button
                                     onClick={() => setExpandedRow(expandedRow === i ? null : i)}
-                                    className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    className="p-1 rounded text-text-muted hover:text-text-primary"
                                   >
                                     {expandedRow === i ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                   </button>
@@ -244,8 +244,8 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
                               </tr>
                               {expandedRow === i && (
                                 <tr key={`${i}-exp`}>
-                                  <td colSpan={6} className="px-4 py-2 bg-gray-50/50 dark:bg-gray-800/30">
-                                    <pre className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono max-h-32 overflow-y-auto">
+                                  <td colSpan={6} className="px-4 py-2 bg-surface-hover/50">
+                                    <pre className="text-xs text-text-secondary whitespace-pre-wrap font-mono max-h-32 overflow-y-auto">
                                       {JSON.stringify(item, null, 2)}
                                     </pre>
                                   </td>
@@ -283,10 +283,10 @@ export default function BulkImportModal({ apiEndpoint, fields, entityLabel, onSu
               )}
             </div>
 
-            <div className="flex justify-between gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 shrink-0">
+            <div className="flex justify-between gap-3 px-6 py-4 border-t border-border shrink-0">
               <button
                 onClick={handleClose}
-                className="px-5 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                className="px-5 py-2.5 rounded-xl border-2 border-border text-text-secondary text-sm font-medium hover:bg-surface-hover transition-all"
               >
                 {lang === "ar" ? "إغلاق" : "Close"}
               </button>

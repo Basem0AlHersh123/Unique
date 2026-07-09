@@ -98,24 +98,24 @@ export default function JsonImport({ fields, onFill, entityLabel }: JsonImportPr
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-scale-in">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="w-full max-w-2xl bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden animate-scale-in">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-bold text-text-primary">
                   {lang === "ar" ? `استيراد ${entityLabel} من JSON` : `Import ${entityLabel} from JSON`}
                 </h3>
               </div>
               <button
                 onClick={handleClose}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-text-secondary">
                 {lang === "ar"
                   ? "الصق كائن JSON واحد لتعبئة حقول النموذج. سيتم تمييز الحقول المطلوبة الناقصة."
                   : "Paste a single JSON object to fill the form fields. Missing required fields will be highlighted."}
@@ -123,10 +123,10 @@ export default function JsonImport({ fields, onFill, entityLabel }: JsonImportPr
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-text-secondary">
                     {lang === "ar" ? "JSON" : "JSON"}
                   </label>
-                  <span className="text-xs text-gray-400 font-mono">
+                  <span className="text-xs text-text-muted font-mono">
                     {lang === "ar" ? "مثال" : "Example"}:
                   </span>
                 </div>
@@ -135,7 +135,7 @@ export default function JsonImport({ fields, onFill, entityLabel }: JsonImportPr
                   onChange={(e) => { setRaw(e.target.value); setResult(null); setParseError(null); }}
                   placeholder={exampleJson}
                   rows={8}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white font-mono text-sm outline-none focus:border-primary transition-all duration-300 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-surface-hover border-2 border-border text-text-primary font-mono text-sm outline-none focus:border-primary transition-all duration-300 resize-none"
                   spellCheck={false}
                 />
               </div>
@@ -151,7 +151,7 @@ export default function JsonImport({ fields, onFill, entityLabel }: JsonImportPr
                 <div className="space-y-2 px-4 py-3 rounded-xl bg-success/5 border border-success/20">
                   {result.filled.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 w-full mb-0.5">
+                      <span className="text-xs font-medium text-text-secondary w-full mb-0.5">
                         {lang === "ar" ? "✓ تم تعبئة:" : "✓ Filled:"}
                       </span>
                       {result.filled.map((f) => (
@@ -164,7 +164,7 @@ export default function JsonImport({ fields, onFill, entityLabel }: JsonImportPr
                   )}
                   {result.missing.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 w-full mb-0.5">
+                      <span className="text-xs font-medium text-text-secondary w-full mb-0.5">
                         {lang === "ar" ? "⚠ حقول مطلوبة ناقصة:" : "⚠ Missing required:"}
                       </span>
                       {result.missing.map((f) => (
@@ -195,7 +195,7 @@ export default function JsonImport({ fields, onFill, entityLabel }: JsonImportPr
                   )}
                   <button
                     onClick={handleClose}
-                    className="px-5 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                    className="px-5 py-2.5 rounded-xl border-2 border-border text-text-secondary text-sm font-medium hover:bg-surface-hover transition-all"
                   >
                     {lang === "ar" ? "إلغاء" : "Cancel"}
                   </button>
