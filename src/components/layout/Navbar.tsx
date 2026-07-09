@@ -49,7 +49,7 @@ function NavLink({
       className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
         active
           ? "bg-primary/15 text-primary"
-          : "text-text-muted hover:text-primary hover:bg-primary/8"
+          : "text-text-secondary hover:text-primary hover:bg-primary/8"
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
@@ -78,7 +78,7 @@ function NavLinkPrimary({
       className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 ${
         active
           ? "bg-primary text-white shadow-lg shadow-primary/20"
-          : "bg-primary/10 text-primary hover:bg-primary hover:text-white"
+          : "bg-primary/10 text-text-secondary hover:text-white hover:bg-primary"
       }`}
     >
       <Icon className="w-5 h-5 shrink-0" />
@@ -236,7 +236,7 @@ export function Navbar({ variant = "full", showBack }: NavbarProps) {
               <button
                 onClick={handleLogout}
                 title={t("nav.logout")}
-                className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-all duration-200"
+                className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-text-secondary hover:text-danger hover:bg-danger/10 transition-all duration-200"
               >
                 <LogOut className="w-5 h-5 shrink-0" />
                 <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">
